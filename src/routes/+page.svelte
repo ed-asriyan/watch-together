@@ -1,107 +1,107 @@
 <script lang="ts">
+    import { goto } from '$app/navigation'
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
+    import { v4 as uuidv4 } from 'uuid';
     import VideoView from './video-view.svelte';
-    import { url, time, paused } from '../room';
-    import { database } from '../firebase';
-    import { ref, set, onValue, get, child, update } from "firebase/database";
-    import { get as getStore } from 'svelte/store';
-
-    const timeDeltaThresholdInward = 1;
-    const timeDeltaThresholdOutward = 5;
+    import Loader from './loader.svelte';
+    import { RemoteRoom } from '../remote-room';
+    import { LocalRoom } from '../local-room';
 
     let roomId = $page.url.hash?.slice(1);
     if (!roomId) {
-        roomId = 'rest';
+        roomId = uuidv4();
         if (browser) {
-            window.location.hash = `#${roomId}`;
+            goto(`#${roomId}`);
         }
     }
+    roomId = roomId.toLocaleLowerCase();
 
-    let lastTime = getStore(time);
-    let initLoading = true;
-    (async function () {
-        const roomRef = child(ref(database), `room/${roomId}`);
-        const initSnapshot = await get(roomRef);
-        if (initSnapshot.exists()) {
-            const initRoom = initSnapshot.val();
-            url.set(initRoom.url);
-            time.set(initRoom.time);
-            paused.set(initRoom.paused);
+    $: remoteRoom = new RemoteRoom(roomId);
+    let isLoading = true;
+    $: remoteRoom.load().finally(() => isLoading = false);
+    $: localRoom = new LocalRoom(remoteRoom);
+
+    const copyToClipboard = function (text: string) {
+        const input = document.createElement('input');
+        input.setAttribute('value', text);
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+    }
+
+    const copyUrl = function () {
+        copyToClipboard($page.url.href);
+    };
+
+    $: isUrlValid = (() => {
+        try {
+            const url = new URL($localRoom.url);
+            return url.protocol === "http:" || url.protocol === "https:";
+        } catch {
+            return false;
         }
-
-        initLoading = false;
-
-        onValue(roomRef, (snapshot) => {
-            const room = snapshot.val();
-            url.set(room.url);
-            paused.set(room.paused);
-            
-            if (Math.abs(room.time - $time) > timeDeltaThresholdInward) {
-                lastTime = room.time;
-                time.set(room.time);
-            }
-        });
-
-        paused.subscribe((paused) => {
-            update(roomRef, { paused });
-        });
-
-        url.subscribe((url) => {
-            update(roomRef, { url });
-        });
-
-        time.subscribe((time) => {
-            if (Math.abs(lastTime - time) > timeDeltaThresholdOutward) {
-                lastTime = time;
-                update(roomRef, { time });
-            }
-        });
-    }());
-
-
+    })();
 </script>
 
 <svelte:head>
     <title>Movie Together</title>
 </svelte:head>
 
-
-
-{#if initLoading}
-    loading
-{:else}
-    <div class="container uk-flex">
-        <div class="content uk-flex uk-flex-column uk-flex-center uk-flex-middle">
-            <div class="title uk-text-left">
-                <h1 class="uk-heading-large">Movie Together</h1>
-                <hr class="uk-divider-icon">
+<div class="uk-section uk-section-muted uk-section-small">
+    <div class="uk-container">
+        <div class="title uk-margin-top">
+            <h1 class="uk-text-center uk-heading-medium">Watch Movies Together</h1>
+            <hr class="uk-divider-icon">
+        </div>
+        {#if isLoading}
+            <Loader/>
+        {:else}
+            <div class="uk-container uk-container-small">
+                <h3>1. Select a video</h3>
+                <div class="uk-margin">
+                    Past <u>direct</u> link to a video. It will play simultaneously for everyone in the room.
+                </div>
+                <input
+                    bind:value={$localRoom.url}
+                    class="uk-input"
+                    class:uk-form-danger={$localRoom.url && !isUrlValid}
+                    placeholder="Video URL"
+                />
+                <div class="uk-text-muted uk-text-small uk-margin-small">Please note that HLS (.m3u8) works in Safari only</div>
             </div>
-            <input bind:value={$url} class="uk-input" placeholder="Video URL" />
-            {#if $url}
-                <VideoView bind:paused={$paused} bind:time={$time} bind:url={$url}/>
+        {/if}
+    </div>
+</div>
+{#if !isLoading}
+    <div class="uk-section uk-section-primary uk-section-small">
+        <div class="uk-container uk-container-small">
+            <h3>2. Share the link to this room with anyone you want to watch a movie with</h3>
+
+            <div class="uk-text-center uk-margin-top">
+                <input style="width: 100%;" class="pointer uk-button uk-button-link uk-text-lowercase" uk-tooltip="Click to copy" on:click={copyUrl} value={$page.url} readonly/>
+                <div class="uk-text-muted uk-text-small">Click the link to copy it to the clipboard.</div>
+            </div>
+        </div>
+    </div>
+    <div class="uk-section uk-section-secondary uk-light uk-section-small">
+        <div class="uk-container uk-container-small">
+            <h3>3. Watch the movie together!</h3>
+            <div class="uk-margin">
+                Playback, time, and video scrolling are synchronized with everyone who has the page open.
+            </div>
+            {#if isUrlValid}
+                <VideoView bind:paused={$localRoom.paused} bind:time={$localRoom.time} bind:url={$localRoom.url}/>
+            {:else}
+                <VideoView url="stub to see video element"/>
             {/if}
         </div>
     </div>
 {/if}
 
 <style lang="scss">
-        $title-height: 5rem;
-
-:global(html, body) {
-    margin: 0;
-    padding: 0;
-    overflow-y: scroll;
-    min-height: 100hv;
-}
-
-.container {
-    min-height: 100vh;
-    padding: 0 1rem;
-    background-color: hsl(0, 0%, 96%);
-
-    & .content {
-        flex: 1;
+    .pointer {
+        cursor: pointer;
     }
-}
 </style>

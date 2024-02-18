@@ -2,6 +2,10 @@
     export let url: string;
     export let time: number;
     export let paused: boolean;
+
+    const onLoaded = function (this: HTMLVideoElement) {
+        this.currentTime = time;
+    }
 </script>
 
 <video
@@ -9,10 +13,12 @@
     src={url}
     controls
     crossOrigin="anonymous"
+    on:loadeddata={onLoaded}
     bind:currentTime={time}
     bind:paused={paused}
     preload="metadata"
     autoplay
+    playsInline
 ></video>
 
 <style>

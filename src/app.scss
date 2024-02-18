@@ -11,6 +11,7 @@ $global-link-color: #DA7D02;
 // 4. Import UIkit.
 @import "uikit/src/scss/uikit-theme.scss";
 
-.uk-button-default {
-    background-color: white !important;
+body {
+    height: 100vh;
+    background-color: rgba(248, 248, 248, 1);
 }
