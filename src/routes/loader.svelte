@@ -1,8 +1,4 @@
-<script lang="ts">
-    import { fade } from 'svelte/transition';
-</script>
-
-<div class="container" transition:fade>
+<div class="container">
     <div class="lds-hourglass"></div>
     <div><slot/></div>
 </div>

@@ -1,7 +1,6 @@
 <script lang="ts">
     export let videoUri: string;
-
-    let fileName: string;
+    export let fileName: string;
 
     let input: HTMLInputElement;
 
@@ -14,7 +13,7 @@
 
 <input bind:this={input} type="file" on:change={e => loadSource(e.target.files[0])}/>
 <button on:click={() => input.click()} class="uk-button uk-button-default">
-    {#if fileName}
+    {#if videoUri}
         Click to select another video
     {:else}
         Click to select video file

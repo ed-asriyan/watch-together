@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { fade } from 'svelte/transition';
     import { goto } from '$app/navigation'
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
@@ -23,6 +24,7 @@
     $: remoteRoom.load().finally(() => isLoading = false);
     $: localRoom = new LocalRoom(remoteRoom);
     let blobUrl: string;
+    let fileName: string;
 
     $: playUrl = $localRoom?.isLocalMode ? blobUrl : $localRoom?.url;
 
@@ -64,9 +66,11 @@
                 <hr class="uk-divider-icon">
             </div>
             {#if isLoading}
-                <Loader/>
+                <div class="uk-text-center loader" transition:fade>
+                    <Loader/>
+                </div>
             {:else}
-                <div class="uk-container uk-container-small">
+                <div class="uk-container uk-container-small" transition:fade>
                     <h3>1. Select a video</h3>
                     <ul class="uk-subnav uk-subnav-pill " uk-switcher>
                         <li class:uk-active={!$localRoom.isLocalMode}>
@@ -81,7 +85,7 @@
                     <div class="uk-margin">
                         You all downloaded a movie already!? Well done! Everyone should select the same video file, please.
                     </div>
-                        <VideoSelector bind:videoUri={blobUrl}/>
+                        <VideoSelector bind:videoUri={blobUrl} bind:fileName={fileName}/>
                     {:else}
                     <div class="uk-margin">
                         Insert a link to YouTube, Vimeo, HLS playlist, video or audio file. The input is synchronized with everyone in the room.
@@ -99,13 +103,13 @@
         </div>
     </div>
     {#if !isLoading}
-        <div class="uk-section uk-section-primary uk-section-small">
+        <div class="uk-section uk-section-primary uk-section-small" transition:fade>
             <div class="uk-container uk-container-small">
                 <h3>2. Share the link to this room with anyone you want to watch a movie with</h3>
 
                 <div class="uk-text-center uk-margin-top">
                     <input style="width: 100%;" class="pointer uk-button uk-button-link uk-text-lowercase" uk-tooltip="Click to copy" on:click={copyUrl} value={$page.url} readonly/>
-                    <div class="uk-text-muted uk-text-small">Click the link to copy it to the clipboard.</div>
+                    <div class="uk-text-muted uk-text-small">Click the link to copy it to the clipboard</div>
                 </div>
             </div>
         </div>
@@ -139,5 +143,9 @@
 
     .stub {
         margin-top: 15rem;
+    }
+
+    .loader {
+        height: 0;
     }
 </style>
