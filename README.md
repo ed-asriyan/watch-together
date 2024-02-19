@@ -30,8 +30,10 @@ To setup/deploy new version of the app, you should:
       }
       ```
    4. Add domain where you're going to host the website to "Authorized Domains" section of "Authentication"
-2. Install node.js v18 or newer
-3. Install npm dependencies:
+2. Setup Google Analytics (should be created with Firebase)
+   1. Copy Google Analytics cofiguration to [google-analytics.js](./src/google-analytics.js)
+3. Install node.js v18 or newer
+4. Install npm dependencies:
    ```console
    npm ci
    ```
