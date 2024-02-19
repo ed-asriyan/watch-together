@@ -17,20 +17,19 @@
 
     let player: MediaPlayerElement;
 
-    let isLoaded = false;
-    const onLoaded = function (this: HTMLVideoElement) {
-        player.currentTime = time;
-        isLoaded = true;
-    };
+    let isMounted = false;
 
-    $: isLoaded && (player.currentTime = time);
-    $: isLoaded && (player.paused = paused);
+    $: isMounted && (player.currentTime = time);
+    $: isMounted && (player.paused = paused);
 
     onMount(() => {
         player.subscribe(options => {
             paused = options.paused;
             time = options.currentTime;
         });
+        player.currentTime = time;
+        player.paused = paused;
+        isMounted = true;
     });
 </script>
 
@@ -42,7 +41,6 @@
     preload="metadata"
     crossOrigin
     muted
-    on:loaded-metadata={onLoaded}
 >
     <media-provider>
     </media-provider>
