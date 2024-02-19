@@ -19,7 +19,7 @@ export class LocalRoom implements Writable<RemoteRoomRaw> {
                 if (!newTime || Math.abs(newRemoteRoom.time - newTime) > maximumDelta) {
                     newTime = newRemoteRoom.time;
                 }
-                set({ url: newRemoteRoom.url, paused: newRemoteRoom.paused, time: newTime });
+                set({ ...newRemoteRoom, time: newTime });
             });
         });
     }
@@ -34,6 +34,7 @@ export class LocalRoom implements Writable<RemoteRoomRaw> {
         const remoteValue = getStore(this.remoteRoom);
 
         if (
+            remoteValue.isLocalMode !== newValue.isLocalMode ||
             remoteValue.paused !== newValue.paused ||
             remoteValue.url !== newValue.url ||
             Math.abs(getStore(this.remoteRoom).time - val.time) > syncInterval

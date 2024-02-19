@@ -1,0 +1,31 @@
+<script lang="ts">
+    export let videoUri: string;
+
+    let fileName: string;
+
+    let input: HTMLInputElement;
+
+    const loadSource = async function (file: any): Promise<void> {
+        console.log(file);
+        videoUri = window.URL.createObjectURL(file) as string;
+        fileName = file.name;
+    };
+</script>
+
+<input bind:this={input} type="file" on:change={e => loadSource(e.target.files[0])}/>
+<button on:click={() => input.click()} class="uk-button uk-button-default">
+    {#if fileName}
+        Click to select another video
+    {:else}
+        Click to select video file
+    {/if}
+</button>
+{#if fileName}
+    <span class="uk-margin-left">{fileName}</span>
+{/if}
+
+<style lang="scss">
+    input {
+        display: none;
+    }
+</style>

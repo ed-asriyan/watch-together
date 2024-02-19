@@ -5,6 +5,7 @@
     import { v4 as uuidv4 } from 'uuid';
     import VideoView from './video-view.svelte';
     import Loader from './loader.svelte';
+    import VideoSelector from './video-selector.svelte';
     import { RemoteRoom } from '../remote-room';
     import { LocalRoom } from '../local-room';
 
@@ -21,6 +22,9 @@
     let isLoading = true;
     $: remoteRoom.load().finally(() => isLoading = false);
     $: localRoom = new LocalRoom(remoteRoom);
+    let blobUrl: string;
+
+    $: playUrl = $localRoom?.isLocalMode ? blobUrl : $localRoom?.url;
 
     const copyToClipboard = function (text: string) {
         const input = document.createElement('input');
@@ -29,13 +33,16 @@
         input.select();
         document.execCommand('copy');
         document.body.removeChild(input);
-    }
+    };
 
     const copyUrl = function () {
         copyToClipboard($page.url.href);
     };
 
     $: isUrlValid = (() => {
+        if ($localRoom?.isLocalMode) {
+            return blobUrl;
+        }
         try {
             const url = new URL($localRoom.url);
             return url.protocol === "http:" || url.protocol === "https:";
@@ -61,6 +68,21 @@
             {:else}
                 <div class="uk-container uk-container-small">
                     <h3>1. Select a video</h3>
+                    <ul class="uk-subnav uk-subnav-pill " uk-switcher>
+                        <li class:uk-active={!$localRoom.isLocalMode}>
+                            <a on:click={() => $localRoom.isLocalMode = false}>Online link</a>
+                        </li>
+                        <li class:uk-active={$localRoom.isLocalMode}>
+                            <a on:click={() => $localRoom.isLocalMode = true}>Local file</a>
+                        </li>
+                    </ul>
+
+                    {#if $localRoom.isLocalMode}
+                    <div class="uk-margin">
+                        You all downloaded a movie already!? Well done! Everyone should select the same video file, please.
+                    </div>
+                        <VideoSelector bind:videoUri={blobUrl}/>
+                    {:else}
                     <div class="uk-margin">
                         Insert a link to YouTube, Vimeo, HLS playlist, video or audio file. The input is synchronized with everyone in the room.
                     </div>
@@ -69,7 +91,9 @@
                         class="uk-input"
                         class:uk-form-danger={$localRoom.url && !isUrlValid}
                         placeholder="Video URL"
+                        disabled={$localRoom.isLocalMode}
                     />
+                    {/if}
                 </div>
             {/if}
         </div>
@@ -91,9 +115,15 @@
                 <div class="uk-margin">
                     Playback, time, and video scrolling are synchronized with everyone who has the page open.
                 </div>
-                {#if isUrlValid}
-                    <VideoView bind:paused={$localRoom.paused} bind:time={$localRoom.time} bind:url={$localRoom.url}/>
-                {/if}
+                <div class="uk-text-center">
+                    {#if isUrlValid}
+                        <VideoView bind:paused={$localRoom.paused} bind:time={$localRoom.time} url={playUrl}/>
+                    {:else}
+                        <div class="stub uk-text-small">
+                            Video player will appear here when you insert a link or select a video
+                        </div>
+                    {/if}
+                </div>
             </div>
         </div>
     {/if}
@@ -105,5 +135,9 @@
 
     .window-height {
         min-height: 100vh;
+    }
+
+    .stub {
+        margin-top: 15rem;
     }
 </style>

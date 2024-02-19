@@ -6,6 +6,7 @@ export interface RemoteRoomRaw {
     url: string;
     time: number;
     paused: boolean;
+    isLocalMode: boolean;
 }
 
 export class RemoteRoom implements Writable<RemoteRoomRaw> {
@@ -31,6 +32,7 @@ export class RemoteRoom implements Writable<RemoteRoomRaw> {
                 url: '',
                 paused: true,
                 time: 0,
+                isLocalMode: false,
             };
         }
         this.store.set(initRoom);

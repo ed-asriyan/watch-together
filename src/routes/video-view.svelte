@@ -22,6 +22,12 @@
     $: isMounted && (player.currentTime = time);
     $: isMounted && (player.paused = paused);
 
+    $: isBlob = url.startsWith('blob:');
+
+    const onLoaded = function (this: HTMLVideoElement) {
+        this.currentTime = time;
+    };
+
     onMount(() => {
         player.subscribe(options => {
             paused = options.paused;
@@ -33,18 +39,34 @@
     });
 </script>
 
-<media-player
-    bind:this={player}
-    src={url}
-    autoplay
-    playsInline
-    preload="metadata"
-    crossOrigin
-    muted
->
-    <media-provider>
-    </media-provider>
-    <!-- Layouts -->
-    <media-audio-layout />
-    <media-video-layout />
-</media-player>
+{#if isBlob}
+    <video
+        src={url}
+        autoplay
+        playsInline
+        preload="metadata"
+        crossOrigin="anonymous"
+        bind:paused={paused}
+        bind:currentTime={time}
+        on:loadeddata={onLoaded}
+        muted
+        controls
+    >
+    </video>
+{/if}
+    <media-player
+        class:uk-invisible={isBlob}
+        bind:this={player}
+        src={url}
+        autoplay
+        playsInline
+        preload="metadata"
+        crossOrigin
+        muted
+    >
+        <media-provider>
+        </media-provider>
+        <!-- Layouts -->
+        <media-audio-layout />
+        <media-video-layout />
+    </media-player>
