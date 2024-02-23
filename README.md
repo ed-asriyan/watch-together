@@ -2,7 +2,7 @@
 Web application built on Svelte.js and Firebase for whatching movies together on different devices.
 
 <h3 align="center">
-    <a href="https://ed-asriyan.github.io/movie-together">👉 Live demo 👈</a>
+    <a href="https://watchtogether.online">👉 watchtogether.online 👈</a>
 </h3>
 
 https://github.com/ed-asriyan/movie-together/assets/7848847/08522a1e-31d5-4138-9150-c4574321536a

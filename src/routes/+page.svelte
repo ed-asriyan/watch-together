@@ -55,39 +55,39 @@
 </script>
 
 <svelte:head>
-    <title>Movie Together</title>
+    <title>{$localRoom?.name || 'Watch Together'}</title>
 </svelte:head>
 
-<div class="uk-flex uk-flex-column window-height">
-    <div class="uk-section uk-section-muted uk-section-small">
-        <div class="uk-container">
-            <div class="title uk-margin-top">
-                <h1 class="uk-text-center uk-heading-medium">Watch Movies Together</h1>
-                <hr class="uk-divider-icon">
-            </div>
-            {#if isLoading}
-                <div class="uk-text-center loader" transition:fade>
-                    <Loader/>
-                </div>
-            {:else}
-                <div class="uk-container uk-container-small" transition:fade>
+{#if isLoading}
+    <div class="uk-text-center loader" transition:fade>
+        <Loader/>
+    </div>
+{:else}
+    <div class="uk-flex uk-flex-column">
+        <div class="uk-section uk-section-muted uk-section-small" transition:fade>
+            <div class="uk-container">
+                <h1 class="uk-text-center uk-heading-medium uk-text-bold title uk-margin-top" contenteditable="true" bind:innerHTML={$localRoom.name}></h1>
+                <div class="uk-text-center uk-text-muted" style="margin-top: -30px">Watch movies together anytime, anywhere</div>
+            <hr style="border-color: black" class="uk-margin" />
+                <div class="uk-container uk-container-small">
                     <h3>1. Select a video</h3>
-                    <ul class="uk-subnav uk-subnav-pill " uk-switcher>
-                        <li class:uk-active={!$localRoom.isLocalMode}>
-                            <a on:click={() => $localRoom.isLocalMode = false}>Online link</a>
-                        </li>
-                        <li class:uk-active={$localRoom.isLocalMode}>
-                            <a on:click={() => $localRoom.isLocalMode = true}>Local file</a>
-                        </li>
-                    </ul>
-
+                        <ul class="uk-subnav uk-subnav-pill" uk-switcher>
+                            <span>Select movie source:</span>
+                            <li class:uk-active={!$localRoom.isLocalMode}>
+                                <a on:click={() => $localRoom.isLocalMode = false} class="uk-button-default">Online link</a>
+                            </li>
+                            <span>or</span>
+                            <li class:uk-active={$localRoom.isLocalMode}>
+                                <a on:click={() => $localRoom.isLocalMode = true} class="uk-button-default">Local file</a>
+                            </li>
+                        </ul>
                     {#if $localRoom.isLocalMode}
-                    <div class="uk-margin">
+                    <div class="uk-margin-bottom">
                         You all downloaded a movie already!? Well done! Everyone should select the same video file, please.
                     </div>
                         <VideoSelector bind:videoUri={blobUrl} bind:fileName={fileName}/>
                     {:else}
-                    <div class="uk-margin">
+                    <div class="uk-margin-bottom">
                         Insert a link to YouTube, Vimeo, HLS playlist, video or audio file. The input is synchronized with everyone in the room.
                     </div>
                     <input
@@ -99,13 +99,11 @@
                     />
                     {/if}
                 </div>
-            {/if}
+            </div>
         </div>
-    </div>
-    {#if !isLoading}
         <div class="uk-section uk-section-primary uk-section-small" transition:fade>
             <div class="uk-container uk-container-small">
-                <h3>2. Share the link to this room with anyone you want to watch a movie with</h3>
+                <h3>2. Share the link to this room with who you want to watch a movie with</h3>
 
                 <div class="uk-text-center uk-margin-top">
                     <input style="width: 100%;" class="pointer uk-button uk-button-link uk-text-lowercase" uk-tooltip="Click to copy" on:click={copyUrl} value={$page.url} readonly/>
@@ -113,7 +111,7 @@
                 </div>
             </div>
         </div>
-        <div class="uk-section uk-section-secondary uk-light uk-section-small uk-flex-1">
+        <div class="uk-section uk-section-secondary uk-section-small uk-flex-1 watch">
             <div class="uk-container uk-container-small">
                 <h3>3. Watch the movie together!</h3>
                 <div class="uk-margin">
@@ -127,25 +125,70 @@
                             Video player will appear here when you insert a link or select a video
                         </div>
                     {/if}
+                    <div class="uk-text-small uk-text-muted uk-margin-top">
+                        <span>Powered by</span>
+                        · <a class="uk-text-muted" href="https://svelte.dev" target="_blank">Svelte</a>
+                        · <a class="uk-text-muted" href="http://firebase.google.com" target="_blank">Firebase</a>
+                        · <a class="uk-text-muted" href="http://vidstack.io" target="_blank">Vidstack</a>
+                        · <a class="uk-text-muted" href="https://getuikit.com" target="_blank">UIkit</a>
+                    </div>
                 </div>
             </div>
         </div>
-    {/if}
-</div>
+    </div>
+{/if}
+
 <style lang="scss">
+    $purple-color: rgba(255, 0, 0, 0.015);
+    $purple-color: rgba(255, 0, 0, 0.015);
+    $red-color: #f0731e;
+
+    h1 {
+        font-family: Academy Engraved LET;
+    }
+
     .pointer {
         cursor: pointer;
     }
 
-    .window-height {
-        min-height: 100vh;
-    }
-
     .stub {
-        margin-top: 15rem;
+        line-height: 20rem;
+        vertical-align: center;
     }
 
     .loader {
-        height: 0;
+        position: absolute;
+        height: 100vh;
+        width: 100vw;
+        display: grid;             
+        place-items: center;
+    }
+
+    .watch {
+        height: 100vh;
+    }
+
+    .uk-subnav-pill > .uk-active > a {
+        background-color: $red-color;
+    }
+
+    .uk-input:focus, .uk-select:focus, .uk-textarea:focus {
+        border-color: $red-color;
+    }
+
+    .uk-section-primary {
+        background-color: $red-color;
+    }
+
+    :global(body), .uk-section-muted {
+        background-color: $purple-color;
+    }
+
+    h1:hover {
+        color: gray;
+    }
+
+    h1:active {
+        color: black;
     }
 </style>

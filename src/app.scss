@@ -11,7 +11,7 @@ $global-link-color: #DA7D02;
 // 4. Import UIkit.
 @import "uikit/src/scss/uikit-theme.scss";
 
-body {
-    height: 100vh;
-    background-color: rgba(248, 248, 248, 1);
+// https://github.com/vidstack/player/issues/1123#issuecomment-1956544215
+iframe.vds-youtube[data-no-controls] {
+    height: 100% !important;
 }

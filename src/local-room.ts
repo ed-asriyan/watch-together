@@ -34,6 +34,7 @@ export class LocalRoom implements Writable<RemoteRoomRaw> {
         const remoteValue = getStore(this.remoteRoom);
 
         if (
+            remoteValue.name !== newValue.name ||
             remoteValue.isLocalMode !== newValue.isLocalMode ||
             remoteValue.paused !== newValue.paused ||
             remoteValue.url !== newValue.url ||

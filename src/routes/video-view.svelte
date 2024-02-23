@@ -54,19 +54,20 @@
     >
     </video>
 {/if}
-    <media-player
-        class:uk-invisible={isBlob}
-        bind:this={player}
-        src={url}
-        autoplay
-        playsInline
-        preload="metadata"
-        crossOrigin
-        muted
-    >
-        <media-provider>
-        </media-provider>
-        <!-- Layouts -->
-        <media-audio-layout />
-        <media-video-layout />
-    </media-player>
+
+<media-player
+    class:uk-invisible={isBlob}
+    bind:this={player}
+    src={url}
+    autoplay
+    playsInline
+    preload="metadata"
+    crossOrigin
+    muted
+>
+    <media-provider>
+    </media-provider>
+    <!-- Layouts -->
+    <media-audio-layout />
+    <media-video-layout />
+</media-player>
