@@ -41,6 +41,7 @@
 
 {#if isBlob}
     <video
+        class="player"
         src={url}
         autoplay
         playsInline
@@ -56,6 +57,7 @@
 {/if}
 
 <media-player
+    class="player"
     class:uk-invisible={isBlob}
     bind:this={player}
     src={url}
@@ -71,3 +73,13 @@
     <media-audio-layout />
     <media-video-layout />
 </media-player>
+
+<style lang="scss">
+    .player {
+        width: 100vw;
+        height: 100vh;
+        max-height: 70vh; 
+        max-width: 80vw;
+        min-height: 20rem;
+    }
+</style>
