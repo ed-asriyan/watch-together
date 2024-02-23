@@ -10,6 +10,7 @@
     import { RemoteRoom } from '../remote-room';
     import { LocalRoom } from '../local-room';
     import normalizeLink from './normalize-link';
+    import videoExample from '../video-example';
 
     let roomId = $page.url.hash?.slice(1);
     if (!roomId) {
@@ -66,7 +67,7 @@
                         </li>
                         <span>or</span>
                         <li class:uk-active={$localRoom.isLocalMode}>
-                            <a on:click={() => $localRoom.isLocalMode = true} class="uk-button-default">Local file</a>
+                            <a on:click={() => $localRoom.isLocalMode = true} class="uk-button-default">File on computer</a>
                         </li>
                     </ul>
                 {#if $localRoom.isLocalMode}
@@ -78,12 +79,20 @@
                 <div class="uk-margin-bottom">
                     Insert a link to YouTube, Vimeo, HLS playlist, video or audio file. The input is synchronized with everyone in the room.
                 </div>
-                <input
-                    bind:value={$localRoom.url}
-                    class="uk-input"
-                    class:uk-form-danger={!playUrl}
-                    placeholder="Video URL"
-                />
+                <div class="uk-inline uk-width-1-1">
+                    <a
+                        class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto pointer"
+                        on:click={() => $localRoom.url = videoExample()}
+                    >
+                        paste random example
+                    </a>
+                    <input
+                        bind:value={$localRoom.url}
+                        class="uk-input"
+                        class:uk-form-danger={!playUrl}
+                        placeholder="Video URL"
+                    />
+                </div>
                 {/if}
             </div>
         </div>
