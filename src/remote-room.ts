@@ -45,7 +45,7 @@ export class RemoteRoom implements Writable<RemoteRoomRaw> {
     }
 
     set (data: Partial<RemoteRoomRaw>) {
-        return update(this.roomRef, { ...data, timestamp: new Date().toString() });
+        return update(this.roomRef, { ...data, timestamp: Math.round(new Date().getTime() / 1000) });
     }
 
     update (func: Updater<RemoteRoomRaw>) {
