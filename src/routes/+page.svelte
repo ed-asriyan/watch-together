@@ -9,6 +9,7 @@
     import VideoSelector from './video-selector.svelte';
     import { RemoteRoom } from '../remote-room';
     import { LocalRoom } from '../local-room';
+    import normalizeLink from './normalize-link';
 
     let roomId = $page.url.hash?.slice(1);
     if (!roomId) {
@@ -26,7 +27,7 @@
     let blobUrl: string;
     let fileName: string;
 
-    $: playUrl = $localRoom?.isLocalMode ? blobUrl : $localRoom?.url;
+    $: playUrl = $localRoom?.isLocalMode ? blobUrl : normalizeLink($localRoom?.url);
 
     const copyToClipboard = function (text: string) {
         const input = document.createElement('input');
@@ -40,18 +41,6 @@
     const copyUrl = function () {
         copyToClipboard($page.url.href);
     };
-
-    $: isUrlValid = (() => {
-        if ($localRoom?.isLocalMode) {
-            return blobUrl;
-        }
-        try {
-            const url = new URL($localRoom.url);
-            return url.protocol === "http:" || url.protocol === "https:";
-        } catch {
-            return false;
-        }
-    })();
 </script>
 
 <svelte:head>
@@ -93,9 +82,8 @@
                     <input
                         bind:value={$localRoom.url}
                         class="uk-input"
-                        class:uk-form-danger={$localRoom.url && !isUrlValid}
+                        class:uk-form-danger={!playUrl}
                         placeholder="Video URL"
-                        disabled={$localRoom.isLocalMode}
                     />
                     {/if}
                 </div>
@@ -118,7 +106,7 @@
                     Playback, time, and video scrolling are synchronized with everyone who has the page open.
                 </div>
                 <div class="uk-text-center">
-                    {#if isUrlValid}
+                    {#if playUrl}
                         <VideoView bind:paused={$localRoom.paused} bind:time={$localRoom.time} url={playUrl}/>
                     {:else}
                         <div class="stub uk-text-small">
