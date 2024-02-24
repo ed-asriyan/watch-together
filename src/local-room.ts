@@ -38,7 +38,7 @@ export class LocalRoom implements Writable<RemoteRoomRaw> {
             remoteValue.isLocalMode !== newValue.isLocalMode ||
             remoteValue.paused !== newValue.paused ||
             remoteValue.url !== newValue.url ||
-            Math.abs(getStore(this.remoteRoom).time - val.time) > syncInterval
+            Math.abs(remoteValue.time - val.time) > syncInterval
         ) {
             this.remoteRoom.set(newValue);
         }

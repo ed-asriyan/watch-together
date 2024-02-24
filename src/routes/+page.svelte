@@ -4,6 +4,7 @@
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
     import { v4 as uuidv4 } from 'uuid';
+    import { trackClick } from '../google-analytics';
     import VideoView from './video-view.svelte';
     import Loader from './loader.svelte';
     import VideoSelector from './video-selector.svelte';
@@ -41,6 +42,22 @@
 
     const copyUrl = function () {
         copyToClipboard($page.url.href);
+        trackClick('copy_link');
+    };
+
+    const selectExample = function () {
+        $localRoom.url = videoExample();
+        trackClick('example');
+    };
+
+    const selectOnlineMode = function () {
+        $localRoom.isLocalMode = false;
+        trackClick('select_online_mode');
+    };
+
+    const selectLocalMode = function () {
+        $localRoom.isLocalMode = true;
+        trackClick('select_local_mode');
     };
 </script>
 
@@ -63,11 +80,11 @@
                     <ul class="uk-subnav uk-subnav-pill" uk-switcher>
                         <span>Select movie source:</span>
                         <li class:uk-active={!$localRoom.isLocalMode}>
-                            <a on:click={() => $localRoom.isLocalMode = false} class="uk-button-default">Online link</a>
+                            <a on:click={selectOnlineMode} class="uk-button-default">Online link</a>
                         </li>
                         <span>or</span>
                         <li class:uk-active={$localRoom.isLocalMode}>
-                            <a on:click={() => $localRoom.isLocalMode = true} class="uk-button-default">File on computer</a>
+                            <a on:click={selectLocalMode} class="uk-button-default">File on computer</a>
                         </li>
                     </ul>
                 {#if $localRoom.isLocalMode}
@@ -82,7 +99,7 @@
                 <div class="uk-inline uk-width-1-1">
                     <a
                         class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto pointer"
-                        on:click={() => $localRoom.url = videoExample()}
+                        on:click={selectExample}
                     >
                         paste random example
                     </a>

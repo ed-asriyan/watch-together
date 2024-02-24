@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { trackClick } from '../google-analytics';
+
     export let videoUri: string;
     export let fileName: string;
 
@@ -8,6 +10,7 @@
         console.log(file);
         videoUri = window.URL.createObjectURL(file) as string;
         fileName = file.name;
+        trackClick('file_select');
     };
 </script>
 
