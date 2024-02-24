@@ -12,6 +12,7 @@
     import { LocalRoom } from '../local-room';
     import normalizeLink from './normalize-link';
     import videoExample from '../video-example';
+    import CopyUrl from './copy-url.svelte';
 
     let roomId = $page.url.hash?.slice(1);
     if (!roomId) {
@@ -30,20 +31,6 @@
     let fileName: string;
 
     $: playUrl = $localRoom?.isLocalMode ? blobUrl : normalizeLink($localRoom?.url);
-
-    const copyToClipboard = function (text: string) {
-        const input = document.createElement('input');
-        input.setAttribute('value', text);
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
-    };
-
-    const copyUrl = function () {
-        copyToClipboard($page.url.href);
-        trackClick('copy_link');
-    };
 
     const selectExample = function () {
         $localRoom.url = videoExample();
@@ -116,24 +103,13 @@
     </div>
     <div class="uk-section uk-section-primary uk-section-small" transition:fade>
         <div class="uk-container uk-container-small">
-            <h3>2. Share the link to this room with who you want to watch a movie with</h3>
-
-            <div class="uk-text-center uk-margin-top">
-                <div 
-                    class="pointer uk-button uk-button-link uk-text-lowercase uk-text-center"
-                    uk-tooltip="Click to copy"
-                    on:click={copyUrl}
-                >
-                    {$page.url}
-                </div>
-                <div class="uk-text-muted uk-text-small">Click the link to copy it to the clipboard</div>
-            </div>
+            <CopyUrl />
         </div>
     </div>
-    <div class="uk-section uk-section-secondary uk-section-small window-height uk-flex uk-flex-column ">
-        <div class="uk-container uk-container-small uk-flex-1 uk-flex uk-flex-column">
+    <div class="uk-section uk-section-secondary uk-section-small window-height uk-flex uk-flex-column">
+        <div class="uk-container uk-container-small uk-flex-1 uk-flex uk-flex-column max-width">
             <h3>3. Watch the movie together!</h3>
-            <div class="uk-margin">
+            <div>
                 Playback, time, and video scrolling are synchronized with everyone who has the page open.
             </div>
             <div class="uk-flex-1 uk-flex uk-flex-center uk-flex-column uk-flex-center uk-flex-middle">
@@ -152,11 +128,7 @@
                     · <a class="uk-text-muted" href="http://firebase.google.com" target="_blank">Firebase</a>
                     · <a class="uk-text-muted" href="http://vidstack.io" target="_blank">Vidstack</a>
                     · <a class="uk-text-muted" href="https://getuikit.com" target="_blank">UIkit</a>
-                    <!-- <br/><a class="uk-text-muted" href="https://asriyan.me" target="_blank">Ed Asriyan</a> -->
                 </div>
-                <!-- <div class="uk-margin-top"> -->
-                    <!-- <a class="uk-text-muted" href="https://asriyan.me" target="_blank">Ed Asriyan</a> -->
-                <!-- </div> -->
             </div>
         </div>
     </div>
@@ -191,6 +163,10 @@
         min-width: 100vw;;
     }
 
+    .max-width {
+        width: 100%;
+    }
+
     .uk-subnav-pill > .uk-active > a {
         background-color: $red-color;
     }
@@ -201,6 +177,10 @@
 
     .uk-section-primary {
         background-color: $red-color;
+    }
+
+    .uk-section-secondary {
+        background-color: #0b0b0b;
     }
 
     :global(body), .uk-section-muted {
