@@ -6,6 +6,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
+		"clean-db": "node --experimental-json-modules clean-db.js",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
@@ -22,7 +23,6 @@
 		"tslib": "^2.6.2",
 		"typescript": "^5.3.3",
 		"uikit": "^3.18.3",
-		"uuid": "^9.0.1",
 		"vidstack": "^1.10.3",
 		"vite": "^5.1.3"
 	},

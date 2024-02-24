@@ -3,7 +3,7 @@
     import { goto } from '$app/navigation'
     import { browser } from '$app/environment';
     import { page } from '$app/stores';
-    import { v4 as uuidv4 } from 'uuid';
+    import randomStr from '../random-str';
     import { trackClick } from '../google-analytics';
     import VideoView from './video-view.svelte';
     import Loader from './loader.svelte';
@@ -16,7 +16,7 @@
 
     let roomId = $page.url.hash?.slice(1);
     if (!roomId) {
-        roomId = uuidv4();
+        roomId = randomStr(8);
         if (browser) {
             goto(`#${roomId}`);
         }
