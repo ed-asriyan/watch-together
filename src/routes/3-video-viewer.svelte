@@ -11,11 +11,5 @@
     Playback, time, and video scrolling are synchronized with everyone who has the page open.
 </div>
 <div class="uk-flex-1 uk-flex uk-flex-center uk-flex-column uk-flex-center uk-flex-middle">
-    {#if playUrl}
-        <VideoView bind:paused={$room.paused} bind:time={$room.time} url={playUrl}/>
-    {:else}
-        <div class="uk-text-small uk-flex uk-flex-center uk-flex-column uk-text-break uk-text-center">
-            Video player will appear here when you insert a link or select a video
-        </div>
-    {/if}
+    <VideoView bind:paused={$room.paused} bind:time={$room.time} url={playUrl}/>
 </div>
