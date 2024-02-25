@@ -51,21 +51,22 @@
         Insert a link to YouTube, Vimeo, HLS playlist, video or audio file. The input is synchronized with everyone in the room.
     </div>
     <div class="uk-inline uk-width-1-1">
-        {#if !playUrl}
-            <a
-                class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto pointer"
-                on:click={selectExample}
-                transition:fade
-            >
-                paste random example
-            </a>
-        {/if}
         <input
             bind:value={$room.url}
             class="uk-input"
             class:uk-form-danger={!playUrl}
             placeholder="Video URL"
         />
+        {#if !playUrl}
+            <a
+                class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto example"
+                on:click|preventDefault={selectExample}
+                href="/#"
+                transition:fade
+            >
+                click here to paste random example
+            </a>
+    {/if}
     </div>
 {/if}
 
@@ -74,5 +75,14 @@
     
     .uk-subnav-pill > .uk-active > a {
         background-color: $red-color;
+    }
+
+    .example {
+        cursor: pointer;
+        z-index: 99;
+    }
+
+    .example:hover {
+        text-decoration: underline;
     }
 </style>

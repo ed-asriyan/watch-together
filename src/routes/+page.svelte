@@ -99,10 +99,6 @@
         background-color: $purple-color;
     }
 
-    .pointer {
-        cursor: pointer;
-    }
-
     .loader {
         position: absolute;
         height: 100vh;

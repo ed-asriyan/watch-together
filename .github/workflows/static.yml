@@ -32,6 +32,12 @@ jobs:
           id=$(docker create movie-together)
           docker cp $id:/dist $(pwd)/dist
 
+      - name: Generate the sitemap
+        uses: cicirello/generate-sitemap@v1
+        with:
+          path-to-root: dist
+          base-url-path: https://watchtogether.online
+
       - name: Setup Pages
         uses: actions/configure-pages@v3
 

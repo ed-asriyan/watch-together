@@ -21,7 +21,7 @@
 
 <div class="uk-text-center uk-margin-top">
     <div 
-        class="pointer uk-button uk-button-link uk-text-lowercase uk-text-center"
+        class="uk-button uk-button-link uk-text-lowercase uk-text-center"
         uk-tooltip="Click to copy"
         on:click={copyUrl}
     >
