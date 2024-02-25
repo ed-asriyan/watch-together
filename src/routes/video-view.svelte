@@ -58,7 +58,7 @@
 
 <media-player
     class="player"
-    class:uk-invisible={isBlob}
+    class:uk-hidden={isBlob}
     bind:this={player}
     src={url}
     autoplay
@@ -81,5 +81,8 @@
         max-height: 70vh; 
         max-width: 80vw;
         min-height: 20rem;
+
+        border-radius: 6px;
+        border: 1px solid rgb(255 255 255 / .1);
     }
 </style>
