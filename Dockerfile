@@ -1,4 +1,4 @@
-FROM node:18 as builder
+FROM node:18 as base
 WORKDIR /app
 
 COPY .npmrc .
@@ -13,8 +13,14 @@ COPY vite.config.ts .
 COPY static static
 COPY src src
 
+FROM base as builder
 RUN npm run build
 
-FROM scratch
+FROM base as clean-db
+COPY clean-db.js .
+ENV DIFF 0
+CMD npm run clean-db -- $DIFF
+
+FROM scratch as app
 COPY --from=builder /app/build /dist
 ENTRYPOINT sh

@@ -1,0 +1,30 @@
+name: Delete unused rooms
+
+env:
+  DIFF: 2678400 # 31 day
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1 * *'
+
+concurrency:
+  group: "clean-db"
+
+jobs:
+  clean-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Save service-account-key.json file
+        env:
+          FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+        run: echo "$FIREBASE_SERVICE_ACCOUNT_KEY" >> service-account-key.json
+
+      - name: Build the app
+        run: docker build -t watch-together-cleaner --target clean-db .
+  
+      - name: Run the container
+        run: docker run  -v $PWD/service-account-key.json:/app/service-account-key.json -e DIFF=$DIFF watch-together-cleaner

@@ -1,4 +1,4 @@
-name: Deploy static content to Pages
+name: CD
 
 on:
   push:
@@ -25,11 +25,11 @@ jobs:
         uses: actions/checkout@v4
   
       - name: Build the app
-        run: docker build -t movie-together .
+        run: docker build -t watch-together --target app .
   
       - name: Copy static files
         run: |
-          id=$(docker create movie-together)
+          id=$(docker create watch-together)
           docker cp $id:/dist $(pwd)/dist
 
       - name: Generate the sitemap
