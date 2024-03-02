@@ -23,7 +23,7 @@ export class RemoteRoom implements Writable<RemoteRoomRaw> {
         });
     }
 
-    async load () {
+    async load (): Promise<RemoteRoomRaw> {
         const initSnapshot = await get(this.roomRef);
         let initRoom: RemoteRoomRaw;
         if (initSnapshot.exists()) {
@@ -38,6 +38,7 @@ export class RemoteRoom implements Writable<RemoteRoomRaw> {
             };
         }
         this.store.set(initRoom);
+        return initRoom;
     }
 
     get subscribe () {

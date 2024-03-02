@@ -2,17 +2,10 @@
     import { fade } from 'svelte/transition';
     import { trackClick } from '../google-analytics';
     import videoExample from '../stores/video-example';
-    import normalizeLink from './normalize-link';
     import VideoSelectorBtn from './video-selector-btn.svelte';
     import { LocalRoom } from '../stores/local-room';
 
     export let room: LocalRoom;
-    export let playUrl: string | null;
-
-    let blobUrl: string;
-    let fileName: string;
-
-    $: playUrl = $room?.isLocalMode ? blobUrl : normalizeLink($room?.url);
 
     const selectExample = function () {
         $room.url = videoExample();
@@ -28,6 +21,8 @@
         $room.isLocalMode = true;
         trackClick('select_local_mode');
     };
+
+    $: playUrl = room.playUrl;
 </script>
 
 <h3>1. Select a video</h3>
@@ -45,7 +40,7 @@
     <div class="uk-margin-bottom">
         You all downloaded a movie already!? Well done! Everyone should select the same video file, please.
     </div>
-    <VideoSelectorBtn bind:videoUri={blobUrl} bind:fileName={fileName}/>
+    <VideoSelectorBtn room={room}/>
 {:else}
     <div class="uk-margin-bottom">
         Insert a link to YouTube, Vimeo, HLS playlist, video or audio file. The input is synchronized with everyone in the room.
@@ -54,10 +49,10 @@
         <input
             bind:value={$room.url}
             class="uk-input"
-            class:uk-form-danger={!playUrl}
+            class:uk-form-danger={!$playUrl}
             placeholder="Video URL"
         />
-        {#if !playUrl}
+        {#if !$playUrl}
             <a
                 class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto example"
                 on:click|preventDefault={selectExample}

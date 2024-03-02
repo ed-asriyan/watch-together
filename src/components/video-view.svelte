@@ -77,7 +77,7 @@
 
 {#if !url}
     <div class="player uk-text-small uk-flex uk-flex-center uk-flex-column uk-text-break uk-text-center">
-        Video player will appear here when you insert a link or select a video
+        <slot/>
     </div>
 {/if}
 

@@ -9,19 +9,26 @@
 
     export let roomId: string;
 
+    let localRoom: LocalRoom;
     $: remoteRoom = new RemoteRoom(roomId);
     let isLoading = true;
-    $: remoteRoom.load().finally(() => isLoading = false);
+    $: remoteRoom.load()
+        .then(room => {
+            if (room.isLocalMode || room.url) {
+                setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 10);
+            }
+        })
+        .finally(() => {
+            isLoading = false;
+        });
     $: localRoom = new LocalRoom(remoteRoom);
-
-    let playUrl: string | null;
 </script>
 
 <svelte:head>
     <title>{$localRoom?.name || 'Watch Together'}</title>
 </svelte:head>
 
-{#if isLoading}
+{#if isLoading || !localRoom}
     <div class="uk-text-center loader" transition:fade>
         <Loader/>
     </div>
@@ -32,7 +39,7 @@
             <div class="uk-text-center uk-text-muted" style="margin-top: -30px">Watch movies together anytime, anywhere</div>
         <hr style="border-color: black" class="uk-margin" />
             <div class="uk-container uk-container-small">
-                <VideoSelector room={localRoom} bind:playUrl={playUrl} />
+                <VideoSelector room={localRoom} />
             </div>
         </div>
     </div>
@@ -43,7 +50,7 @@
     </div>
     <div class="uk-section uk-section-secondary uk-section-small window-height uk-flex">
         <div class="uk-container uk-container-small uk-flex-1 uk-flex uk-flex-column">
-            <VideoViewer room={localRoom} playUrl={playUrl} /> 
+            <VideoViewer room={localRoom} /> 
             <div class="uk-text-small uk-text-muted uk-text-center uk-margin-top">
                 <div>
                     <span>Powered by</span>

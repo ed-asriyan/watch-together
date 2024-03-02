@@ -1,6 +1,7 @@
-import { writable, type Writable, type Updater } from 'svelte/store';
+import { writable, type Writable, type Updater, type Readable, readable } from 'svelte/store';
 import { get as getStore } from 'svelte/store';
 import type { RemoteRoom, RemoteRoomRaw } from './remote-room';
+import normalizeLink from '../components/normalize-link';
 
 const maximumDelta = 0.5;
 const syncInterval = 10;
@@ -8,6 +9,9 @@ const syncInterval = 10;
 export class LocalRoom implements Writable<RemoteRoomRaw> {
     private readonly store: Writable<RemoteRoomRaw>;
     private readonly remoteRoom: RemoteRoom;
+    readonly playUrl: Readable<string>;
+    readonly blobUrl: Writable<string | null>;
+    readonly fileName: Writable<string | null>;
 
     constructor (remoteRoom: RemoteRoom) {
         this.remoteRoom = remoteRoom;
@@ -22,6 +26,28 @@ export class LocalRoom implements Writable<RemoteRoomRaw> {
                 set({ ...newRemoteRoom, time: newTime });
             });
         });
+        this.blobUrl = writable<string | null>('');
+        this.playUrl = readable<string>('', set => {
+            const own = this.store.subscribe(newRoom => {
+                if (newRoom?.isLocalMode) {
+                    set(getStore(this.blobUrl) || '');
+                } else {
+                    const link = normalizeLink(newRoom?.url);
+                    link && set(link);
+                }
+            });
+            const blob = this.blobUrl.subscribe(newBlob => {
+                const room = getStore(this.store);
+                if (room?.isLocalMode) {
+                    set(newBlob || '');
+                } else {
+                    const link = normalizeLink(room?.url);
+                    link && set(link);
+                }
+            });
+            return () => [own, blob].forEach(x => x());
+        });
+        this.fileName = writable<string | null>('');
     }
 
     get subscribe () {

@@ -9,12 +9,17 @@
 
     init();
 
-    let roomId = document.location.hash?.slice(1);
+    const getRoomId = function () {
+        return document.location.hash?.slice(1);
+    }
+
+    let roomId = getRoomId();
     if (!roomId) {
-        roomId = randomStr(6);
-        document.location.hash = `#${roomId}`;
+        document.location.hash = `#${randomStr(6)}`;
     }
 </script>
+
+<svelte:window on:hashchange={e => roomId = getRoomId()}></svelte:window>
 
 <svelte:head>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-39LEN0SXX6"></script>
@@ -22,4 +27,6 @@
 
 <GitHub/>
 
-<Page roomId={roomId}/>
+{#if roomId}
+    <Page roomId={roomId}/>
+{/if}
