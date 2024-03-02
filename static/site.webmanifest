@@ -1,0 +1,40 @@
+{
+    "name": "Watch Together",
+    "short_name": "WatchTogether",
+    "icons": [
+        {
+            "src": "/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#0b0b0b",
+    "background_color": "#0b0b0b",
+    "display": "standalone",
+    "start_url":"/",
+    "screenshots": [
+        {
+            "src": "screenshots/1.jpeg",
+            "sizes": "853x1788",
+            "type": "image/jpeg",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "screenshots/2.jpeg",
+            "sizes": "2564x1646",
+            "type": "image/jpeg",
+            "form_factor": "wide"
+        },
+        {
+            "src": "screenshots/3.jpeg",
+            "sizes": "2564x1646",
+            "type": "image/jpeg",
+            "form_factor": "wide"
+        }
+    ]
+}
