@@ -1,10 +1,7 @@
-import { sveltekit } from '@sveltejs/kit/vite';
-import { vite as vidstack } from 'vidstack/plugins';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 
+// https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [
-		vidstack({ include: /player\// }),
-		sveltekit(),
-	]
-});
+  plugins: [svelte()],
+})

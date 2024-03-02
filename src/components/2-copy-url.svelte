@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { page } from '$app/stores';
     import { trackClick } from '../google-analytics';
 
     const copyToClipboard = function (text: string) {
@@ -12,7 +11,7 @@
     };
 
     const copyUrl = function () {
-        copyToClipboard($page.url.href);
+        copyToClipboard(document.location.href);
         trackClick('copy_link');
     };
 </script>
@@ -25,7 +24,7 @@
         uk-tooltip="Click to copy"
         on:click={copyUrl}
     >
-        {$page.url}
+        {document.location.href}
     </div>
     <div class="uk-text-muted uk-text-small">Click the link to copy it to the clipboard</div>
 </div>

@@ -1,6 +1,6 @@
 import { get as getStore, writable, type Updater, type Writable } from 'svelte/store';
 import { ref, onValue, get, child, update, type DatabaseReference } from 'firebase/database';
-import { database } from './firebase';
+import { database } from './firebase/firebase';
 
 export interface RemoteRoomRaw {
     url: string;

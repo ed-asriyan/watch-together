@@ -12,7 +12,7 @@ https://github.com/ed-asriyan/watch-together/assets/7848847/2d2799f1-cc79-4732-8
 1. Setup Firebase project
    1. Create Firebase Realtime database: https://console.firebase.google.com
    2. Copy Firebase project cofiguration
-      1. Copy firebase config to [firebase-config.json](./src/firebase-config.json)
+      1. Copy firebase config to [firebase-config.json](./src/firebase/firebase-config.json)
       2. Copy service account key to `FIREBASE_SERVICE_ACCOUNT_KEY` repository secret
    3. Setup Firebase Realtime database rules:
       ```json

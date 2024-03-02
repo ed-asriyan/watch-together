@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { LocalRoom } from '../local-room';
+    import { LocalRoom } from '../stores/local-room';
     import VideoView from './video-view.svelte';
 
     export let room: LocalRoom;

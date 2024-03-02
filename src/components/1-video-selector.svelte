@@ -1,10 +1,10 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
     import { trackClick } from '../google-analytics';
-    import videoExample from '../video-example';
+    import videoExample from '../stores/video-example';
     import normalizeLink from './normalize-link';
     import VideoSelectorBtn from './video-selector-btn.svelte';
-    import { LocalRoom } from '../local-room';
+    import { LocalRoom } from '../stores/local-room';
 
     export let room: LocalRoom;
     export let playUrl: string | null;

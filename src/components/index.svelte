@@ -1,24 +1,13 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
-    import { goto } from '$app/navigation'
-    import { browser } from '$app/environment';
-    import { page } from '$app/stores';
-    import randomStr from '../random-str';
     import Loader from './loader.svelte';
-    import { RemoteRoom } from '../remote-room';
-    import { LocalRoom } from '../local-room';
+    import { RemoteRoom } from '../stores/remote-room';
+    import { LocalRoom } from '../stores/local-room';
     import VideoSelector from './1-video-selector.svelte';
     import CopyUrl from './2-copy-url.svelte';
     import VideoViewer from './3-video-viewer.svelte';
 
-    let roomId = $page.url.hash?.slice(1);
-    if (!roomId) {
-        roomId = randomStr(8);
-        if (browser) {
-            goto(`#${roomId}`);
-        }
-    }
-    roomId = roomId.toLocaleLowerCase();
+    export let roomId: string;
 
     $: remoteRoom = new RemoteRoom(roomId);
     let isLoading = true;
