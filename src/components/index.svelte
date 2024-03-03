@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tick } from 'svelte';
     import { fade } from 'svelte/transition';
     import Loader from './loader.svelte';
     import { RemoteRoom } from '../stores/remote-room';
@@ -6,6 +7,8 @@
     import VideoSelector from './1-video-selector.svelte';
     import CopyUrl from './2-copy-url.svelte';
     import VideoViewer from './3-video-viewer.svelte';
+    import randomStr from '../random-str';
+    import { trackClick } from '../google-analytics';
 
     export let roomId: string;
 
@@ -22,10 +25,47 @@
             isLoading = false;
         });
     $: localRoom = new LocalRoom(remoteRoom);
+
+    const updateRoom = function (newRoomId: string, copyData?: boolean) {
+        const roomData = $localRoom;
+        isLoading = true;
+        // otherwise roomId isn't reactively updated inside exactle CopyUrl component. svelte bug?
+        setTimeout(() => {
+            document.location.hash = `#${newRoomId}`;
+            // todo: relect this shitcode oneday
+            copyData && setTimeout(() => {
+                $localRoom = roomData;
+            }, 1000);
+        }, 1200);
+    }
+
+    const generateNewRoom = function () {
+        updateRoom(randomStr(6), true);
+        trackClick('generate_new_room');
+    };
+
+    const joinAnotherRoom = function () {
+        const input = prompt('Paste the link to the room you want to join or enter the room ID:');
+        if (!input) return;
+
+        let newRoomId;
+        try {
+            const url = new URL(input);
+            if (url.protocol === location.protocol && url.host === location.host && url.hash.length > 1) {
+                newRoomId = url.hash.slice(1);
+            } else {
+                throw 0;
+            }
+        } catch {
+            newRoomId = input;
+        }
+        updateRoom(newRoomId, false);
+        trackClick('join_another_room');;
+    };
 </script>
 
 <svelte:head>
-    <title>{$localRoom?.name || 'Watch Together'}</title>
+    <title>{$localRoom.name}</title>
 </svelte:head>
 
 {#if isLoading || !localRoom}
@@ -37,7 +77,7 @@
         <div class="uk-container">
             <h1 class="uk-text-center uk-heading-medium uk-text-bold title uk-margin-top" contenteditable="true" bind:innerHTML={$localRoom.name}></h1>
             <div class="uk-text-center uk-text-muted" style="margin-top: -30px">Watch movies together anytime, anywhere</div>
-        <hr style="border-color: black" class="uk-margin" />
+            <hr style="border-color: black" class="uk-margin" />
             <div class="uk-container uk-container-small">
                 <VideoSelector room={localRoom} />
             </div>
@@ -45,10 +85,19 @@
     </div>
     <div class="uk-section uk-section-primary uk-section-small" transition:fade>
         <div class="uk-container uk-container-small">
-            <CopyUrl />
+            <CopyUrl roomId={roomId}/>
+            <div class="uk-flex uk-flex-row uk-flex-middle uk-flex-center uk-margin-top">
+                <button class="uk-button uk-button-default uk-margin-right" on:click={generateNewRoom}>
+                    ↻
+                    Generate a new room
+                </button>
+                <button class="uk-button uk-button-default uk-margin-left" on:click={joinAnotherRoom}>
+                    Join another room →
+                </button>
+            </div>
         </div>
     </div>
-    <div class="uk-section uk-section-secondary uk-section-small window-height uk-flex">
+    <div class="uk-section uk-section-secondary uk-section-small window-height uk-flex" transition:fade>
         <div class="uk-container uk-container-small uk-flex-1 uk-flex uk-flex-column">
             <VideoViewer room={localRoom} /> 
             <div class="uk-text-small uk-text-muted uk-text-center uk-margin-top">

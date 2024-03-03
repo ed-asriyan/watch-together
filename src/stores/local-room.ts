@@ -15,7 +15,13 @@ export class LocalRoom implements Writable<RemoteRoomRaw> {
 
     constructor (remoteRoom: RemoteRoom) {
         this.remoteRoom = remoteRoom;
-        this.store = writable<RemoteRoomRaw>(undefined, set => {
+        this.store = writable<RemoteRoomRaw>({
+            name: 'Watch Together',
+            time: 0,
+            paused: false,
+            isLocalMode: false,
+            url: '',
+        }, set => {
             return remoteRoom.subscribe(newRemoteRoom => {
                 if (!newRemoteRoom) return;
 

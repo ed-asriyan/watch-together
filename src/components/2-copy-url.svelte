@@ -1,6 +1,8 @@
 <script lang="ts">
     import { trackClick } from '../google-analytics';
 
+    export let roomId: string;
+
     const copyToClipboard = function (text: string) {
         const input = document.createElement('input');
         input.setAttribute('value', text);
@@ -10,8 +12,10 @@
         document.body.removeChild(input);
     };
 
+    $: url = `${location.protocol}//${location.host}${location.pathname}#${roomId}`; 
+
     const copyUrl = function () {
-        copyToClipboard(document.location.href);
+        copyToClipboard(url);
         trackClick('copy_link');
     };
 </script>
@@ -24,7 +28,7 @@
         uk-tooltip="Click to copy"
         on:click={copyUrl}
     >
-        {document.location.href}
+        {url}
     </div>
     <div class="uk-text-muted uk-text-small">Click the link to copy it to the clipboard</div>
 </div>
