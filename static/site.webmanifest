@@ -36,5 +36,10 @@
             "type": "image/jpeg",
             "form_factor": "wide"
         }
+    ],
+    "handle_links": "preferred",
+    "categories": [
+        "entertainment",
+        "utilities"
     ]
 }
