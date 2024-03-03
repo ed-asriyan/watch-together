@@ -86,12 +86,12 @@
     <div class="uk-section uk-section-primary uk-section-small" transition:fade>
         <div class="uk-container uk-container-small">
             <CopyUrl roomId={roomId}/>
-            <div class="uk-flex uk-flex-row uk-flex-middle uk-flex-center uk-margin-top">
-                <button class="uk-button uk-button-default uk-margin-right" on:click={generateNewRoom}>
+            <div class="uk-flex uk-flex-row uk-flex-middle uk-flex-center uk-margin-top uk-flex-wrap">
+                <button class="uk-block uk-button uk-button-default room-btn" on:click={generateNewRoom}>
                     ↻
                     Generate a new room
                 </button>
-                <button class="uk-button uk-button-default uk-margin-left" on:click={joinAnotherRoom}>
+                <button class="uk-block uk-button uk-button-default room-btn" on:click={joinAnotherRoom}>
                     Join another room →
                 </button>
             </div>
@@ -158,5 +158,17 @@
 
     .window-width {
         min-width: 100vw;
+    }
+
+    @media only screen and (max-width: 740px) {
+        .room-btn {
+            width: 100%;
+            margin-top: 1rem;
+        }
+    }
+    @media only screen and (min-width: 740px) {
+        .room-btn {
+            margin: 0 1rem;
+        }
     }
 </style>

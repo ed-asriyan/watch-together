@@ -26,8 +26,9 @@
 </script>
 
 <h3>1. Select a video</h3>
-    <ul class="uk-subnav uk-subnav-pill" uk-switcher>
-        <span>Select movie source:</span>
+    <span class="uk-hidden@s">Select movie source:</span>
+    <ul class="swticher uk-subnav uk-subnav-pill" uk-switcher>
+        <span class="uk-visible@s">Select movie source:</span>
         <li class:uk-active={!$room.isLocalMode}>
             <a on:click={selectOnlineMode} class="uk-button-default">Online link</a>
         </li>
