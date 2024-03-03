@@ -10,13 +10,15 @@
     init();
 
     const getRoomId = function () {
-        return document.location.hash?.slice(1);
+        return document.location.hash?.slice(1).toLowerCase();
     };
 
     let roomId = getRoomId();
     if (!roomId) {
-        document.location.hash = `#${randomStr(6)}`;
+        document.location.hash = `#${localStorage.getItem('roomId') || randomStr(6)}`;
     }
+
+    $: roomId && localStorage.setItem('roomId', roomId);
 
     const onHashChanged = function () {
         roomId = getRoomId();
