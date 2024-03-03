@@ -55,7 +55,7 @@
         />
         {#if !$playUrl}
             <a
-                class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto example"
+                class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto example pointer"
                 on:click|preventDefault={selectExample}
                 href="/#"
                 transition:fade
@@ -74,7 +74,6 @@
     }
 
     .example {
-        cursor: pointer;
         z-index: 99;
     }
 
