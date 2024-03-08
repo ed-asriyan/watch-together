@@ -26,17 +26,22 @@
 
     const onLoaded = function (this: HTMLVideoElement) {
         this.currentTime = time;
+        isMounted = true;
     };
 
     let unsubscribe: () => void;
     onMount(() => {
         unsubscribe = player.subscribe(options => {
-            paused = options.paused;
-            time = options.currentTime;
+            const optionsTime = options.currentTime;
+            const optionsPaused = options.paused;
+            if (isMounted) {
+                paused = optionsPaused;
+                time = optionsTime;
+            }
+            isMounted = true;
         });
         player.currentTime = time;
         player.paused = paused;
-        isMounted = true;
     });
 
     onDestroy(() => {
