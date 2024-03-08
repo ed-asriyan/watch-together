@@ -1,4 +1,7 @@
-FROM node:18 as base
+FROM node:18 as dev
+
+FROM dev as base
+
 WORKDIR /app
 
 COPY .npmrc .

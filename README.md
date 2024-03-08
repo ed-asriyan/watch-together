@@ -36,20 +36,15 @@ https://github.com/ed-asriyan/watch-together/assets/7848847/2d2799f1-cc79-4732-8
    1. Copy Google Analytics cofiguration to [google-analytics.js](./src/google-analytics.js)
 
 ## Local development
-1. Install node.js v18 or newer
-2. Install npm dependencies:
+1. Install docker
+2. Install dependencies:
    ```console
-   npm ci
+   make install
    ```
 
 Now you can run the server locally:
 ```console
-npm run dev
-```
-
-Or build static files to serve:
-```console
-npm rub build
+make start
 ```
 
 ## GitHub Actions
