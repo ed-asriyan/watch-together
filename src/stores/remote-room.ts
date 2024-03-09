@@ -2,12 +2,17 @@ import { get as getStore, writable, type Updater, type Writable } from 'svelte/s
 import { ref, onValue, get, child, update, type DatabaseReference } from 'firebase/database';
 import { database } from './firebase/firebase';
 
+export const getTime = function (): number {
+    return new Date().getTime() / 1000;
+};
+
 export interface RemoteRoomRaw {
     url: string;
     time: number;
     paused: boolean;
     isLocalMode: boolean;
     name: string;
+    timestamp: number
 }
 
 export class RemoteRoom implements Writable<RemoteRoomRaw> {
@@ -35,6 +40,7 @@ export class RemoteRoom implements Writable<RemoteRoomRaw> {
                 time: 0,
                 isLocalMode: false,
                 name: 'Watch Together',
+                timestamp: getTime(),
             };
         }
         this.store.set(initRoom);
@@ -45,8 +51,8 @@ export class RemoteRoom implements Writable<RemoteRoomRaw> {
         return this.store.subscribe;
     }
 
-    set (data: Partial<RemoteRoomRaw>) {
-        return update(this.roomRef, { ...data, timestamp: Math.round(new Date().getTime() / 1000) });
+    set (data: RemoteRoomRaw) {
+        return update(this.roomRef, data);
     }
 
     update (func: Updater<RemoteRoomRaw>) {
