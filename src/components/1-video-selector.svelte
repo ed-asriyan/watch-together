@@ -53,7 +53,7 @@
             class:uk-form-danger={!$playUrl}
             placeholder="Video URL"
         />
-        {#if !$playUrl}
+        {#if !$room.url}
             <a
                 class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto example pointer"
                 on:click|preventDefault={selectExample}
