@@ -70,7 +70,7 @@
     @import '../constants.scss';
     
     .uk-subnav-pill > .uk-active > a {
-        background-color: $red-color;
+        background-color: $step2-color;
     }
 
     .example {

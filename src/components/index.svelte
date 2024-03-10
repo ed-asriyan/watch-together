@@ -129,19 +129,19 @@
     }
 
     .uk-input:focus, .uk-select:focus, .uk-textarea:focus {
-        border-color: $red-color;
+        border-color: $step2-color;
     }
 
     .uk-section-primary {
-        background-color: $red-color;
+        background-color: $step2-color;
     }
 
     .uk-section-secondary {
-        background-color: #0b0b0b;
+        background-color: $step3-color;
     }
 
     :global(body), .uk-section-muted {
-        background-color: $purple-color;
+        background-color: $step1-color;
     }
 
     .loader {
