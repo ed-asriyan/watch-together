@@ -11,7 +11,7 @@
     import { onMount, onDestroy } from 'svelte';
     import type { MediaPlayerElement } from 'vidstack/elements';
 
-    export let url: string | null;
+    export let url: string;
     export let time: number;
     export let paused: boolean;
 
@@ -21,8 +21,6 @@
 
     $: isMounted && (player.currentTime = time);
     $: isMounted && (player.paused = paused);
-
-    $: isBlob = url?.startsWith('blob:');
 
     const onLoaded = function (this: HTMLVideoElement) {
         this.currentTime = time;
@@ -49,29 +47,10 @@
     });
 </script>
 
-
-{#if isBlob}
-    <video
-        class="player"
-        src={url}
-        autoplay
-        playsInline
-        preload="metadata"
-        crossOrigin="anonymous"
-        bind:paused={paused}
-        bind:currentTime={time}
-        on:loadeddata={onLoaded}
-        muted
-        controls
-    >
-    </video>
-{/if}
-
 <media-player
-    class="player"
-    class:uk-hidden={!url || isBlob}
+    class="uk-width-1-1 uk-height-1-1"
     bind:this={player}
-    src={url || ''}
+    src={url}
     autoplay
     playsInline
     preload="metadata"
@@ -84,31 +63,3 @@
     <media-audio-layout />
     <media-video-layout />
 </media-player>
-
-{#if !url}
-    <div class="player uk-text-small uk-flex uk-flex-center uk-flex-column uk-text-break uk-text-center">
-        <slot/>
-    </div>
-{/if}
-
-<style lang="scss">
-    .player {
-        box-sizing: border-box;
-        width: 90vw;
-
-        height: calc(90vw * 0.5);
-        max-height: 70vh; 
-
-        border-radius: 6px;
-        border: 1px solid rgb(255 255 255 / .1);
-
-        background-color: black;
-    }
-
-    @media only screen and (max-width: 1024px) {
-        .player {
-            width: auto;
-            height: auto;
-        }
-    }
-</style>

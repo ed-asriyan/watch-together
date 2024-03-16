@@ -22,7 +22,7 @@
         trackClick('select_local_mode');
     };
 
-    $: playUrl = room.playUrl;
+    $: play = room.play;
 </script>
 
 <h3>1. Select a video</h3>
@@ -50,7 +50,7 @@
         <input
             bind:value={$room.url}
             class="uk-input"
-            class:uk-form-danger={!$playUrl}
+            class:uk-form-danger={!$play}
             placeholder="Video URL"
         />
         {#if !$room.url}

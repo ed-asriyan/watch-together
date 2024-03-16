@@ -1,7 +1,7 @@
 import { writable, type Writable, type Updater, type Readable, readable } from 'svelte/store';
 import { get as getStore } from 'svelte/store';
 import { getTime, type RemoteRoom, type RemoteRoomRaw } from './remote-room';
-import normalizeLink from '../components/normalize-link';
+import normalizeLink, { type Link } from '../components/normalize-link';
 
 const maximumDelta = 0.5;
 const syncInterval = 10;
@@ -11,7 +11,7 @@ export type LocalRoomRaw = RemoteRoomRaw;
 export class LocalRoom implements Writable<LocalRoomRaw> {
     private readonly store: Writable<LocalRoomRaw>;
     private readonly remoteRoom: RemoteRoom;
-    readonly playUrl: Readable<string>;
+    readonly play: Readable<Link | null>;
     readonly blobUrl: Writable<string | null>;
     readonly fileName: Writable<string | null>;
 
@@ -45,10 +45,10 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
             });
         });
         this.blobUrl = writable<string | null>('');
-        this.playUrl = readable<string>('', set => {
+        this.play = readable<Link | null>(null, set => {
             const own = this.store.subscribe(newRoom => {
                 if (newRoom?.isLocalMode) {
-                    set(getStore(this.blobUrl) || '');
+                    set(normalizeLink(getStore(this.blobUrl)));
                 } else {
                     const link = normalizeLink(newRoom?.url);
                     link && set(link);
@@ -57,7 +57,7 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
             const blob = this.blobUrl.subscribe(newBlob => {
                 const room = getStore(this.store);
                 if (room?.isLocalMode) {
-                    set(newBlob || '');
+                    set(normalizeLink(newBlob));
                 } else {
                     const link = normalizeLink(room?.url);
                     link && set(link);
@@ -81,7 +81,6 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
         this.store.set(newRooom);
         const remoteValue = getStore(this.remoteRoom);
 
-        console.log(remoteValue.time, val.time);
         if (
             remoteValue.name !== newValue.name ||
             remoteValue.isLocalMode !== newValue.isLocalMode ||
