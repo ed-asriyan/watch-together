@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount, onDestroy } from 'svelte';
     import { tick } from 'svelte';
     import { fade } from 'svelte/transition';
     import Loader from './loader.svelte';
@@ -60,8 +61,23 @@
             newRoomId = input;
         }
         updateRoom(newRoomId, false);
-        trackClick('join_another_room');;
+        trackClick('join_another_room');
     };
+
+    $: play = localRoom.play;
+    let timeSpentInterval;
+    onMount(() => {
+        timeSpentInterval = setInterval(() => {
+            if ($play && !$localRoom.paused) {
+                $localRoom.minutesWatched += 1;
+                trackWatchedMinute(roomId);
+            }
+        }, 60000);
+    });
+
+    onDestroy(() => {
+        clearInterval(timeSpentInterval);
+    });
 </script>
 
 <svelte:head>

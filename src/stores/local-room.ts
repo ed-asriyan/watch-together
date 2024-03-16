@@ -15,6 +15,36 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
     readonly blobUrl: Writable<string | null>;
     readonly fileName: Writable<string | null>;
 
+    private copyFromRemoteRoom(set: (localRoom: LocalRoomRaw) => void, remoteRoom: RemoteRoomRaw) {
+        let newTime: number;
+        const localRoom = getStore(this.store);
+        if (localRoom) {
+            const playbackDelta = remoteRoom.time - localRoom.time;
+            const timeDelta = remoteRoom.timestamp - localRoom.timestamp;
+            if (Math.abs(playbackDelta - timeDelta) > maximumDelta) {
+                newTime = remoteRoom.time;
+            } else {
+                newTime = localRoom.time;
+            }
+        } else {
+            newTime = remoteRoom.time;
+        }
+        set({
+            ...remoteRoom,
+            time: newTime,
+            minutesWatched: remoteRoom.minutesWatched || 0,
+        });
+    }
+
+    private updatePlayLink(set: (link: Link) => void, isLocalMode: boolean, url: string, blobUrl: string) {
+        if (isLocalMode) {
+            set(normalizeLink(blobUrl));
+        } else {
+            const link = normalizeLink(url);
+            link && set(link);
+        }
+    }
+
     constructor (remoteRoom: RemoteRoom) {
         this.remoteRoom = remoteRoom;
         this.store = writable<LocalRoomRaw>({
@@ -24,44 +54,24 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
             isLocalMode: false,
             url: '',
             timestamp: getTime(),
+            minutesWatched: 0,
         }, set => {
             return remoteRoom.subscribe(newRemoteRoom => {
-                if (!newRemoteRoom) return;
-
-                let newTime: number;
-                const localRoom = getStore(this.store);
-                if (localRoom) {
-                    const playbackDelta = newRemoteRoom.time - localRoom.time;
-                    const timeDelta = newRemoteRoom.timestamp - localRoom.timestamp;
-                    if (Math.abs(playbackDelta - timeDelta) > maximumDelta) {
-                        newTime = newRemoteRoom.time;
-                    } else {
-                        newTime = localRoom.time;
-                    }
-                } else {
-                    newTime = newRemoteRoom.time;
+                if (newRemoteRoom) {
+                    this.copyFromRemoteRoom(set, newRemoteRoom);
                 }
-                set({ ...newRemoteRoom, time: newTime });
             });
         });
+
         this.blobUrl = writable<string | null>('');
+
         this.play = readable<Link | null>(null, set => {
             const own = this.store.subscribe(newRoom => {
-                if (newRoom?.isLocalMode) {
-                    set(normalizeLink(getStore(this.blobUrl)));
-                } else {
-                    const link = normalizeLink(newRoom?.url);
-                    link && set(link);
-                }
+                this.updatePlayLink(set, newRoom?.isLocalMode, newRoom?.url, getStore(this.blobUrl));
             });
             const blob = this.blobUrl.subscribe(newBlob => {
                 const room = getStore(this.store);
-                if (room?.isLocalMode) {
-                    set(normalizeLink(newBlob));
-                } else {
-                    const link = normalizeLink(room?.url);
-                    link && set(link);
-                }
+                this.updatePlayLink(set, room?.isLocalMode, room?.url, newBlob);
             });
             return () => [own, blob].forEach(x => x());
         });
@@ -86,6 +96,7 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
             remoteValue.isLocalMode !== newValue.isLocalMode ||
             remoteValue.paused !== newValue.paused ||
             remoteValue.url !== newValue.url ||
+            remoteValue.minutesWatched !== newValue.minutesWatched ||
             Math.abs(remoteValue.time - val.time) > syncInterval ||
             Math.abs(now - remoteValue.timestamp) > syncInterval
         ) {

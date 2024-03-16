@@ -11,11 +11,11 @@ const main = async function() {
     const root = admin.database().ref('room');
     const promises = [];
 
-    process.stdout.write('roomId\tname\turl\ttime\tpaused\tisLocalMode\ttimestamp\n');
+    process.stdout.write('roomId\tname\turl\ttime\tpaused\tisLocalMode\tminutesWatched\ttimestamp\n');
     (await root.once('value')).forEach(childSnapshot => {
         const task = (async function () {
             const room = childSnapshot.val();
-            process.stdout.write(`${childSnapshot.key}\t${room.name}\t${room.url}\t${room.time}\t${room.paused}\t${room.isLocalMode}\t${new Date(room.timestamp * 1000).toISOString()}\n`)
+            process.stdout.write(`${childSnapshot.key}\t${room.name}\t${room.url}\t${room.time}\t${room.paused}\t${room.isLocalMode}\t${room.minutesWatched}\t${new Date(room.timestamp * 1000).toISOString()}\n`)
         })();
         promises.push(task);
     });

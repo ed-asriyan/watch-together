@@ -6,8 +6,14 @@ export const init = function () {
     gtag('config', 'G-39LEN0SXX6');
 };
 
-export const trackClick = function (label: string) {
+export const trackClick = function (category: string) {
     gtag("event", "click", {
-        "event_label": label
+        "target": category,
     });
-}
+};
+
+export const trackWatchedMinute = function (roomId: string) {
+    gtag("event", "watch_minute", {
+        "room_id": roomId
+    });
+};
