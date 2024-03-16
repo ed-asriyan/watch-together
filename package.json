@@ -7,6 +7,7 @@
 		"build": "NODE_ENV=production vite build && cp -r static/* dist/",
 		"preview": "vite preview",
 		"clean-db": "node --experimental-json-modules clean-db.js",
+		"stats": "node --experimental-json-modules stats.js",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},

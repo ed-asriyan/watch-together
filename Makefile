@@ -8,5 +8,8 @@ install:
 start:
 	docker run ${PARAMS} -p 5173:5173 ${IMAGE_NAME} npm run dev -- --host
 
+stats:
+	docker run ${PARAMS} -it ${IMAGE_NAME} npm run stats -- --host > stats.tsv 
+
 enter:
 	docker run ${PARAMS} -p 5173:5173 -it ${IMAGE_NAME} bash 

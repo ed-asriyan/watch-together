@@ -1,6 +1,6 @@
 import admin from 'firebase-admin';
 import serviceAccount from './service-account-key.json' assert { type: "json" };
-import firebaseConfig from './src/firebase-config.json' assert { type: "json" };
+import firebaseConfig from './src/stores/firebase/firebase-config.json' assert { type: "json" };
 
 const diff = process.argv[2];
 const now = Math.round(new Date().getTime() / 1000);
