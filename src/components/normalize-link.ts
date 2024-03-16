@@ -1,6 +1,7 @@
 export enum LinkType {
     blob,
     direct,
+    DailyMotion,
     YouTube,
     Vimeo,
 }
@@ -61,6 +62,15 @@ class Vimeo extends LinkBuilderRegex {
     }
 }
 
+class Dailymotion extends LinkBuilderRegex {
+    // https://stackoverflow.com/a/50644701
+    protected static regex = /^(?:(?:https?):)?(?:\/\/)?(?:www\.)?(?:(?:dailymotion\.com(?:\/embed)?\/video)|dai\.ly)\/([a-zA-Z0-9]+)(?:_[\w_-]+)?$/;
+    protected static type = LinkType.DailyMotion;
+
+    parseRegex(result: RegExpMatchArray): string {
+        return result[1];
+    }
+}
 
 class Direct extends LinkBuilder {
     protected static type = LinkType.direct;
@@ -87,7 +97,8 @@ const parsers: LinkBuilder[] = [
     new Blob(),
     new YouTube(),
     new Vimeo(),
-    new Direct(),
+    new Dailymotion(),
+    new Direct(), // direct should always be the last one
 ];
 
 export default function(url: string | null): Link | null {

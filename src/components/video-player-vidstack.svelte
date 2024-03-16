@@ -11,7 +11,9 @@
     import { onMount, onDestroy } from 'svelte';
     import type { MediaPlayerElement } from 'vidstack/elements';
 
-    export let url: string;
+    import type { Link } from './normalize-link';
+
+    export let link: Link;
     export let time: number;
     export let paused: boolean;
 
@@ -50,7 +52,7 @@
 <media-player
     class="uk-width-1-1 uk-height-1-1"
     bind:this={player}
-    src={url}
+    src={link.url}
     autoplay
     playsInline
     preload="metadata"

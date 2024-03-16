@@ -13,6 +13,7 @@
     import { LinkType } from './normalize-link';
     import VideoPlayerNative from './video-player-native.svelte';
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
+    import VideoPlayerVime from './video-player-vime.svelte';
 
     export let link: Link | null;
     export let time: number;
@@ -20,6 +21,8 @@
 
     $: playerType = (() => {
         switch (link?.type) {
+            case LinkType.DailyMotion:
+                return 'vime';
             case LinkType.Vimeo:
             case LinkType.YouTube:
             case LinkType.direct:
@@ -33,16 +36,19 @@
 </script>
 
 <div class="player uk-text-small uk-flex uk-flex-center uk-flex-column uk-text-break uk-text-center">
-{#if link}
-    {#if playerType === 'native'}
-        <VideoPlayerNative url={link.url} bind:paused={paused} bind:time={time}/>
-    {:else if playerType === 'vidstack'}
-        <VideoPlayerVidstack url={link.url} bind:paused={paused} bind:time={time}/>
+    {#if link}
+        {#if playerType === 'native'}
+            <VideoPlayerNative link={link} bind:paused={paused} bind:time={time}/>
+        {:else if playerType === 'vidstack'}
+            <VideoPlayerVidstack link={link} bind:paused={paused} bind:time={time}/>
+        {:else if playerType === 'vime'}
+            <VideoPlayerVime link={link} bind:paused={paused} bind:time={time}/>
+        {/if}
+    {:else}
+        <slot/>
     {/if}
-{:else}
-    <slot/>
-{/if}
 </div>
+
 <style lang="scss">
     .player {
         box-sizing: border-box;

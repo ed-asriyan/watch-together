@@ -44,7 +44,7 @@
     <VideoSelectorBtn room={room}/>
 {:else}
     <div class="uk-margin-bottom">
-        Insert a link to YouTube, Vimeo, HLS playlist, video or audio file. The input is synchronized with everyone in the room.
+        Insert a link to <u>Dailymotion</u>, <u>YouTube</u>, <u>Vimeo</u>, <u>HLS</u> playlist, <u>video</u> or <u>audio</u> file. The input is synchronized with everyone in the room.
     </div>
     <div class="uk-inline uk-width-1-1">
         <input

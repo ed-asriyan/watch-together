@@ -13,6 +13,8 @@
 	"devDependencies": {
 		"@sveltejs/vite-plugin-svelte": "^3.0.2",
 		"@tsconfig/svelte": "^5.0.2",
+		"@vime/core": "^5.4.1",
+		"@vime/svelte": "^5.4.1",
 		"firebase": "^10.8.1",
 		"firebase-admin": "^12.0.0",
 		"sass": "^1.71.1",

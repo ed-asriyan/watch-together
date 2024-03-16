@@ -1,7 +1,7 @@
 <script lang="ts">
-    import type { LinkType } from './normalize-link';
+    import type { Link } from './normalize-link';
 
-    export let url: string;
+    export let link: Link;
     export let time: number;
     export let paused: boolean;
 
@@ -12,7 +12,7 @@
 
 <video
     class="uk-width-1-1 uk-height-1-1"
-    src={url}
+    src={link.url}
     autoplay
     playsInline
     preload="metadata"
