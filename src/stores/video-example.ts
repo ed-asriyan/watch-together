@@ -229,15 +229,6 @@ const videos = [
     "https://youtu.be/R4TT1CmX5Ig",
     "https://youtu.be/VlyFy4NtRCE",
     "https://youtu.be/wgoIX1AhsB4",
-    "https://youtu.be/MslUTBC3NFo",
-    "https://youtu.be/Lc5-CZV3iuo",
-    "https://youtu.be/FQ4hvLqNfqo",
-    "https://youtu.be/_QD3t_pMBuE",
-    "https://youtu.be/x-J3yYFcWaE",
-    "https://youtu.be/4izX98svp2c",
-    "https://youtu.be/uyVsjbOogpE",
-    "https://youtu.be/eQHhtTcwdqA",
-    "https://youtu.be/LJNtfyq3TDE",
 ];
 
 export default function (): string {

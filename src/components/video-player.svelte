@@ -10,7 +10,7 @@
 
     import { onMount, onDestroy } from 'svelte';
     import type { MediaPlayerElement } from 'vidstack/elements';
-    import { LinkType } from './normalize-link';
+    import { LinkType } from '../normalize-link';
     import VideoPlayerNative from './video-player-native.svelte';
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
     import VideoPlayerVime from './video-player-vime.svelte';

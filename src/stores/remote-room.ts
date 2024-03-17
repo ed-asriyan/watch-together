@@ -11,7 +11,6 @@ export interface RemoteRoomRaw {
     time: number;
     paused: boolean;
     isLocalMode: boolean;
-    name: string;
     timestamp: number;
     minutesWatched: number;
 }

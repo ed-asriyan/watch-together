@@ -1,7 +1,7 @@
 import { writable, type Writable, type Updater, type Readable, readable } from 'svelte/store';
 import { get as getStore } from 'svelte/store';
 import { getTime, type RemoteRoom, type RemoteRoomRaw } from './remote-room';
-import normalizeLink, { type Link } from '../components/normalize-link';
+import normalizeLink, { type Link } from '../normalize-link';
 
 const maximumDelta = 0.5;
 const syncInterval = 10;
@@ -92,7 +92,6 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
         const remoteValue = getStore(this.remoteRoom);
 
         if (
-            remoteValue.name !== newValue.name ||
             remoteValue.isLocalMode !== newValue.isLocalMode ||
             remoteValue.paused !== newValue.paused ||
             remoteValue.url !== newValue.url ||

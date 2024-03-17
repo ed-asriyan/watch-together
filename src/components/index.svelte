@@ -9,7 +9,7 @@
     import CopyUrl from './2-copy-url.svelte';
     import VideoViewer from './3-video-viewer.svelte';
     import randomStr from '../random-str';
-    import { trackClick } from '../google-analytics';
+    import { trackClick, trackWatchedMinute } from '../google-analytics';
 
     export let roomId: string;
 
@@ -80,10 +80,6 @@
     });
 </script>
 
-<svelte:head>
-    <title>{$localRoom.name}</title>
-</svelte:head>
-
 {#if isLoading || !localRoom}
     <div class="uk-text-center loader" transition:fade>
         <Loader/>
@@ -91,7 +87,7 @@
 {:else}
     <div class="uk-section uk-section-muted uk-section-small" transition:fade>
         <div class="uk-container">
-            <h1 class="uk-text-center uk-heading-medium uk-text-bold title uk-margin-top" contenteditable="true" bind:innerHTML={$localRoom.name}></h1>
+            <h1 class="uk-text-center uk-heading-medium uk-text-bold title uk-margin-top">Watch Together</h1>
             <div class="uk-text-center uk-text-muted" style="margin-top: -30px">Watch movies together anytime, anywhere</div>
             <hr style="border-color: black" class="uk-margin" />
             <div class="uk-container uk-container-small">

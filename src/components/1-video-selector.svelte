@@ -4,7 +4,7 @@
     import videoExample from '../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';
     import { LocalRoom } from '../stores/local-room';
-    import { LinkType } from './normalize-link';
+    import { LinkType } from '../normalize-link';
 
     export let room: LocalRoom;
 

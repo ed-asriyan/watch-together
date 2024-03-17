@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type Link, LinkType } from './normalize-link';
+    import { type Link, LinkType } from '../normalize-link';
     import { Player, Dailymotion, DefaultUi } from '@vime/svelte';
 
     export let link: Link;

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Link } from './normalize-link';
+    import type { Link } from '../normalize-link';
 
     export let link: Link;
     export let time: number;

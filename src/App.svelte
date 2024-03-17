@@ -1,7 +1,7 @@
 <script lang="ts">
     import 'uikit/dist/js/uikit';
     import GitHub from './components/github.svelte';
-    import { init } from './google-analytics';
+    import { init, googleTagId } from './google-analytics';
     import randomStr from './random-str';
     import './app.scss';
 
@@ -28,7 +28,7 @@
 <svelte:window on:hashchange={onHashChanged}></svelte:window>
 
 <svelte:head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-39LEN0SXX6"></script>
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${googleTagId}`}></script>
 </svelte:head>
 
 <GitHub/>
