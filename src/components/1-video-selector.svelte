@@ -4,6 +4,7 @@
     import videoExample from '../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';
     import { LocalRoom } from '../stores/local-room';
+    import { LinkType } from './normalize-link';
 
     export let room: LocalRoom;
 
@@ -39,12 +40,14 @@
     </ul>
 {#if $room.isLocalMode}
     <div class="uk-margin-bottom">
-        You all downloaded a movie already!? Well done! Everyone should select the same video file, please.
+        You all downloaded a movie already!? Well done! Everyone should select the same video file.
     </div>
-    <VideoSelectorBtn room={room}/>
+    <div class="uk-text-center">
+        <VideoSelectorBtn room={room}/>
+    </div>
 {:else}
     <div class="uk-margin-bottom">
-        Insert a link to <u>Dailymotion</u>, <u>YouTube</u>, <u>Vimeo</u>, <u>HLS</u> playlist, <u>video</u> or <u>audio</u> file. The input is synchronized with everyone in the room.
+        Insert a link to <u>Dailymotion</u>, <u>YouTube</u>, <u>Vimeo</u>, <u>HLS</u> playlist, <u>video</u> or <u>audio</u> file. The input is synced with everyone in the room.
     </div>
     <div class="uk-inline uk-width-1-1">
         <input
@@ -66,8 +69,32 @@
     </div>
 {/if}
 
+<div class="uk-margin-top uk-text-center uk-text-small hint">
+    <i>
+        {#if $room.isLocalMode}
+            Don't know how to download a video from a website? It's easy, <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank">watch here</a>!
+        {:else}
+            {#if $room.url}
+                {#if $play}
+                    {#if $play.type == LinkType.direct}
+                        If the movie doesn't play, make sure the <u>direct</u> video link is inserted. It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank">read here</a>!
+                    {/if}
+                {:else}
+                    Video link is invalid
+                {/if}
+            {:else}
+                Don't know how to get a video link from a website? It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank">read here</a>!
+            {/if}
+        {/if}
+    </i>
+</div>
+
 <style lang="scss">
     @import '../constants.scss';
+
+    .hint {
+        margin-bottom: -1rem;
+    }
     
     .uk-subnav-pill > .uk-active > a {
         background-color: $step2-color;

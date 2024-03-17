@@ -36,12 +36,12 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
         });
     }
 
-    private updatePlayLink(set: (link: Link) => void, isLocalMode: boolean, url: string, blobUrl: string) {
+    private updatePlayLink(set: (link: Link | null) => void, isLocalMode: boolean, url: string, blobUrl: string) {
         if (isLocalMode) {
             set(normalizeLink(blobUrl));
         } else {
             const link = normalizeLink(url);
-            link && set(link);
+            set(link);
         }
     }
 
