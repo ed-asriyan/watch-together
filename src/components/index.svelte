@@ -169,7 +169,7 @@
     }
 
     .window-height {
-        min-height: 100vh;
+        min-height: calc(100vh + 1px);
     }
 
     .window-width {

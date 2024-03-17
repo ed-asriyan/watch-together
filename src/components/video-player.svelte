@@ -62,11 +62,4 @@
 
         background-color: black;
     }
-
-    @media only screen and (max-width: 1024px) {
-        .player {
-            width: auto;
-            height: auto;
-        }
-    }
 </style>
