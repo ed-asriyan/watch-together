@@ -19,19 +19,19 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
         let newTime: number;
         const localRoom = getStore(this.store);
         if (localRoom) {
-            const playbackDelta = remoteRoom.time - localRoom.time;
+            const playbackDelta = remoteRoom.currentTime - localRoom.currentTime;
             const timeDelta = remoteRoom.timestamp - localRoom.timestamp;
             if (Math.abs(playbackDelta - timeDelta) > maximumDelta) {
-                newTime = remoteRoom.time;
+                newTime = remoteRoom.currentTime;
             } else {
-                newTime = localRoom.time;
+                newTime = localRoom.currentTime;
             }
         } else {
-            newTime = remoteRoom.time;
+            newTime = remoteRoom.currentTime;
         }
         set({
             ...remoteRoom,
-            time: newTime,
+            currentTime: newTime,
             minutesWatched: remoteRoom.minutesWatched || 0,
         });
     }
@@ -49,7 +49,7 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
         this.remoteRoom = remoteRoom;
         this.store = writable<LocalRoomRaw>({
             name: 'Watch Together',
-            time: 0,
+            currentTime: 0,
             paused: false,
             isLocalMode: false,
             url: '',
@@ -96,7 +96,7 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
             remoteValue.paused !== newValue.paused ||
             remoteValue.url !== newValue.url ||
             remoteValue.minutesWatched !== newValue.minutesWatched ||
-            Math.abs(remoteValue.time - val.time) > syncInterval ||
+            Math.abs(remoteValue.currentTime - val.currentTime) > syncInterval ||
             Math.abs(now - remoteValue.timestamp) > syncInterval
         ) {
             this.remoteRoom.set(newRooom);

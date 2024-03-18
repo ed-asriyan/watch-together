@@ -8,7 +8,7 @@ export const getTime = function (): number {
 
 export interface RemoteRoomRaw {
     url: string;
-    time: number;
+    currentTime: number;
     paused: boolean;
     isLocalMode: boolean;
     timestamp: number;
@@ -37,9 +37,8 @@ export class RemoteRoom implements Writable<RemoteRoomRaw> {
             initRoom = {
                 url: '',
                 paused: true,
-                time: 0,
+                currentTime: 0,
                 isLocalMode: false,
-                name: 'Watch Together',
                 timestamp: getTime(),
                 minutesWatched: 0,
             };

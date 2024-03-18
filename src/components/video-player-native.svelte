@@ -2,11 +2,11 @@
     import type { Link } from '../normalize-link';
 
     export let link: Link;
-    export let time: number;
+    export let currentTime: number;
     export let paused: boolean;
 
     const onLoaded = function (this: HTMLVideoElement) {
-        this.currentTime = time;
+        this.currentTime = currentTime;
     };
 </script>
 
@@ -18,7 +18,7 @@
     preload="metadata"
     crossOrigin="anonymous"
     bind:paused={paused}
-    bind:currentTime={time}
+    bind:currentTime={currentTime}
     on:loadeddata={onLoaded}
     muted
     controls

@@ -14,18 +14,18 @@
     import type { Link } from '../normalize-link';
 
     export let link: Link;
-    export let time: number;
+    export let currentTime: number;
     export let paused: boolean;
 
     let player: MediaPlayerElement;
 
     let isMounted = false;
 
-    $: isMounted && (player.currentTime = time);
+    $: isMounted && (player.currentTime = currentTime);
     $: isMounted && (player.paused = paused);
 
     const onLoaded = function (this: HTMLVideoElement) {
-        this.currentTime = time;
+        this.currentTime = currentTime;
         isMounted = true;
     };
 
@@ -36,11 +36,11 @@
             const optionsPaused = options.paused;
             if (isMounted) {
                 paused = optionsPaused;
-                time = optionsTime;
+                currentTime = optionsTime;
             }
             isMounted = true;
         });
-        player.currentTime = time;
+        player.currentTime = currentTime;
         player.paused = paused;
     });
 

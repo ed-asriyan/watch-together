@@ -3,7 +3,7 @@
     import { Player, Dailymotion, DefaultUi } from '@vime/svelte';
 
     export let link: Link;
-    export let time: number;
+    export let currentTime: number;
     export let paused: boolean;
 
     let player: Player;
@@ -12,12 +12,12 @@
     const onTimeUpdate = (event: CustomEvent<number>) => {
         // here is the bug in vime:
         // after updating currentTime from outside, vime player sends two events in a row:
-        // 1st: vmCurrentTimeChange with new time
-        // 2nd: vmCurrentTimeChange with old time
-        // this immitates that user "scrolled back" to the previous time
+        // 1st: vmCurrentTimeChange with new currentTime
+        // 2nd: vmCurrentTimeChange with old currentTime
+        // this immitates that user "scrolled back" to the previous currentTime
         if (isOdd) {
             console.log('local', event.detail);
-            time = event.detail;
+            currentTime = event.detail;
         }
         isOdd = !isOdd;
     };
@@ -30,7 +30,7 @@
 <Player
     theme="dark"
     bind:paused={paused}
-    bind:currentTime={time}
+    bind:currentTime={currentTime}
     on:vmCurrentTimeChange={onTimeUpdate}
     on:vmPausedChange={onPausedUpdate}
     controls

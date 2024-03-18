@@ -16,7 +16,7 @@
     import VideoPlayerVime from './video-player-vime.svelte';
 
     export let link: Link | null;
-    export let time: number;
+    export let currentTime: number;
     export let paused: boolean;
 
     $: playerType = (() => {
@@ -38,11 +38,11 @@
 <div class="player uk-text-small uk-flex uk-flex-center uk-flex-column uk-text-break uk-text-center">
     {#if link}
         {#if playerType === 'native'}
-            <VideoPlayerNative link={link} bind:paused={paused} bind:time={time}/>
+            <VideoPlayerNative link={link} bind:paused={paused} bind:currentTime={currentTime}/>
         {:else if playerType === 'vidstack'}
-            <VideoPlayerVidstack link={link} bind:paused={paused} bind:time={time}/>
+            <VideoPlayerVidstack link={link} bind:paused={paused} bind:currentTime={currentTime}/>
         {:else if playerType === 'vime'}
-            <VideoPlayerVime link={link} bind:paused={paused} bind:time={time}/>
+            <VideoPlayerVime link={link} bind:paused={paused} bind:currentTime={currentTime}/>
         {/if}
     {:else}
         <slot/>

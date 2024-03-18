@@ -13,7 +13,7 @@
     Playback, time, and video scrolling are synchronized with everyone who has the page open.
 </div>
 <div class="uk-flex-1 uk-flex uk-flex-center uk-flex-column uk-flex-center uk-flex-middle">
-    <VideoPlayer bind:paused={$room.paused} bind:time={$room.time} link={$play}>
+    <VideoPlayer bind:paused={$room.paused} bind:currentTime={$room.currentTime} link={$play}>
         {#if $room.isLocalMode}
             <div>
                 <VideoSelectorBtn room={room}/>
