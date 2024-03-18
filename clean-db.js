@@ -18,13 +18,13 @@ const main = async function() {
     process.stdout.write('Started...\n');
     (await root.once('value')).forEach(childSnapshot => {
         const task = (async function () {
-            const timestamp = childSnapshot.child('timestamp').val();
-            if (typeof timestamp !== 'number') {
-                process.stdout.write(`room#${childSnapshot.key}\twrong type: ${typeof timestamp}\n`);
-            } else if (timestamp < now - diff) {
-                process.stdout.write(`room#${childSnapshot.key}\tupdated ${Math.round((now - timestamp) / 60 / 60 / 24)} hours ago\n`);
-            } else if (timestamp > now + diff) {
-                process.stdout.write(`room#${childSnapshot.key}\tupdated ${Math.round((timestamp - now) / 60 / 60 / 24)} hours ahead (in future)\n`);
+            const updatedAt = childSnapshot.child('updatedAt').val();
+            if (typeof updatedAt !== 'number') {
+                process.stdout.write(`room#${childSnapshot.key}\twrong type: ${typeof updatedAt}\n`);
+            } else if (updatedAt < now - diff) {
+                process.stdout.write(`room#${childSnapshot.key}\tupdated ${Math.round((now - updatedAt) / 60 / 60 / 24)} hours ago\n`);
+            } else if (updatedAt > now + diff) {
+                process.stdout.write(`room#${childSnapshot.key}\tupdated ${Math.round((updatedAt - now) / 60 / 60 / 24)} hours ahead (in future)\n`);
             } else {
                 return;
             }

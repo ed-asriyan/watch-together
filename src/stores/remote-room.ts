@@ -3,7 +3,7 @@ import { ref, onValue, get, child, update, type DatabaseReference } from 'fireba
 import { database } from './firebase/firebase';
 
 export const getTime = function (): number {
-    return new Date().getTime() / 1000;
+    return Math.round(new Date().getTime() / 1000);
 };
 
 export interface RemoteRoomRaw {
@@ -11,8 +11,9 @@ export interface RemoteRoomRaw {
     currentTime: number;
     paused: boolean;
     isLocalMode: boolean;
-    timestamp: number;
+    updatedAt: number;
     minutesWatched: number;
+    createdAt: number;
 }
 
 export class RemoteRoom implements Writable<RemoteRoomRaw> {
@@ -34,13 +35,15 @@ export class RemoteRoom implements Writable<RemoteRoomRaw> {
         if (initSnapshot.exists()) {
             initRoom = initSnapshot.val();
         } else {
+            const time = getTime()
             initRoom = {
                 url: '',
                 paused: true,
                 currentTime: 0,
                 isLocalMode: false,
-                timestamp: getTime(),
                 minutesWatched: 0,
+                updatedAt: time,
+                createdAt: time,
             };
         }
         this.store.set(initRoom);

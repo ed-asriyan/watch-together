@@ -20,7 +20,7 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
         const localRoom = getStore(this.store);
         if (localRoom) {
             const playbackDelta = remoteRoom.currentTime - localRoom.currentTime;
-            const timeDelta = remoteRoom.timestamp - localRoom.timestamp;
+            const timeDelta = remoteRoom.updatedAt - localRoom.updatedAt;
             if (Math.abs(playbackDelta - timeDelta) > maximumDelta) {
                 newTime = remoteRoom.currentTime;
             } else {
@@ -47,14 +47,15 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
 
     constructor (remoteRoom: RemoteRoom) {
         this.remoteRoom = remoteRoom;
+        const time = getTime();
         this.store = writable<LocalRoomRaw>({
-            name: 'Watch Together',
             currentTime: 0,
             paused: false,
             isLocalMode: false,
             url: '',
-            timestamp: getTime(),
             minutesWatched: 0,
+            updatedAt: time,
+            createdAt: time,
         }, set => {
             return remoteRoom.subscribe(newRemoteRoom => {
                 if (newRemoteRoom) {
@@ -82,11 +83,11 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
         return this.store.subscribe;
     }
 
-    set (newValue: Omit<LocalRoomRaw, 'timestamp'>) {
+    set (newValue: Omit<LocalRoomRaw, 'updatedAt'>) {
         const val = newValue;
         const now = getTime();
 
-        const newRooom: LocalRoomRaw = { ...newValue, timestamp: now };
+        const newRooom: LocalRoomRaw = { ...newValue, updatedAt: now };
 
         this.store.set(newRooom);
         const remoteValue = getStore(this.remoteRoom);
@@ -97,7 +98,7 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
             remoteValue.url !== newValue.url ||
             remoteValue.minutesWatched !== newValue.minutesWatched ||
             Math.abs(remoteValue.currentTime - val.currentTime) > syncInterval ||
-            Math.abs(now - remoteValue.timestamp) > syncInterval
+            Math.abs(now - remoteValue.updatedAt) > syncInterval
         ) {
             this.remoteRoom.set(newRooom);
         }
