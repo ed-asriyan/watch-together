@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type Link, LinkType } from '../normalize-link';
+    import { type Link, SourceType } from '../normalize-link';
     import { Player, Dailymotion, DefaultUi } from '@vime/svelte';
 
     export let link: Link;
@@ -37,7 +37,7 @@
     muted
 >
     {#key link.url}
-        {#if link.type === LinkType.DailyMotion}
+        {#if link.type === SourceType.DailyMotion}
             <Dailymotion videoId={link.url} />
         {/if}
     {/key}

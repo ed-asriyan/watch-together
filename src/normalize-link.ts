@@ -1,18 +1,18 @@
-export enum LinkType {
-    blob,
-    direct,
-    DailyMotion,
-    YouTube,
-    Vimeo,
+export enum SourceType {
+    blob = 'blob',
+    direct = 'direct',
+    DailyMotion = 'Dailymotion',
+    YouTube = 'YouTube',
+    Vimeo = 'Vimeo',
 }
 
 export interface Link {
     url: string;
-    type: LinkType;
+    type: SourceType;
 }
 
 abstract class LinkBuilder {
-    protected static type: LinkType;
+    protected static type: SourceType;
 
     abstract parse(r: string): string | null;
 
@@ -29,7 +29,7 @@ abstract class LinkBuilder {
 
 abstract class LinkBuilderRegex extends LinkBuilder {
     protected static regex: RegExp;
-    protected static type: LinkType;
+    protected static type: SourceType;
 
     abstract parseRegex(r: RegExpMatchArray): string;
 
@@ -46,7 +46,7 @@ abstract class LinkBuilderRegex extends LinkBuilder {
 
 class YouTube extends LinkBuilderRegex {
     protected static regex = /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|live\/|v\/)?)([\w\-]+)(\S+)?$/;
-    protected static type = LinkType.YouTube;
+    protected static type = SourceType.YouTube;
 
     parseRegex(result: RegExpMatchArray): string {
         return `youtube/${result[6]}`
@@ -55,7 +55,7 @@ class YouTube extends LinkBuilderRegex {
 
 class Vimeo extends LinkBuilderRegex {
     protected static regex = /(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/i;
-    protected static type = LinkType.Vimeo;
+    protected static type = SourceType.Vimeo;
 
     parseRegex(result: RegExpMatchArray): string {
         return `vimeo/${result[1]}`;
@@ -65,7 +65,7 @@ class Vimeo extends LinkBuilderRegex {
 class Dailymotion extends LinkBuilderRegex {
     // https://stackoverflow.com/a/50644701
     protected static regex = /^(?:(?:https?):)?(?:\/\/)?(?:www\.)?(?:(?:dailymotion\.com(?:\/embed)?\/video)|dai\.ly)\/([a-zA-Z0-9]+)(?:_[\w_-]+)?$/;
-    protected static type = LinkType.DailyMotion;
+    protected static type = SourceType.DailyMotion;
 
     parseRegex(result: RegExpMatchArray): string {
         return result[1];
@@ -73,7 +73,7 @@ class Dailymotion extends LinkBuilderRegex {
 }
 
 class Direct extends LinkBuilder {
-    protected static type = LinkType.direct;
+    protected static type = SourceType.direct;
 
     parse(link: string): string | null {
         try {
@@ -86,7 +86,7 @@ class Direct extends LinkBuilder {
 }
 
 class Blob extends LinkBuilder {
-    protected static type = LinkType.blob;
+    protected static type = SourceType.blob;
 
     parse(link: string): string | null {
         return link.startsWith("blob:") ? link : null;

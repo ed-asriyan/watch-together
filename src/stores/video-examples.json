@@ -1,4 +1,4 @@
-const videos = [
+[
     "https://youtu.be/8Ddhxl2omFc",
     "https://youtu.be/ARP7zFYUvdg",
     "https://youtu.be/emrL_OG-br0",
@@ -228,9 +228,5 @@ const videos = [
     "https://youtu.be/Zt-TzTAuzbc",
     "https://youtu.be/R4TT1CmX5Ig",
     "https://youtu.be/VlyFy4NtRCE",
-    "https://youtu.be/wgoIX1AhsB4",
-];
-
-export default function (): string {
-    return videos[Math.floor(Math.random() * videos.length)];
-}
+    "https://youtu.be/wgoIX1AhsB4"
+]

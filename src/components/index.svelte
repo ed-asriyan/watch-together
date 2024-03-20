@@ -70,7 +70,7 @@
         timeSpentInterval = setInterval(() => {
             if ($play && !$localRoom.paused) {
                 $localRoom.minutesWatched += 1;
-                trackWatchedMinute(roomId);
+                trackWatchedMinute({ roomId, sourceType: $play.type, isExample: isExample($localRoom.url) });
             }
         }, 60000);
     });

@@ -1,15 +1,15 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
     import { trackClick } from '../google-analytics';
-    import videoExample from '../stores/video-example';
+    import { getExampleVideo } from '../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';
     import { LocalRoom } from '../stores/local-room';
-    import { LinkType } from '../normalize-link';
+    import { SourceType } from '../normalize-link';
 
     export let room: LocalRoom;
 
     const selectExample = function () {
-        $room.url = videoExample();
+        $room.url = getExampleVideo();
         trackClick('example');
     };
 
@@ -21,6 +21,14 @@
     const selectLocalMode = function () {
         $room.isLocalMode = true;
         trackClick('select_local_mode');
+    };
+
+    const clickDownloadTutorial = function () {
+        trackClick('download_tutorial');
+    };
+
+    const clicUrlTutorial = function () {
+        trackClick('url_tutorial');
     };
 
     $: play = room.play;
@@ -72,18 +80,18 @@
 <div class="uk-margin-top uk-text-center uk-text-small hint">
     <i>
         {#if $room.isLocalMode}
-            Don't know how to download a video from a website? It's easy, <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank">watch here</a>!
+            Don't know how to download a video from a website? It's easy, <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank" on:click={clickDownloadTutorial}>watch here</a>!
         {:else}
             {#if $room.url}
                 {#if $play}
-                    {#if $play.type == LinkType.direct}
-                        If the movie doesn't play, make sure the <u>direct</u> video link is inserted. It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank">read here</a>!
+                    {#if $play.type == SourceType.direct}
+                        If the movie doesn't play, make sure the <u>direct</u> video link is inserted. It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clicUrlTutorial}>read here</a>!
                     {/if}
                 {:else}
                     Video link is invalid
                 {/if}
             {:else}
-                Don't know how to get a video link from a website? It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank">read here</a>!
+                Don't know how to get a video link from a website? It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clicUrlTutorial}>read here</a>!
             {/if}
         {/if}
     </i>

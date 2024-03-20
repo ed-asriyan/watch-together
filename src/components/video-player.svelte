@@ -10,7 +10,7 @@
 
     import { onMount, onDestroy } from 'svelte';
     import type { MediaPlayerElement } from 'vidstack/elements';
-    import { LinkType } from '../normalize-link';
+    import { SourceType } from '../normalize-link';
     import VideoPlayerNative from './video-player-native.svelte';
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
     import VideoPlayerVime from './video-player-vime.svelte';
@@ -21,13 +21,13 @@
 
     $: playerType = (() => {
         switch (link?.type) {
-            case LinkType.DailyMotion:
+            case SourceType.DailyMotion:
                 return 'vime';
-            case LinkType.Vimeo:
-            case LinkType.YouTube:
-            case LinkType.direct:
+            case SourceType.Vimeo:
+            case SourceType.YouTube:
+            case SourceType.direct:
                 return 'vidstack';
-            case LinkType.blob:
+            case SourceType.blob:
                 return 'native';
             default:
                 return null;
