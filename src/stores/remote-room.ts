@@ -1,10 +1,8 @@
 import { get as getStore, writable, type Updater, type Writable } from 'svelte/store';
 import { ref, onValue, get, child, update, type DatabaseReference } from 'firebase/database';
 import { database } from './firebase/firebase';
+import { now } from './clock';
 
-export const getTime = function (): number {
-    return Math.round(new Date().getTime() / 1000);
-};
 
 export interface RemoteRoomRaw {
     url: string;
@@ -35,7 +33,7 @@ export class RemoteRoom implements Writable<RemoteRoomRaw> {
         if (initSnapshot.exists()) {
             initRoom = initSnapshot.val();
         } else {
-            const time = getTime()
+            const time = now()
             initRoom = {
                 url: '',
                 paused: true,

@@ -5,32 +5,53 @@
     import Loader from './loader.svelte';
     import { RemoteRoom } from '../stores/remote-room';
     import { LocalRoom } from '../stores/local-room';
+    import { type Link } from '../normalize-link'
     import VideoSelector from './1-video-selector.svelte';
     import CopyUrl from './2-copy-url.svelte';
     import VideoViewer from './3-video-viewer.svelte';
-    import randomStr from '../random-str';
+    import { randomStr } from '../utils';
+    import { syncTime } from '../stores/clock';
     import { trackClick, trackWatchedMinute } from '../google-analytics';
+    import { isExample } from '../stores/video-example';
 
     export let roomId: string;
 
+    let remoteRoom: RemoteRoom;
     let localRoom: LocalRoom;
-    $: remoteRoom = new RemoteRoom(roomId);
-    let isLoading = true;
-    $: remoteRoom.load()
-        .then(room => {
-            if (room.isLocalMode || room.url) {
+    let play: Link;
+    $: initRoom(roomId);
+    let isRoomLoading = true;
+    let isTimeLoading = true;
+
+    const initRoom = async function (roomId: number) {
+        isRoomLoading = true;
+        try {
+            remoteRoom = new RemoteRoom(roomId);
+            const remoteRoomData = await remoteRoom.load();
+            if (remoteRoomData.isLocalMode || remoteRoomData.url) {
                 setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 10);
             }
-        })
-        .finally(() => {
-            isLoading = false;
-        });
-    $: localRoom = new LocalRoom(remoteRoom);
+            localRoom = new LocalRoom(remoteRoom);
+            play = localRoom.play
+        } finally {
+            isRoomLoading = false;
+        }
+    };
+
+    const initTime = async function () {
+        isTimeLoading = true;
+        try {
+            await syncTime()
+        } finally {
+            isTimeLoading = false;
+        }
+    };
+    initTime();
 
     const updateRoom = function (newRoomId: string, copyData?: boolean) {
         const roomData = $localRoom;
-        isLoading = true;
         // otherwise roomId isn't reactively updated inside exactle CopyUrl component. svelte bug?
+        isRoomLoading = true;
         setTimeout(() => {
             document.location.hash = `#${newRoomId}`;
             // todo: relect this shitcode oneday
@@ -38,7 +59,7 @@
                 $localRoom = roomData;
             }, 1000);
         }, 1200);
-    }
+    };
 
     const generateNewRoom = function () {
         updateRoom(randomStr(6), true);
@@ -64,7 +85,7 @@
         trackClick('join_another_room');
     };
 
-    $: play = localRoom.play;
+    $: ;
     let timeSpentInterval;
     onMount(() => {
         timeSpentInterval = setInterval(() => {
@@ -80,7 +101,7 @@
     });
 </script>
 
-{#if isLoading || !localRoom}
+{#if isRoomLoading || isTimeLoading}
     <div class="uk-text-center loader" transition:fade>
         <Loader/>
     </div>

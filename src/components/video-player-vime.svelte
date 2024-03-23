@@ -16,7 +16,6 @@
         // 2nd: vmCurrentTimeChange with old currentTime
         // this immitates that user "scrolled back" to the previous currentTime
         if (isOdd) {
-            console.log('local', event.detail);
             currentTime = event.detail;
         }
         isOdd = !isOdd;

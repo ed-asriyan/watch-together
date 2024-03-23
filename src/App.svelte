@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import 'uikit/dist/js/uikit';
     import GitHub from './components/github.svelte';
-    import randomStr from './random-str';
+    import { randomStr } from './utils';
     import './app.scss';
 
     import Page from './components/index.svelte';

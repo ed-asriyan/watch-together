@@ -1,7 +1,8 @@
 import { writable, type Writable, type Updater, type Readable, readable } from 'svelte/store';
 import { get as getStore } from 'svelte/store';
-import { getTime, type RemoteRoom, type RemoteRoomRaw } from './remote-room';
+import type { RemoteRoom, RemoteRoomRaw } from './remote-room';
 import normalizeLink, { type Link } from '../normalize-link';
+import { now } from './clock';
 
 const maximumDelta = 0.5;
 const syncInterval = 10;
@@ -47,7 +48,7 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
 
     constructor (remoteRoom: RemoteRoom) {
         this.remoteRoom = remoteRoom;
-        const time = getTime();
+        const time = now();
         this.store = writable<LocalRoomRaw>({
             currentTime: 0,
             paused: false,
@@ -85,20 +86,21 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
 
     set (newValue: Omit<LocalRoomRaw, 'updatedAt'>) {
         const val = newValue;
-        const now = getTime();
+        const nowTime = now();
 
-        const newRooom: LocalRoomRaw = { ...newValue, updatedAt: now };
+        const newRooom: LocalRoomRaw = { ...newValue, updatedAt: nowTime };
 
         this.store.set(newRooom);
         const remoteValue = getStore(this.remoteRoom);
 
         if (
+            !remoteValue ||
             remoteValue.isLocalMode !== newValue.isLocalMode ||
             remoteValue.paused !== newValue.paused ||
             remoteValue.url !== newValue.url ||
             remoteValue.minutesWatched !== newValue.minutesWatched ||
             Math.abs(remoteValue.currentTime - val.currentTime) > syncInterval ||
-            Math.abs(now - remoteValue.updatedAt) > syncInterval
+            Math.abs(nowTime - remoteValue.updatedAt) > syncInterval
         ) {
             this.remoteRoom.set(newRooom);
         }

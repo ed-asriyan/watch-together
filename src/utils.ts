@@ -1,4 +1,4 @@
-export default function (length: number) {
+export const randomStr = function (length: number): string {
     let result = '';
     const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
     const charactersLength = characters.length;
@@ -8,4 +8,5 @@ export default function (length: number) {
       counter += 1;
     }
     return result;
-}
+};
+
