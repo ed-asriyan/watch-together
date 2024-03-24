@@ -9,15 +9,5 @@
 </script>
 
 <div class="uk-flex-1 uk-flex uk-flex-center uk-flex-column uk-flex-center uk-flex-middle">
-    <VideoPlayer bind:paused={$room.paused} bind:currentTime={$room.currentTime} link={$play}>
-        {#if $room.isLocalMode}
-            <div>
-                <VideoSelectorBtn room={room}/>
-            </div>
-        {:else}
-            <div class="uk-padding">
-                Video player will appear here when you insert a link
-            </div>
-        {/if}
-    </VideoPlayer>
+    <VideoPlayer bind:paused={$room.paused} bind:currentTime={$room.currentTime} link={$play} />
 </div>

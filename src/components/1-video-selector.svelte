@@ -34,9 +34,8 @@
     $: play = room.play;
 </script>
 
-<span class="uk-hidden@s">Select movie source:</span>
+<span>Select movie source:</span>
 <div class="uk-margin-bottom uk-margin-top">
-    <span class="uk-visible@s uk-margin-right">Select movie source:</span>
     <button
         class="uk-button uk-button-small"
         class:uk-button-default={$room.isLocalMode}
@@ -52,16 +51,14 @@
         class:uk-button-secondary={$room.isLocalMode}
         on:click={selectLocalMode}
     >
-        File on computer
+        From computer
     </button>
 </div>
 {#if $room.isLocalMode}
     <div class="uk-margin-bottom">
         You all downloaded a movie already!? Well done! Everyone should select the same video file.
     </div>
-    <div class="uk-text-center">
         <VideoSelectorBtn room={room}/>
-    </div>
 {:else}
     <div class="uk-margin-bottom">
         Insert a link to <u>Dailymotion</u>, <u>YouTube</u>, <u>Vimeo</u>, <u>HLS</u> playlist, <u>video</u> or <u>audio</u> file. The input is synced with everyone in the room.

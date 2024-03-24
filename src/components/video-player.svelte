@@ -45,17 +45,19 @@
             <VideoPlayerVime link={link} bind:paused={paused} bind:currentTime={currentTime}/>
         {/if}
     {:else}
-        <slot/>
+        <div class="uk-padding">
+            Video player will appear here when you insert a link or select file
+        </div>
     {/if}
 </div>
 
 <style lang="scss">
     .player {
         box-sizing: border-box;
-        width: 90vw;
+        width: 100%;
 
         height: calc(90vw * 0.5);
-        max-height: 70vh; 
+        max-height: 100%; 
 
         border-radius: 6px;
         border: 1px solid rgb(255 255 255 / .1);

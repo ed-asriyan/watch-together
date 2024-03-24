@@ -17,16 +17,13 @@
 </script>
 
 <input bind:this={input} type="file" on:change={e => loadSource(e.target.files[0])}/>
-<button on:click={() => input.click()} class="uk-button uk-button-default">
+<button on:click={() => input.click()} class="uk-button uk-button-default block">
     {#if $blobUrl}
         Click to select another video
     {:else}
         Click to select video file
     {/if}
 </button>
-{#if $fileName}
-    <span class="uk-margin-left">{$fileName}</span>
-{/if}
 
 <style lang="scss">
     input {
