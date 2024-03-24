@@ -34,18 +34,27 @@
     $: play = room.play;
 </script>
 
-<h3>1. Select a video</h3>
-    <span class="uk-hidden@s">Select movie source:</span>
-    <ul class="swticher uk-subnav uk-subnav-pill" uk-switcher>
-        <span class="uk-visible@s">Select movie source:</span>
-        <li class:uk-active={!$room.isLocalMode}>
-            <a on:click={selectOnlineMode} class="uk-button-default">Online link</a>
-        </li>
-        <span>or</span>
-        <li class:uk-active={$room.isLocalMode}>
-            <a on:click={selectLocalMode} class="uk-button-default">File on computer</a>
-        </li>
-    </ul>
+<span class="uk-hidden@s">Select movie source:</span>
+<div class="uk-margin-bottom uk-margin-top">
+    <span class="uk-visible@s uk-margin-right">Select movie source:</span>
+    <button
+        class="uk-button uk-button-small"
+        class:uk-button-default={$room.isLocalMode}
+        class:uk-button-secondary={!$room.isLocalMode}
+        on:click={selectOnlineMode}
+    >
+        Online link
+    </button>
+    <span class="uk-margin-left uk-margin-right">or</span>
+    <button
+        class="uk-button uk-button-small"
+        class:uk-button-default={!$room.isLocalMode}
+        class:uk-button-secondary={$room.isLocalMode}
+        on:click={selectLocalMode}
+    >
+        File on computer
+    </button>
+</div>
 {#if $room.isLocalMode}
     <div class="uk-margin-bottom">
         You all downloaded a movie already!? Well done! Everyone should select the same video file.
@@ -73,7 +82,7 @@
             >
                 click here to paste random example
             </a>
-    {/if}
+        {/if}
     </div>
 {/if}
 
@@ -98,14 +107,8 @@
 </div>
 
 <style lang="scss">
-    @import '../constants.scss';
-
     .hint {
-        margin-bottom: -1rem;
-    }
-    
-    .uk-subnav-pill > .uk-active > a {
-        background-color: $step2-color;
+        height: 1.5rem;
     }
 
     .example {

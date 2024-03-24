@@ -36,8 +36,7 @@
     };
 </script>
 
-<h3>2. Share the link to this room with who you want to watch a movie with</h3>
-
+<div>Share the link to this room with who you want to watch a movie with</div>
 <div class="uk-text-center uk-margin-top">
     <div class="uk-text-center">
         {#if copyTumbler}
