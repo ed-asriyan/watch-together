@@ -33,7 +33,7 @@ https://github.com/ed-asriyan/watch-together/assets/7848847/2d2799f1-cc79-4732-8
       ```
    4. Add domain where you're going to host the website to "Authorized Domains" section of "Authentication"
 2. Setup [Google Analytics](https://analytics.google.com) (should be created with Firebase)
-   1. Copy Google Analytics cofiguration to [google-analytics.js](./src/google-analytics.js)
+   1. Copy Google Analytics cofiguration to [google-analytics.js](./src/analytics.js)
 3. Setup [Sentry](https://sentry.io) account and create Svelte project
    1. Paste Sentry configuration to [main.ts](./src/main.ts)
 

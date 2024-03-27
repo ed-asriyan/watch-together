@@ -10,6 +10,7 @@ const syncInterval = 10;
 export type LocalRoomRaw = RemoteRoomRaw;
 
 export class LocalRoom implements Writable<LocalRoomRaw> {
+    readonly id: string;
     private readonly store: Writable<LocalRoomRaw>;
     private readonly remoteRoom: RemoteRoom;
     readonly play: Readable<Link | null>;
@@ -47,6 +48,7 @@ export class LocalRoom implements Writable<LocalRoomRaw> {
     }
 
     constructor (remoteRoom: RemoteRoom) {
+        this.id = remoteRoom.id;
         this.remoteRoom = remoteRoom;
         const time = now();
         this.store = writable<LocalRoomRaw>({

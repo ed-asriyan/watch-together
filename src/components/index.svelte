@@ -11,7 +11,7 @@
     import VideoViewer from './3-video-viewer.svelte';
     import { randomStr } from '../utils';
     import { syncTime } from '../stores/clock';
-    import { trackClick, trackWatchedMinute } from '../google-analytics';
+    import { track, ClickEvent, WatchedMinuteEvent } from '../analytics';
     import { isExample } from '../stores/video-example';
 
     export let roomId: string;
@@ -60,7 +60,7 @@
 
     const generateNewRoom = function () {
         updateRoom(randomStr(6), true);
-        trackClick('generate_new_room');
+        track(new ClickEvent({ target: 'generate_new_room' }));
     };
 
     const joinAnotherRoom = function () {
@@ -79,7 +79,7 @@
             newRoomId = input;
         }
         updateRoom(newRoomId, false);
-        trackClick('join_another_room');
+        track(new ClickEvent({ target: 'join_another_room' }));
     };
 
     $: ;
@@ -88,7 +88,7 @@
         timeSpentInterval = setInterval(() => {
             if ($play && !$localRoom.paused) {
                 $localRoom.minutesWatched += 1;
-                trackWatchedMinute({ roomId, sourceType: $play.type, isExample: isExample($localRoom.url) });
+                track(new WatchedMinuteEvent({ roomId, sourceType: $play.type, isExample: isExample($localRoom.url) }));
             }
         }, 60000);
     });

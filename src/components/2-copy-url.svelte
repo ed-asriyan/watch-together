@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { trackClick } from '../google-analytics';
+    import { track, ClickEvent } from '../analytics';
 
     export let roomId: string;
 
@@ -27,7 +27,7 @@
         } else {
             copyToClipboard();
         }
-        trackClick('link_share');
+        track(new ClickEvent({ target: 'link_share' }));
     };
 
     const trigger = function () {

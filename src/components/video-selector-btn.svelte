@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { trackClick } from '../google-analytics';
+    import { track, ClickEvent } from '../analytics';
     import type { LocalRoom } from '../stores/local-room';
 
     export let room: LocalRoom;
@@ -12,7 +12,7 @@
     const loadSource = async function (file: any): Promise<void> {
         room.blobUrl.set(window.URL.createObjectURL(file) as string);
         room.fileName.set(file.name);
-        trackClick('file_select');
+        track(new trackClick({ target: 'file_select' }));
     };
 </script>
 

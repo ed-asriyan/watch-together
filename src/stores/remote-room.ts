@@ -15,10 +15,12 @@ export interface RemoteRoomRaw {
 }
 
 export class RemoteRoom implements Writable<RemoteRoomRaw> {
+    readonly id: string;
     private readonly store: Writable<RemoteRoomRaw>;
     private readonly roomRef: DatabaseReference;
 
     constructor(roomId: string) {
+        this.id = roomId;
         this.roomRef = child(ref(database), `room/${roomId}`);
         this.store = writable<RemoteRoomRaw>(undefined, set => {
             return onValue(this.roomRef, snapshot => {

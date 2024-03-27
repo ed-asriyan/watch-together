@@ -1,7 +1,7 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
-    import { trackClick } from '../google-analytics';
-    import { getExampleVideo } from '../stores/video-example';
+    import { track, ClickEvent, UrlPasteEvent } from '../analytics';
+    import { getExampleVideo, isExample } from '../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';
     import { LocalRoom } from '../stores/local-room';
     import { SourceType } from '../normalize-link';
@@ -10,26 +10,32 @@
 
     const selectExample = function () {
         $room.url = getExampleVideo();
+        track(new ClickEvent({ target: 'example' }));
         trackClick('example');
     };
 
     const selectOnlineMode = function () {
         $room.isLocalMode = false;
-        trackClick('select_online_mode');
+        track(new ClickEvent({ target: 'select_online_mode' }));
     };
 
     const selectLocalMode = function () {
         $room.isLocalMode = true;
-        trackClick('select_local_mode');
+        track(new ClickEvent({ target: 'select_local_mode' }));
     };
 
     const clickDownloadTutorial = function () {
-        trackClick('download_tutorial');
+        track(new ClickEvent({ target: 'download_tutorial' }));
     };
 
-    const clicUrlTutorial = function () {
-        trackClick('url_tutorial');
+    const clickUrlTutorial = function () {
+        track(new ClickEvent({ target: 'url_tutorial' }));
     };
+
+    const onInput = function () {
+        track(new UrlPasteEvent({ roomId: room.id, url: $room.url, isExample: isExample($room.url) }));
+    };
+
 
     $: play = room.play;
 </script>
@@ -66,6 +72,7 @@
     <div class="uk-inline uk-width-1-1">
         <input
             bind:value={$room.url}
+            on:input={onInput}
             class="uk-input"
             class:uk-form-danger={!$play}
             placeholder="Video URL"
@@ -91,13 +98,13 @@
             {#if $room.url}
                 {#if $play}
                     {#if $play.type == SourceType.direct}
-                        If the movie doesn't play, make sure the <u>direct</u> video link is inserted. It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clicUrlTutorial}>read here</a>!
+                        If the movie doesn't play, make sure the <u>direct</u> video link is inserted. It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>read here</a>!
                     {/if}
                 {:else}
                     Video link is invalid
                 {/if}
             {:else}
-                Don't know how to get a video link from a website? It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clicUrlTutorial}>read here</a>!
+                Don't know how to get a video link from a website? It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>read here</a>!
             {/if}
         {/if}
     </i>
