@@ -16,7 +16,7 @@ const main = async function() {
     (await root.once('value')).forEach(childSnapshot => {
         const task = (async function () {
             const room = childSnapshot.val();
-            process.stdout.write(`${childSnapshot.key}\t${room.url}\t${isExample(room.url)}\t${room.currentTime}\t${room.paused}\t${room.isLocalMode}\t${room.minutesWatched}\t${room.updatedAt && new Date(room.updatedAt * 1000).toISOString()}\t${room.createdAt && new Date(room.createdAt * 1000).toISOString()}\n`)
+            process.stdout.write(`${childSnapshot.key}\t${room.url.value}\t${isExample(room.url.value)}\t${room.currentTime.value}\t${room.paused.value}\t${room.isLocalMode.value}\t${room.minutesWatched.value}\t${room.currentTime?.updatedAt && new Date(room.currentTime?.updatedAt * 1000).toISOString()}\t${room.createdAt && new Date(room.createdAt * 1000).toISOString()}\n`)
 
         })();
         promises.push(task);

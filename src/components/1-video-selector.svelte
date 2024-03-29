@@ -10,19 +10,22 @@
 
     export let room: LocalRoom;
 
+    $: url = room.url;
+    $: isLocalMode = room.isLocalMode;
+    $: play = room.play;
+
     const selectExample = function () {
-        $room.url = getExampleVideo();
+        $url = getExampleVideo();
         track(new ClickEvent({ target: 'example' }));
-        trackClick('example');
     };
 
     const selectOnlineMode = function () {
-        $room.isLocalMode = false;
+        $isLocalMode = false;
         track(new ClickEvent({ target: 'select_online_mode' }));
     };
 
     const selectLocalMode = function () {
-        $room.isLocalMode = true;
+        $isLocalMode = true;
         track(new ClickEvent({ target: 'select_local_mode' }));
     };
 
@@ -35,19 +38,16 @@
     };
 
     const onInput = function () {
-        track(new UrlPasteEvent({ roomId: room.id, url: $room.url, isExample: isExample($room.url) }));
+        track(new UrlPasteEvent({ roomId: room.id, url: $url, isExample: isExample($url) }));
     };
-
-
-    $: play = room.play;
 </script>
 
 <span>{ $_('selectVideo.selectMovieSource')}</span>
 <div class="uk-margin-bottom uk-margin-top">
     <button
         class="uk-button uk-button-small"
-        class:uk-button-default={$room.isLocalMode}
-        class:uk-button-secondary={!$room.isLocalMode}
+        class:uk-button-default={$isLocalMode}
+        class:uk-button-secondary={!$isLocalMode}
         on:click={selectOnlineMode}
     >
         { $_('selectVideo.link.title')}
@@ -55,14 +55,14 @@
     <span class="uk-margin-left uk-margin-right">{ $_('or') }</span>
     <button
         class="uk-button uk-button-small"
-        class:uk-button-default={!$room.isLocalMode}
-        class:uk-button-secondary={$room.isLocalMode}
+        class:uk-button-default={!$isLocalMode}
+        class:uk-button-secondary={$isLocalMode}
         on:click={selectLocalMode}
     >
         { $_('selectVideo.file.title')}
     </button>
 </div>
-{#if $room.isLocalMode}
+{#if $isLocalMode}
     <div class="uk-margin-bottom">
         { $_('selectVideo.file.description') }
     </div>
@@ -77,13 +77,13 @@
     </div>
     <div class="uk-inline uk-width-1-1">
         <input
-            bind:value={$room.url}
+            bind:value={$url}
             on:input={onInput}
             class="uk-input"
             class:uk-form-danger={!$play}
             placeholder="Video URL"
         />
-        {#if !$room.url}
+        {#if !$url}
             <a
                 class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto example pointer"
                 on:click|preventDefault={selectExample}
@@ -98,7 +98,7 @@
 
 <div class="uk-margin-top uk-text-center uk-text-small hint">
     <i>
-        {#if $room.isLocalMode}
+        {#if $isLocalMode}
             { $_('selectVideo.file.hint') }
             <br/>
             <Interpolator text={$_('selectVideo.file.help')} let:data={data}>
@@ -107,7 +107,7 @@
                 {/if}
             </Interpolator>
         {:else}
-            {#if $room.url}
+            {#if $url}
                 {#if $play}
                     {#if $play.type == SourceType.direct}
                         <Interpolator text={$_('selectVideo.link.hintNotWorking')} let:data={data}>

@@ -13,15 +13,20 @@
     import VideoViewer from './3-video-viewer.svelte';
     import { randomStr } from '../utils';
     import { syncTime } from '../stores/clock';
-    import { track, ClickEvent, WatchedMinuteEvent } from '../analytics';
+    import { track, ClickEvent, WatchedMinuteEvent, LocaleChangedEvent } from '../analytics';
     import { isExample } from '../stores/video-example';
 
     export let roomId: string;
 
     let remoteRoom: RemoteRoom;
     let localRoom: LocalRoom;
-    let play: Link;
+
     $: initRoom(roomId);
+    $: url = localRoom?.url;
+    $: play = localRoom?.play;
+    $: paused = localRoom?.paused;
+    $: minutesWatched = localRoom?.minutesWatched;
+
     let isRoomLoading = true;
     let isTimeLoading = true;
 
@@ -31,7 +36,6 @@
             remoteRoom = new RemoteRoom(roomId);
             await remoteRoom.load();
             localRoom = new LocalRoom(remoteRoom);
-            play = localRoom.play
         } finally {
             isRoomLoading = false;
         }
@@ -48,15 +52,10 @@
     initTime();
 
     const updateRoom = function (newRoomId: string, copyData?: boolean) {
-        const roomData = $localRoom;
         // otherwise roomId isn't reactively updated inside exactle CopyUrl component. svelte bug?
         isRoomLoading = true;
         setTimeout(() => {
             document.location.hash = `#${newRoomId}`;
-            // todo: relect this shitcode oneday
-            copyData && setTimeout(() => {
-                $localRoom = roomData;
-            }, 1000);
         }, 1200);
     };
 
@@ -84,13 +83,21 @@
         track(new ClickEvent({ target: 'join_another_room' }));
     };
 
-    $: ;
+    
+    const onLanguageChangeClick = function () {
+        track(new ClickEvent({ target: 'language_selector' }));
+    };
+
+    const onLanguageChanged = function () {
+        track(new LocaleChangedEvent({ locale: $locale }));
+    };
+
     let timeSpentInterval;
     onMount(() => {
         timeSpentInterval = setInterval(() => {
-            if ($play && !$localRoom.paused) {
-                $localRoom.minutesWatched += 1;
-                track(new WatchedMinuteEvent({ roomId, sourceType: $play.type, isExample: isExample($localRoom.url) }));
+            if ($play && !$paused) {
+                $minutesWatched += 1;
+                track(new WatchedMinuteEvent({ roomId, sourceType: $play.type, isExample: isExample($url) }));
             }
         }, 60000);
     });
@@ -105,7 +112,7 @@
         Watch Together
     </div>
     <div class="content uk-flex-1 uk-margin-top uk-flex uk-flex-center uk-flex-middle">
-        {#if isRoomLoading || isTimeLoading}
+        {#if !localRoom || isRoomLoading || isTimeLoading}
             <Loader/>
         {:else}
             <div uk-grid class="full-width" transition:fade>
@@ -127,7 +134,7 @@
                         →
                     </button>
 
-                    <select class="uk-button uk-button-default bottom uk-text-center" bind:value={$locale}>
+                    <select class="uk-button uk-button-default bottom uk-text-center" bind:value={$locale} on:change={onLanguageChanged} on:click={onLanguageChangeClick}>
                         {#each Object.entries(locales) as lang}
                             <option value={ lang[0] }>{ lang[1].locale.flag } { lang[1].locale.name }</option>
                         {/each}

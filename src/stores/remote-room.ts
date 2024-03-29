@@ -1,66 +1,90 @@
-import { get as getStore, writable, type Updater, type Writable } from 'svelte/store';
-import { ref, onValue, get, child, update, type DatabaseReference } from 'firebase/database';
+import { get as getStore, writable, type Updater, type Writable, type Readable, type Subscriber, readable } from 'svelte/store';
+import { ref, onValue, get, set, child, update, type DatabaseReference } from 'firebase/database';
 import { database } from './firebase/firebase';
 import { now } from './clock';
 
+export class BoundStore<T> implements Writable<T> {
+    private readonly store: Writable<{ value: T, updatedAt: number }>;
+    private readonly ref: DatabaseReference;
+    readonly updatedAt: Readable<number>;
 
-export interface RemoteRoomRaw {
-    url: string;
-    currentTime: number;
-    paused: boolean;
-    isLocalMode: boolean;
-    updatedAt: number;
-    minutesWatched: number;
-    createdAt: number;
-}
-
-export class RemoteRoom implements Writable<RemoteRoomRaw> {
-    readonly id: string;
-    private readonly store: Writable<RemoteRoomRaw>;
-    private readonly roomRef: DatabaseReference;
-
-    constructor(roomId: string) {
-        this.id = roomId;
-        this.roomRef = child(ref(database), `room/${roomId}`);
-        this.store = writable<RemoteRoomRaw>(undefined, set => {
-            return onValue(this.roomRef, snapshot => {
-                set(snapshot.val());
+    constructor (ref: DatabaseReference) {
+        this.ref = ref;
+        this.store = writable<{ value: T, updatedAt: number }>(undefined, set => {
+            return onValue(ref, snapshot => {
+                const newValue = snapshot.val();
+                const storeValue = getStore(this.store);
+                if (!storeValue || newValue.updatedAt > getStore(this.store).updatedAt) {
+                    set(newValue);
+                }
             });
+        });
+        this.updatedAt = readable<number>(getStore(this.store)?.updatedAt, set => {
+            return this.store.subscribe(x => set(x?.updatedAt));
         });
     }
 
-    async load (): Promise<RemoteRoomRaw> {
-        const initSnapshot = await get(this.roomRef);
-        let initRoom: RemoteRoomRaw;
-        if (initSnapshot.exists()) {
-            initRoom = initSnapshot.val();
-        } else {
-            const time = now()
-            initRoom = {
-                url: '',
-                paused: true,
-                currentTime: 0,
-                isLocalMode: false,
-                minutesWatched: 0,
-                updatedAt: time,
-                createdAt: time,
-            };
+    subscribe (f: Subscriber<T>) {
+        return this.store.subscribe(item => {
+            f(item && item.value);
+        });
+    }
+
+    set (value: T) {
+        if (value === undefined) {
+            return;
         }
-        this.store.set(initRoom);
-        return initRoom;
+        const raw = { value, updatedAt: now() };
+        this.store.set(raw);
+        update(this.ref, raw);
     }
 
-    get subscribe () {
-        return this.store.subscribe;
-    }
-
-    set (data: RemoteRoomRaw) {
-        return update(this.roomRef, data);
-    }
-
-    update (func: Updater<RemoteRoomRaw>) {
-        const currentValue = getStore(this.store);
+    update (func: Updater<T>) {
+        const currentValue = getStore(this.store)?.value;
         const newValue = func(currentValue);
         this.set(newValue);
+    }
+
+    async init (defaultValue: T) {
+        const snapshot = await get(this.ref);
+        this.store.set(snapshot.exists() ? snapshot.val() : { value: defaultValue, updatedAt: now() });
+    }
+}
+
+export class RemoteRoom {
+    readonly id: string;
+
+    readonly url: BoundStore<string>;
+    readonly currentTime: BoundStore<number>;
+    readonly paused: BoundStore<boolean>;
+    readonly isLocalMode: BoundStore<boolean>;
+    readonly minutesWatched: BoundStore<number>;
+
+    constructor(roomId: string) {
+        this.id = roomId;
+
+        const roomRef = this.getRoomRef();
+        this.url = new BoundStore<string>(child(roomRef, 'url'));
+        this.currentTime = new BoundStore<number>(child(roomRef, 'currentTime'));
+        this.paused = new BoundStore<boolean>(child(roomRef, 'paused'));
+        this.isLocalMode = new BoundStore<boolean>(child(roomRef, 'isLocalMode'));
+        this.minutesWatched = new BoundStore<number>(child(roomRef, 'minutesWatched'));
+    }
+
+    async load (): Promise<void> {
+        await this.url.init('');
+        await this.currentTime.init(0);
+        await this.paused.init(true);
+        await this.isLocalMode.init(false);
+        await this.minutesWatched.init(0);
+
+        const createdAtRef = child(this.getRoomRef(), 'createdAt');
+        if (!(await get(createdAtRef)).exists()) {
+            set(createdAtRef, now());
+        }
+    }
+
+    private getRoomRef () {
+        return child(ref(database), `room/${this.id}`);
     }
 }

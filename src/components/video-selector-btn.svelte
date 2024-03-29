@@ -13,7 +13,7 @@
     const loadSource = async function (file: any): Promise<void> {
         room.blobUrl.set(window.URL.createObjectURL(file) as string);
         room.fileName.set(file.name);
-        track(new trackClick({ target: 'file_select' }));
+        track(new ClickEvent({ target: 'file_select' }));
     };
 </script>
 

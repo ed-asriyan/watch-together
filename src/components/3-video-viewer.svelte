@@ -6,8 +6,10 @@
     export let room: LocalRoom;
 
     $: play = room.play;
+    $: currentTime = room.currentTime;
+    $: paused = room.paused;
 </script>
 
 <div class="uk-flex-1 uk-flex uk-flex-center uk-flex-column uk-flex-center uk-flex-middle">
-    <VideoPlayer bind:paused={$room.paused} bind:currentTime={$room.currentTime} link={$play} />
+    <VideoPlayer bind:paused={$paused} bind:currentTime={$currentTime} link={$play} />
 </div>

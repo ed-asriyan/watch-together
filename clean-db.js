@@ -18,7 +18,7 @@ const main = async function() {
     process.stdout.write('Started...\n');
     (await root.once('value')).forEach(childSnapshot => {
         const task = (async function () {
-            const updatedAt = childSnapshot.child('updatedAt').val();
+            const updatedAt = childSnapshot.child('currentTime/updatedAt').val();
             if (typeof updatedAt !== 'number') {
                 process.stdout.write(`room#${childSnapshot.key}\twrong type: ${typeof updatedAt}\n`);
             } else if (updatedAt < now - diff) {

@@ -53,6 +53,12 @@ export class UrlPasteEvent extends Event<{
     readonly name: string = 'url_paste';
 }
 
+export class LocaleChangedEvent extends Event<{
+    locale: string;
+}> {
+    readonly name: string = 'locale_changed';
+}
+
 export const track = function<T> (event: Event<T>) {
     trackRaw('event', event.name, event.params);
 };
