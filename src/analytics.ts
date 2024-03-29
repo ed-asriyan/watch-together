@@ -10,7 +10,7 @@ const trackRaw = function (...args: any[]) {
     }
 };
 
-export const init = function () {
+export const initAnalytics = function () {
     trackRaw('js', new Date());
     trackRaw('config', 'G-39LEN0SXX6');
 };

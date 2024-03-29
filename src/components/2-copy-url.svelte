@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { _ } from 'svelte-i18n';
+    import Interpolator from './interpolator.svelte';
     import { track, ClickEvent } from '../analytics';
 
     export let roomId: string;
@@ -36,15 +38,15 @@
     };
 </script>
 
-<div>Share the link to this room with who you want to watch a movie with</div>
+<div>{ $_('invite.description') }</div>
 <div class="uk-text-center uk-margin-top">
     <div class="uk-text-center">
         {#if copyTumbler}
-            The link is copied to the clipboard
+            { $_('invite.linkHasBeenCopied') }
         {:else}
             <div 
                 class="uk-button uk-button-link uk-text-lowercase"
-                uk-tooltip={canShare ? 'Chlick to share the link' : 'Click to copy the link'}
+                uk-tooltip={canShare ? $_('invite.clickToShare') : $_('invite.clickToCopy')}
                 on:click={linkClick}
             >
                 {url}
@@ -57,9 +59,13 @@
             <br/>
         {:else}
             {#if canShare}
-                Click the link to share. Or <span class="uk-text-secondary pointer" uk-tooltip="Click to copy the link" on:click={copyToClipboard}>click here</span> to copy it to the clipboard
+                <Interpolator text={$_('invite.clickToShareHint')} let:data={data}>
+                    {#if data.name === 'link' }
+                        <span class="uk-text-secondary pointer" on:click={copyToClipboard}>{ data.text }</span>
+                    {/if}
+                </Interpolator>
             {:else}
-                Click the link to copy it to the clipboard
+                { $_('invite.copyLink') }
             {/if}
         {/if}
     </div>

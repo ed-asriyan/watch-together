@@ -1,6 +1,8 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
+    import { _ } from 'svelte-i18n';
     import { track, ClickEvent, UrlPasteEvent } from '../analytics';
+    import Interpolator from './interpolator.svelte';
     import { getExampleVideo, isExample } from '../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';
     import { LocalRoom } from '../stores/local-room';
@@ -40,7 +42,7 @@
     $: play = room.play;
 </script>
 
-<span>Select movie source:</span>
+<span>{ $_('selectVideo.selectMovieSource')}</span>
 <div class="uk-margin-bottom uk-margin-top">
     <button
         class="uk-button uk-button-small"
@@ -48,26 +50,30 @@
         class:uk-button-secondary={!$room.isLocalMode}
         on:click={selectOnlineMode}
     >
-        Online link
+        { $_('selectVideo.link.title')}
     </button>
-    <span class="uk-margin-left uk-margin-right">or</span>
+    <span class="uk-margin-left uk-margin-right">{ $_('or') }</span>
     <button
         class="uk-button uk-button-small"
         class:uk-button-default={!$room.isLocalMode}
         class:uk-button-secondary={$room.isLocalMode}
         on:click={selectLocalMode}
     >
-        From computer
+        { $_('selectVideo.file.title')}
     </button>
 </div>
 {#if $room.isLocalMode}
     <div class="uk-margin-bottom">
-        You all downloaded a movie already!? Well done! Everyone should select the same video file.
+        { $_('selectVideo.file.description') }
     </div>
         <VideoSelectorBtn room={room}/>
 {:else}
     <div class="uk-margin-bottom">
-        Insert a link to <u>Dailymotion</u>, <u>YouTube</u>, <u>Vimeo</u>, <u>HLS</u> playlist, <u>video</u> or <u>audio</u> file. The input is synced with everyone in the room.
+        <Interpolator text={$_('selectVideo.link.description')} let:data={data}>
+            {#if data.name === 'type'}
+                <u>{ data.text }</u>
+            {/if}
+        </Interpolator>
     </div>
     <div class="uk-inline uk-width-1-1">
         <input
@@ -84,7 +90,7 @@
                 href="/#"
                 transition:fade
             >
-                click here to paste random example
+                { $_('selectVideo.link.insertExample') }
             </a>
         {/if}
     </div>
@@ -93,18 +99,38 @@
 <div class="uk-margin-top uk-text-center uk-text-small hint">
     <i>
         {#if $room.isLocalMode}
-            Don't know how to download a video from a website? It's easy, <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank" on:click={clickDownloadTutorial}>watch here</a>!
+            { $_('selectVideo.file.hint') }
+            <br/>
+            <Interpolator text={$_('selectVideo.file.help')} let:data={data}>
+                {#if data.name === 'link'}
+                    <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank" on:click={clickDownloadTutorial}>{ data.text }</a>
+                {/if}
+            </Interpolator>
         {:else}
             {#if $room.url}
                 {#if $play}
                     {#if $play.type == SourceType.direct}
-                        If the movie doesn't play, make sure the <u>direct</u> video link is inserted. It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>read here</a>!
+                        <Interpolator text={$_('selectVideo.link.hintNotWorking')} let:data={data}>
+                            {#if data.name === 'u'}
+                                <u>{ data.text }</u>
+                            {/if}
+                        </Interpolator>
+                        <Interpolator text={$_('selectVideo.link.help')} let:data={data}>
+                            {#if data.name === 'link'}
+                                <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>{ data.text }</a>
+                            {/if}
+                        </Interpolator>
                     {/if}
                 {:else}
-                    Video link is invalid
+                    { $_('selectVideo.link.hintInvalid') }
                 {/if}
             {:else}
-                Don't know how to get a video link from a website? It's easy, <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>read here</a>!
+                { $_('selectVideo.link.hintEmpty') }
+                <Interpolator text={$_('selectVideo.link.help')} let:data={data}>
+                    {#if data.name === 'link'}
+                        <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>{ data.text }</a>
+                    {/if}
+                </Interpolator>
             {/if}
         {/if}
     </i>

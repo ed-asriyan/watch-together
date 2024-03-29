@@ -10,6 +10,7 @@
 
     import { onMount, onDestroy } from 'svelte';
     import type { MediaPlayerElement } from 'vidstack/elements';
+    import { _ } from 'svelte-i18n';
     import { SourceType } from '../normalize-link';
     import VideoPlayerNative from './video-player-native.svelte';
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
@@ -46,7 +47,7 @@
         {/if}
     {:else}
         <div class="uk-padding">
-            Video player will appear here when you insert a link or select file
+            { $_('player.placeholder') }
         </div>
     {/if}
 </div>

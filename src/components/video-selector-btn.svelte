@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { _ } from 'svelte-i18n';
     import { track, ClickEvent } from '../analytics';
     import type { LocalRoom } from '../stores/local-room';
 
@@ -19,9 +20,9 @@
 <input bind:this={input} type="file" on:change={e => loadSource(e.target.files[0])}/>
 <button on:click={() => input.click()} class="uk-button uk-button-default block">
     {#if $blobUrl}
-        Click to select another video
+        { $_('selectVideo.file.selectAnother') }
     {:else}
-        Click to select video file
+        { $_('selectVideo.file.select') }
     {/if}
 </button>
 

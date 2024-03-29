@@ -2,6 +2,8 @@
     import { onMount, onDestroy } from 'svelte';
     import { tick } from 'svelte';
     import { fade } from 'svelte/transition';
+    import { _, locale } from 'svelte-i18n';
+    import { locales } from '../i18n/index';
     import Loader from './loader.svelte';
     import { RemoteRoom } from '../stores/remote-room';
     import { LocalRoom } from '../stores/local-room';
@@ -64,7 +66,7 @@
     };
 
     const joinAnotherRoom = function () {
-        const input = prompt('Paste the link to the room you want to join or enter the room ID:');
+        const input = prompt($_('invite.joinPromt'));
         if (!input) return;
 
         let newRoomId;
@@ -111,25 +113,32 @@
                     <VideoViewer room={localRoom} />
                 </div>
                 <div class="controls uk-width-1-3@m uk-width-1-4@xl uk-flex uk-flex-column uk-padding-remove-left uk-margin-left">
-                    <h2>Select a video</h2>
+                    <h2>{ $_('selectVideo.title') }</h2>
                     <VideoSelector room={localRoom} />
 
-                    <h2>Invite people to this room</h2>
+                    <h2>{ $_('invite.title') }</h2>
                     <CopyUrl roomId={roomId}/>
                     <button class="block uk-button uk-button-default uk-margin" on:click={generateNewRoom}>
                         ↻
-                        Generate a new room
+                        { $_('room.generateNewRoom') }
                     </button>
-                    <button class="block uk-button uk-button-default" on:click={joinAnotherRoom}>
-                        Join another room →
+                    <button class="block uk-button uk-button-default uk-margin-bottom" on:click={joinAnotherRoom}>
+                        { $_('room.joinAnotherRoom') }
+                        →
                     </button>
+
+                    <select class="uk-button uk-button-default bottom uk-text-center" bind:value={$locale}>
+                        {#each Object.entries(locales) as lang}
+                            <option value={ lang[0] }>{ lang[1].locale.flag } { lang[1].locale.name }</option>
+                        {/each}
+                    </select>
                 </div>
             </div>
         {/if}
     </div>
     <div class="uk-text-small uk-text-muted uk-text-center uk-padding">
         <div>
-            <span>Powered by</span>
+            <span>{ $_('poweredBy') }</span>
             · <a class="uk-text-muted" href="https://svelte.dev" target="_blank">Svelte</a>
             · <a class="uk-text-muted" href="https://firebase.google.com" target="_blank">Firebase</a>
             · <a class="uk-text-muted" href="https://vidstack.io" target="_blank">Vidstack</a>
@@ -157,5 +166,9 @@
 
     :global(.uk-grid-stack > .controls) {
         padding-left: 1rem !important;
+    }
+
+    .bottom {
+        margin-top: auto;
     }
 </style>
