@@ -111,15 +111,15 @@
     <div class="header">
         Watch Together
     </div>
-    <div class="content uk-flex-1 uk-margin-top uk-flex uk-flex-center uk-flex-middle">
+    <div class="content uk-flex-1 uk-flex uk-flex-center uk-flex-middle">
         {#if !localRoom || isRoomLoading || isTimeLoading}
             <Loader/>
         {:else}
             <div uk-grid class="full-width" transition:fade>
-                <div class="uk-width-expand">
+                <div class="player uk-width-expand">
                     <VideoViewer room={localRoom} />
                 </div>
-                <div class="controls uk-width-1-3@m uk-width-1-4@xl uk-flex uk-flex-column uk-padding-remove-left uk-margin-left">
+                <div class="controls uk-width-1-3@m uk-width-1-4@xl uk-flex uk-flex-column">
                     <h2>{ $_('selectVideo.title') }</h2>
                     <VideoSelector room={localRoom} />
 
@@ -171,11 +171,39 @@
         width: 100%;
     }
 
-    :global(.uk-grid-stack > .controls) {
-        padding-left: 1rem !important;
-    }
-
     .bottom {
         margin-top: auto;
+    }
+
+    @media only screen and (min-width: 960px) {
+        .content {
+            margin-top: 1rem;
+        }
+
+        .player {
+            width: 100%;
+        }
+
+        .controls {
+            padding-left: 1rem;
+            margin-left: 0;
+        }
+    }
+
+    @media only screen and (max-width: 960px) {
+        .player {
+            padding: 0;
+            position: relative;
+            left: 15px;
+            width: 100vw;
+        }
+        .controls {
+            box-sizing: border-box;
+            padding-left: 2rem;
+        }
+
+        :global(media-player) {
+            border-radius: 0 !important;
+        }
     }
 </style>
