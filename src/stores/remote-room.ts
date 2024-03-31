@@ -16,8 +16,9 @@ export class BoundStore<T> implements Writable<T> {
         this.store = writable<{ value: T, updatedAt: number }>(undefined, set => {
             return onValue(ref, snapshot => {
                 const newValue = snapshot.val();
+                if (!newValue) return;
                 const storeValue = getStore(this.store);
-                if (!storeValue || newValue.updatedAt > getStore(this.store).updatedAt) {
+                if (!storeValue || newValue.updatedAt > storeValue.updatedAt) {
                     set(newValue);
                 }
             });
