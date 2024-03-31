@@ -1,9 +1,11 @@
 import { addMessages, getLocaleFromNavigator, init, locale } from 'svelte-i18n';
 import en from './_';
+import fr from './fr';
 import ru from './ru';
 
 export const locales = {
     en,
+    fr,
     ru,
 };
 
