@@ -37,7 +37,10 @@ const fr: TranslatedText = {
         joinPromt: 'Collez le lien vers la salle que vous souhaitez rejoindre ou entrez l\'ID de la salle:',
     },
     room: {
-        generateNewRoom: 'Générer une nouvelle salle',
+        generateNewRoom: {
+            button: 'Générer une nouvelle salle',
+            confirmation: 'Vous déménagerez dans une nouvelle pièce vide, et la configuration actuelle restera dans la pièce actuelle et ne sera pas copiée dans la nouvelle.\n\nÊtes-vous sûr de vouloir continuer?'
+        },
         joinAnotherRoom: 'Rejoindre une autre salle',
     },
     player: {

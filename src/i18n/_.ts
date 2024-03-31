@@ -35,7 +35,10 @@ const def = {
         joinPromt: 'Paste the link to the room you want to join or enter the room ID:',
     },
     room: {
-        generateNewRoom: 'Generate a new room',
+        generateNewRoom: {
+            button: 'Generate a new room',
+            confirmation: 'You\'ll move to a new empty room, and the current configuration will remain in the current room and will not be copied to the new one.\n\nAre you sure you want to proceed?'
+        },
         joinAnotherRoom: 'Join another room',
     },
     player: {

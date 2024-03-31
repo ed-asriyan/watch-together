@@ -60,8 +60,10 @@
     };
 
     const generateNewRoom = function () {
-        updateRoom(randomStr(6), true);
-        track(new ClickEvent({ target: 'generate_new_room' }));
+        if (confirm($_('room.generateNewRoom.confirmation'))) {
+            updateRoom(randomStr(6), true);
+            track(new ClickEvent({ target: 'generate_new_room' }));
+        }
     };
 
     const joinAnotherRoom = function () {
@@ -127,7 +129,7 @@
                     <CopyUrl roomId={roomId}/>
                     <button class="block uk-button uk-button-default uk-margin" on:click={generateNewRoom}>
                         ↻
-                        { $_('room.generateNewRoom') }
+                        { $_('room.generateNewRoom.button') }
                     </button>
                     <button class="block uk-button uk-button-default uk-margin-bottom" on:click={joinAnotherRoom}>
                         { $_('room.joinAnotherRoom') }
