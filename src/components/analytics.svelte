@@ -5,7 +5,7 @@
     const trackRaw = function (...args: any[]) {
         if (isProduction) {
             // @ts-ignore
-            window.dataLayer.push(arguments);
+            analytics.measurementId && window.dataLayer.push(arguments);
         } else {
             console.log('Google Analytics:', ...args);
         }
@@ -73,7 +73,7 @@
 </script>
 
 <svelte:head>
-    {#if isProduction}
+    {#if isProduction && analytics.measurementId}
         <script async src={`https://www.googletagmanager.com/gtag/js?id=${analytics.measurementId}`}></script>
     {/if}
 </svelte:head>

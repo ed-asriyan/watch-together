@@ -32,10 +32,10 @@ https://github.com/ed-asriyan/watch-together/assets/7848847/2d2799f1-cc79-4732-8
       }
       ```
    4. Add domain where you're going to host the website to "Authorized Domains" section of "Authentication"
-2. Setup [Google Analytics](https://analytics.google.com) (should be created with Firebase)
+2. *(optional)* Setup [Google Analytics](https://analytics.google.com) (should be created with Firebase)
    1. Copy Google Analytics meashurement ID to [.env](.env) file
-3. Setup [Sentry](https://sentry.io) account and create Svelte project
-   1. Copt Sentry DSN value to [.env](./env) file
+3.  *(optional)* Setup [Sentry](https://sentry.io) account and create Svelte project
+   1. Copy Sentry DSN value to [.env](./env) file
 4. Create `ENV_FILE_CONTENT` repository variable and copy content of filled by you [.env](.env) file in it
 
 ## Local development

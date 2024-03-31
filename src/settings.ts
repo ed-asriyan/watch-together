@@ -21,3 +21,8 @@ export const analytics = {
 };
 
 export const url = import.meta.env['VITE_URL'];
+
+export const proxies = {
+    hlsUrl: import.meta.env['VITE_PROXIES_HLS_URL'],
+    regularUrl: import.meta.env['VITE_PROXIES_REGULAR_URL'],
+};
