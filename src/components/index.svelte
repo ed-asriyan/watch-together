@@ -13,7 +13,7 @@
     import VideoViewer from './3-video-viewer.svelte';
     import { randomStr } from '../utils';
     import { syncTime } from '../stores/clock';
-    import { track, ClickEvent, WatchedMinuteEvent, LocaleChangedEvent } from '../analytics';
+    import { track, ClickEvent, WatchedMinuteEvent, LocaleChangedEvent } from './analytics.svelte';
     import { isExample } from '../stores/video-example';
 
     export let roomId: string;

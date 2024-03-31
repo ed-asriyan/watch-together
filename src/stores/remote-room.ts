@@ -1,7 +1,10 @@
 import { get as getStore, writable, type Updater, type Writable, type Readable, type Subscriber, readable } from 'svelte/store';
-import { ref, onValue, get, set, child, update, type DatabaseReference } from 'firebase/database';
-import { database } from './firebase/firebase';
+import { ref, onValue, get, set, child, update, getDatabase, type DatabaseReference } from 'firebase/database';
+import { initializeApp } from 'firebase/app';
 import { now } from './clock';
+import { firebaseConfig } from '../settings';
+
+export const database = getDatabase(initializeApp(firebaseConfig));
 
 export class BoundStore<T> implements Writable<T> {
     private readonly store: Writable<{ value: T, updatedAt: number }>;

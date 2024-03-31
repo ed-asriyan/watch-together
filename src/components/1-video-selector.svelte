@@ -1,7 +1,7 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
     import { _ } from 'svelte-i18n';
-    import { track, ClickEvent, UrlPasteEvent } from '../analytics';
+    import { track, ClickEvent, UrlPasteEvent } from './analytics.svelte';
     import Interpolator from './interpolator.svelte';
     import { getExampleVideo, isExample } from '../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';

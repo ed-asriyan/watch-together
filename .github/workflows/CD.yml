@@ -23,14 +23,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-  
-      - name: Build the app
-        run: docker build -t watch-together --target app .
-  
-      - name: Copy static files
+
+      - name: Save .env file
+        env:
+          ENV_FILE_CONTENT: ${{ vars.ENV_FILE_CONTENT }}
+        shell: bash
         run: |
-          id=$(docker create watch-together)
-          docker cp $id:/dist $(pwd)/dist
+          echo "$ENV_FILE_CONTENT" > .env
+
+      - name: Build the app
+        run: make prod_build_bundle
 
       - name: Generate the sitemap
         uses: cicirello/generate-sitemap@v1

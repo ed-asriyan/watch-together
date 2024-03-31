@@ -10,7 +10,7 @@ COPY package-lock.json .
 
 RUN npm ci
 # https://github.com/npm/cli/issues/4828#issuecomment-1972072806
-RUN npm i -O @rollup/rollup-linux-x64-gnu @rollup/rollup-linux-arm64-gnu
+RUN npm i --no-save -O @rollup/rollup-linux-x64-gnu @rollup/rollup-linux-arm64-gnu
 
 COPY svelte.config.js .
 COPY tsconfig.json .
@@ -21,13 +21,29 @@ COPY static static
 COPY src src
 
 FROM base as builder
-RUN npm run build
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTHDOMAIN
+ARG VITE_FIREBASE_DATABASE_URL
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_STORE_BUCKET
+ARG VITE_FIREBASE_MESSAGES_SENDER_ID
+ARG VITE_VITE_FIREBASE_APP_ID
+ARG VITE_FIREBASE_MEASUREMENT_ID
 
-FROM base as clean-db
-COPY clean-db.js .
-ENV DIFF 0
-CMD npm run clean-db -- $DIFF
+ARG VITE_SENTRY_DSN
 
-FROM scratch as app
+ARG VITE_ANALYTICS_MEASHUREMENT_ID
+
+ARG VITE_URL
+
+ARG NODE_ENV
+
+RUN npm run build -- --mode $NODE_ENV && npm run copy-static
+
+FROM scratch as bundle
 COPY --from=builder /app/dist /dist
 ENTRYPOINT sh
+
+FROM nginx as app
+COPY --from=bundle /dist /var/www/html/
+COPY nginx.conf /etc/nginx/nginx.conf

@@ -1,11 +1,10 @@
 import admin from 'firebase-admin';
 import serviceAccount from './service-account-key.json' assert { type: "json" };
-import firebaseConfig from './src/stores/firebase/firebase-config.json' assert { type: "json" };
 import { isExample } from './src/stores/video-example.js';
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: firebaseConfig.databaseURL
+    databaseURL: process.env['VITE_FIREBASE_DATABASE_URL'],
 });
 
 const main = async function() {

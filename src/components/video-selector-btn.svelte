@@ -1,6 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { track, ClickEvent } from '../analytics';
+    import { track, ClickEvent } from './analytics.svelte';
     import type { LocalRoom } from '../stores/local-room';
 
     export let room: LocalRoom;

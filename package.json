@@ -4,7 +4,8 @@
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build && cp -r static/* dist/",
+		"build": "vite build",
+		"copy-static": "cp -r static/* dist/",
 		"preview": "vite preview",
 		"clean-db": "node --experimental-json-modules clean-db.js",
 		"stats": "node --experimental-json-modules stats.js",

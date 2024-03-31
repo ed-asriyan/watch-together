@@ -1,8 +1,5 @@
 name: Delete unused rooms
 
-env:
-  DIFF: 2678400 # 31 day
-
 on:
   workflow_dispatch:
   schedule:
@@ -23,8 +20,13 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
         run: echo "$FIREBASE_SERVICE_ACCOUNT_KEY" >> service-account-key.json
 
-      - name: Build the app
-        run: docker build -t watch-together-cleaner --target clean-db .
+      - name: Save .env file
+        env:
+          ENV_FILE_CONTENT: ${{ vars.ENV_FILE_CONTENT }}
+        shell: bash
+        run: |
+          echo "$ENV_FILE_CONTENT" > .env
+
+      - name: Clean
+        run: make dev_clean_db
   
-      - name: Run the container
-        run: docker run  -v $PWD/service-account-key.json:/app/service-account-key.json -e DIFF=$DIFF watch-together-cleaner

@@ -1,11 +1,12 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import 'uikit/dist/js/uikit';
-    import GitHub from './components/github.svelte';
     import { randomStr } from './utils';
-    import './app.scss';
-
+    import Analytics from './components/analytics.svelte';
+    import GitHub from './components/github.svelte';
     import Page from './components/index.svelte';
+    import { environment, isProduction } from './settings';
+    import './app.scss';
 
     const getRoomId = function () {
         return document.location.hash?.slice(1).toLowerCase();
@@ -25,7 +26,15 @@
 
 <svelte:window on:hashchange={onHashChanged}></svelte:window>
 
+<Analytics/>
+
 <GitHub/>
+
+{#if !isProduction}
+    <span class="uk-position-absolute uk-text-warning">
+        Running in non-production environment: environment="{ environment }", isProd={ isProduction }
+    </span>
+{/if}
 
 {#if roomId}
     <Page roomId={roomId}/>
