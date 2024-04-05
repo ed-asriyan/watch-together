@@ -1,10 +1,12 @@
-import videos from './video-examples.json' assert { type: "json" };;
+import { urlExamples } from '../settings';
 
 export const getExampleVideo = function () {
-    return videos[Math.floor(Math.random() * videos.length)];
+    return urlExamples && urlExamples[Math.floor(Math.random() * urlExamples.length)];
 };
 
 
 export const isExample = function (url) {
-    return videos.includes(url);
+    return urlExamples?.includes(url);
 };
+
+export const haveExamples = Boolean(urlExamples?.length);

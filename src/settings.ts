@@ -26,3 +26,5 @@ export const proxies = {
     hlsUrl: import.meta.env['VITE_PROXIES_HLS_URL'],
     regularUrl: import.meta.env['VITE_PROXIES_REGULAR_URL'],
 };
+
+export const urlExamples = import.meta.env['VITE_URL_EXAMPLES']?.split(',');

@@ -3,7 +3,7 @@
     import { _ } from 'svelte-i18n';
     import { track, ClickEvent, UrlPasteEvent } from './analytics.svelte';
     import Interpolator from './interpolator.svelte';
-    import { getExampleVideo, isExample } from '../stores/video-example';
+    import { getExampleVideo, isExample, haveExamples } from '../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';
     import { LocalRoom } from '../stores/local-room';
     import { SourceType } from '../normalize-link';
@@ -83,7 +83,7 @@
             class:uk-form-danger={!$play}
             placeholder="Video URL"
         />
-        {#if !$url}
+        {#if !$url && haveExamples}
             <a
                 class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto example pointer"
                 on:click|preventDefault={selectExample}
