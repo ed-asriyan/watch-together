@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { type Link, SourceType } from '../normalize-link';
     import { Player, Dailymotion, DefaultUi } from '@vime/svelte';
+    import { type Link, SourceType } from '../../normalize-link';
 
     export let link: Link;
     export let currentTime: number;

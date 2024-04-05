@@ -7,7 +7,6 @@ const fr: TranslatedText = {
     },
     selectVideo: {
         title: 'Sélectionnez une vidéo',
-        selectMovieSource: 'Sélectionnez la source du film:',
         link: {
             title: 'Lien en ligne',
             insertExample: 'cliquez ici pour coller un exemple aléatoire',

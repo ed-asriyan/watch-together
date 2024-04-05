@@ -11,12 +11,12 @@
     import { onMount, onDestroy } from 'svelte';
     import type { MediaPlayerElement } from 'vidstack/elements';
     import { _ } from 'svelte-i18n';
-    import Loader from './loader.svelte';
-    import { SourceType } from '../normalize-link';
+    import Loader from '../loader.svelte';
+    import { SourceType } from '../../normalize-link';
     import VideoPlayerNative from './video-player-native.svelte';
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
     import VideoPlayerVime from './video-player-vime.svelte';
-    import { proxies } from '../settings';
+    import { proxies } from '../../settings';
 
     export let link: Link | null;
     export let currentTime: number;
@@ -66,7 +66,7 @@
     };
 </script>
 
-<div class="player uk-text-small uk-flex uk-flex-center uk-flex-column uk-text-break uk-text-center">
+<div class="viewer uk-text-small uk-flex uk-flex-center uk-flex-column uk-text-break uk-text-center">
     {#if link}
         {#await normalizeLink(link)}
             <Loader/>
@@ -87,16 +87,9 @@
 </div>
 
 <style lang="scss">
-    .player {
-        box-sizing: border-box;
+    .viewer {
         width: 100%;
-
-        height: calc(90vw * 0.5);
-        max-height: 100%; 
-
-        border-radius: 6px;
-        border: 1px solid rgb(255 255 255 / .1);
-
-        background-color: black;
+        height: 100%;
+        max-height: 100%;
     }
 </style>

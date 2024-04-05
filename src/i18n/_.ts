@@ -5,7 +5,6 @@ const def = {
     },
     selectVideo: {
         title: 'Select a video',
-        selectMovieSource: 'Select movie source:',
         link: {
             title: 'Online link',
             insertExample: 'click here to paste random example',

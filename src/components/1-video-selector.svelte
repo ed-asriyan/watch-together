@@ -42,8 +42,7 @@
     };
 </script>
 
-<span>{ $_('selectVideo.selectMovieSource')}</span>
-<div class="uk-margin-bottom uk-margin-top">
+<div class="uk-margin-bottom">
     <button
         class="uk-button uk-button-small"
         class:uk-button-default={$isLocalMode}
@@ -96,11 +95,10 @@
     </div>
 {/if}
 
-<div class="uk-margin-top uk-text-center uk-text-small hint">
+<div class="hint uk-margin-top uk-text-center uk-text-small">
     <i>
         {#if $isLocalMode}
             { $_('selectVideo.file.hint') }
-            <br/>
             <Interpolator text={$_('selectVideo.file.help')} let:data={data}>
                 {#if data.name === 'link'}
                     <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank" on:click={clickDownloadTutorial}>{ data.text }</a>

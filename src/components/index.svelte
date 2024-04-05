@@ -10,7 +10,7 @@
     import { type Link } from '../normalize-link'
     import VideoSelector from './1-video-selector.svelte';
     import CopyUrl from './2-copy-url.svelte';
-    import VideoViewer from './3-video-viewer.svelte';
+    import VideoPlayer from './video-player/index.svelte';
     import { randomStr } from '../utils';
     import { syncTime } from '../stores/clock';
     import { track, ClickEvent, WatchedMinuteEvent, LocaleChangedEvent } from './analytics.svelte';
@@ -21,21 +21,22 @@
     let remoteRoom: RemoteRoom;
     let localRoom: LocalRoom;
 
-    $: initRoom(roomId);
+    $: remoteRoom = new RemoteRoom(roomId);
+    $: localRoom = new LocalRoom(remoteRoom);
+    $: initRoom(remoteRoom);
     $: url = localRoom?.url;
     $: play = localRoom?.play;
     $: paused = localRoom?.paused;
     $: minutesWatched = localRoom?.minutesWatched;
+    $: currentTime = localRoom?.currentTime;
 
     let isRoomLoading = true;
     let isTimeLoading = true;
 
-    const initRoom = async function (roomId: number) {
+    const initRoom = async function (room: RemoteRoom) {
         isRoomLoading = true;
         try {
-            remoteRoom = new RemoteRoom(roomId);
             await remoteRoom.load();
-            localRoom = new LocalRoom(remoteRoom);
         } finally {
             isRoomLoading = false;
         }
@@ -107,40 +108,50 @@
     onDestroy(() => {
         clearInterval(timeSpentInterval);
     });
+
+    $: isLocading = !localRoom || isRoomLoading || isTimeLoading;
 </script>
 
 <div class="uk-section-secondary window-height uk-flex uk-flex-column">
     <div class="header">
-        Watch Together
+        🎬 Watch Together
     </div>
-    <div class="content uk-flex-1 uk-flex uk-flex-center uk-flex-middle">
-        {#if !localRoom || isRoomLoading || isTimeLoading}
+    <div class="uk-flex-1 uk-flex uk-flex-center" class:uk-flex-middle={isLocading}>
+        {#if isLocading}
             <Loader/>
         {:else}
-            <div uk-grid class="full-width" transition:fade>
+            <div uk-grid class="container uk-margin-top uk-grid-small" transition:fade>
                 <div class="player uk-width-expand">
-                    <VideoViewer room={localRoom} />
+                    <VideoPlayer bind:paused={$paused} bind:currentTime={$currentTime} link={$play} />
                 </div>
-                <div class="controls uk-width-1-3@m uk-width-1-4@xl uk-flex uk-flex-column">
-                    <h2>{ $_('selectVideo.title') }</h2>
-                    <VideoSelector room={localRoom} />
+                <div class="controls">
+                    <div uk-grid class="uk-grid-small">
+                        <div class="tile uk-flex uk-flex-column">
+                            <h2 class="uk-card-title">🍿 { $_('selectVideo.title') }</h2>
+                            <VideoSelector room={localRoom} />
+                        </div>
+                        <div class="tile uk-flex uk-flex-column">
+                            <h2 class="uk-card-title">👥 { $_('invite.title') }</h2>
+                            <CopyUrl roomId={roomId}/>
+                        </div>
 
-                    <h2>{ $_('invite.title') }</h2>
-                    <CopyUrl roomId={roomId}/>
-                    <button class="block uk-button uk-button-default uk-margin" on:click={generateNewRoom}>
-                        ↻
-                        { $_('room.generateNewRoom.button') }
-                    </button>
-                    <button class="block uk-button uk-button-default uk-margin-bottom" on:click={joinAnotherRoom}>
-                        { $_('room.joinAnotherRoom') }
-                        →
-                    </button>
+                        <div class="buttons uk-flex uk-margin-top uk-flex-column">
+                            <button class="uk-button uk-button-default uk-margin" on:click={generateNewRoom}>
+                                ↻
+                                { $_('room.generateNewRoom.button') }
+                            </button>
+                            <button class="uk-button uk-button-default uk-margin-bottom" on:click={joinAnotherRoom}>
+                                { $_('room.joinAnotherRoom') }
+                                →
+                            </button>
 
-                    <select class="uk-button uk-button-default bottom uk-text-center" bind:value={$locale} on:change={onLanguageChanged} on:click={onLanguageChangeClick}>
-                        {#each Object.entries(locales) as lang}
-                            <option value={ lang[0] }>{ lang[1].locale.flag } { lang[1].locale.name }</option>
-                        {/each}
-                    </select>
+                            <select class="uk-button  uk-button-default bottom uk-text-center" bind:value={$locale} on:change={onLanguageChanged} on:click={onLanguageChangeClick}>
+                                {#each Object.entries(locales) as lang}
+                                    <option value={ lang[0] }>{ lang[1].locale.flag } { lang[1].locale.name }</option>
+                                {/each}
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
         {/if}
@@ -165,47 +176,64 @@
         text-align: center;
         font-family: Avenir Next;
         font-size: 2rem;
-        background-color: #0b0b0b;
         padding: 1rem;
+        border-bottom: 1px solid rgb(255 255 255 / .1);
+        background-color: #10101010;
     }
 
-    .full-width {
+    .container {
         width: 100%;
     }
 
-    .bottom {
-        margin-top: auto;
+    .uk-section-secondary {
+        background-color: #000;
     }
 
-    @media only screen and (min-width: 960px) {
-        .content {
-            margin-top: 1rem;
+    .tile {
+        border: 1px solid rgb(255 255 255 / .1);
+        background-color: #1c1c1c;
+        border-radius: 1rem;
+        padding: 2rem 1rem;
+        margin-left: 1rem;
+    }
+
+    $controls-width: 32rem;
+    $controls-threshold-ratio: 2.5;
+    @media (min-width: calc($controls-width * $controls-threshold-ratio)) {
+        .controls {
+            width: 32rem;
         }
 
         .player {
+            height: none;
+        }
+
+        .tile {
+            width: 100%;
+        }
+    }
+
+
+    @media (min-width: 960px) and (max-width: calc($controls-width * $controls-threshold-ratio)) {
+        .controls {
             width: 100%;
         }
 
-        .controls {
-            padding-left: 1rem;
-            margin-left: 0;
+        .tile {
+            flex: 1;
         }
     }
 
-    @media only screen and (max-width: 960px) {
-        .player {
-            padding: 0;
-            position: relative;
-            left: 15px;
-            width: 100vw;
-        }
-        .controls {
-            box-sizing: border-box;
-            padding-left: 2rem;
-        }
+    .player {
+        width: 100%;
+        height: min(calc(100vw * 9 / 16), 60vh);
+    }
 
-        :global(media-player) {
-            border-radius: 0 !important;
-        }
+    .tile {
+        width: 100%;
+    }
+
+    .buttons {
+        width: 100%;
     }
 </style>

@@ -7,7 +7,6 @@ const ru: TranslatedText = {
     },
     selectVideo: {
         title: 'Выбрать видео',
-        selectMovieSource: 'Выбери источник видео:',
         link: {
             title: 'Онлайн',
             insertExample: 'нажми сюда, чтобы вставить пример',

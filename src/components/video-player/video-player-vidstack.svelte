@@ -11,7 +11,7 @@
     import { onMount, onDestroy } from 'svelte';
     import type { MediaPlayerElement } from 'vidstack/elements';
 
-    import type { Link } from '../normalize-link';
+    import type { Link } from '../../normalize-link';
 
     export let link: Link;
     export let currentTime: number;
