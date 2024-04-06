@@ -15,7 +15,7 @@
     import { syncTime } from '../stores/clock';
     import { track, ClickEvent, WatchedMinuteEvent, LocaleChangedEvent } from './analytics.svelte';
     import { isExample } from '../stores/video-example';
-
+        
     export let roomId: string;
 
     let remoteRoom: RemoteRoom;
@@ -113,9 +113,9 @@
 </script>
 
 <div class="uk-section-secondary window-height uk-flex uk-flex-column">
-    <div class="header">
+    <h1 class="header">
         🎬 Watch Together
-    </div>
+    </h1>
     <div class="uk-flex-1 uk-flex uk-flex-center" class:uk-flex-middle={isLocading}>
         {#if isLocading}
             <Loader/>
@@ -145,7 +145,7 @@
                                 →
                             </button>
 
-                            <select class="uk-button  uk-button-default bottom uk-text-center" bind:value={$locale} on:change={onLanguageChanged} on:click={onLanguageChangeClick}>
+                            <select class="uk-button uk-button-default bottom uk-text-center" bind:value={$locale} on:change={onLanguageChanged} on:click={onLanguageChangeClick}>
                                 {#each Object.entries(locales) as lang}
                                     <option value={ lang[0] }>{ lang[1].locale.flag } { lang[1].locale.name }</option>
                                 {/each}
