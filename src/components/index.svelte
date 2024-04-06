@@ -1,45 +1,53 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
-    import { tick } from 'svelte';
+    import { onDestroy} from 'svelte';
     import { fade } from 'svelte/transition';
     import { _, locale } from 'svelte-i18n';
     import { locales } from '../i18n/index';
     import Loader from './loader.svelte';
-    import { RemoteRoom } from '../stores/remote-room';
-    import { LocalRoom } from '../stores/local-room';
+    import { Room } from '../stores/room';
     import { type Link } from '../normalize-link'
     import VideoSelector from './1-video-selector.svelte';
     import CopyUrl from './2-copy-url.svelte';
     import VideoPlayer from './video-player/index.svelte';
+    import Users from './users/index.svelte';
     import { randomStr } from '../utils';
     import { syncTime } from '../stores/clock';
-    import { track, ClickEvent, WatchedMinuteEvent, LocaleChangedEvent } from './analytics.svelte';
+    import { track, ClickEvent, LocaleChangedEvent } from '../analytics.svelte';
     import { isExample } from '../stores/video-example';
         
     export let roomId: string;
 
-    let remoteRoom: RemoteRoom;
-    let localRoom: LocalRoom;
+    let room: Room;
+    $: (async (roomId) => {
+        isRoomLoading = true;
+        if (room) {
+            room.destruct();
+        }
+        room = new Room(roomId);
+        try {
+            await room.init();
+        } finally {
+            isRoomLoading = false;
+        }
+    })(roomId);
+    $: url = room?.url;
+    $: play = room?.play;
+    $: paused = room?.paused;
+    $: minutesWatched = room?.minutesWatched;
+    $: currentTime = room?.currentTime;
+    $: users = room?.users;
 
-    $: remoteRoom = new RemoteRoom(roomId);
-    $: localRoom = new LocalRoom(remoteRoom);
-    $: initRoom(remoteRoom);
-    $: url = localRoom?.url;
-    $: play = localRoom?.play;
-    $: paused = localRoom?.paused;
-    $: minutesWatched = localRoom?.minutesWatched;
-    $: currentTime = localRoom?.currentTime;
+    onDestroy(() => {
+        if (room) {
+            room.destruct();
+        }
+    });
 
     let isRoomLoading = true;
     let isTimeLoading = true;
 
-    const initRoom = async function (room: RemoteRoom) {
-        isRoomLoading = true;
-        try {
-            await remoteRoom.load();
-        } finally {
-            isRoomLoading = false;
-        }
+    const initRoom = async function (room: Room) {
+
     };
 
     const initTime = async function () {
@@ -95,22 +103,8 @@
         track(new LocaleChangedEvent({ locale: $locale }));
     };
 
-    let timeSpentInterval;
-    onMount(() => {
-        timeSpentInterval = setInterval(() => {
-            if ($play && !$paused) {
-                $minutesWatched += 1;
-                track(new WatchedMinuteEvent({ roomId, sourceType: $play.type, isExample: isExample($url) }));
-            }
-        }, 60000);
-    });
-
-    onDestroy(() => {
-        clearInterval(timeSpentInterval);
-    });
-
-    $: isLoading = !localRoom || isRoomLoading || isTimeLoading;
-</script>
+    $: isLoading = !room || isRoomLoading || isTimeLoading;
+    </script>
 
 <div class="uk-flex-1 uk-flex uk-flex-center" class:uk-flex-middle={isLoading}>
     {#if isLoading}
@@ -124,11 +118,12 @@
                 <div uk-grid class="uk-grid-small">
                     <div class="tile uk-flex uk-flex-column">
                         <h2 class="uk-card-title">🍿 { $_('selectVideo.title') }</h2>
-                        <VideoSelector room={localRoom} />
+                        <VideoSelector room={room} />
                     </div>
                     <div class="tile uk-flex uk-flex-column">
                         <h2 class="uk-card-title">👥 { $_('invite.title') }</h2>
-                        <CopyUrl roomId={roomId}/>
+                        <CopyUrl roomId={roomId} />
+                        <Users users={$users} />
                     </div>
 
                     <div class="buttons uk-flex uk-margin-top uk-flex-column">

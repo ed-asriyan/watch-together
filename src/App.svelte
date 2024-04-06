@@ -3,35 +3,34 @@
     import 'uikit/dist/js/uikit';
     import { _ } from 'svelte-i18n';
     import { randomStr } from './utils';
-    import Analytics from './components/analytics.svelte';
+    import Analytics from './analytics.svelte';
     import Page from './components/index.svelte';
     import { environment, isProduction } from './settings';
     import './app.scss';
 
     let header;
+    let roomId: string;
 
-    const getRoomId = function () {
-        return document.location.hash?.slice(1).toLowerCase();
+    const testPrefix = 'test_';
+    const syncHashAndRoomId = function () {
+        let hash = document.location.hash?.slice(1).toLowerCase() || localStorage.getItem('roomId') || randomStr(6);
+        if (!isProduction && !hash?.startsWith(testPrefix)) {
+            hash = `${testPrefix}${hash}`;
+        }
+        localStorage.setItem('roomId', hash);
+        roomId = hash;
+        document.location.hash = `#${hash}`;
     };
 
-    let roomId = getRoomId();
-    if (!roomId) {
-        document.location.hash = `#${localStorage.getItem('roomId') || randomStr(6)}`;
-    }
-
-    $: roomId && localStorage.setItem('roomId', roomId);
-
-    const onHashChanged = function () {
-        roomId = getRoomId();
-    };
+    syncHashAndRoomId();
 </script>
 
-<svelte:window on:hashchange={onHashChanged}></svelte:window>
+<svelte:window on:hashchange={syncHashAndRoomId}></svelte:window>
 
 <Analytics/>
 
 {#if !isProduction}
-    <span class="uk-position-absolute uk-text-warning" style:top="0" style:left="0" style:z-index="10">
+    <span class="uk-position-fixed uk-text-warning" style:top="0" style:left="0" style:z-index="10">
         Running in non-production environment: environment="{ environment }", isProd={ isProduction }
     </span>
 {/if}

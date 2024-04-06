@@ -47,6 +47,10 @@ const fr: TranslatedText = {
     },
     poweredBy: 'Alimenté par',
     or: 'ou',
+    users: {
+        nameEdit: 'éditer',
+        nameEditPromt: 'Entrez votre nom (maximum {maxLength} caractères) ou laissez le champ vide pour choisir un nom au hasard',
+    },
 };
 
 export default fr;

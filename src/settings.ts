@@ -28,3 +28,5 @@ export const proxies = {
 };
 
 export const urlExamples = import.meta.env['VITE_URL_EXAMPLES']?.split(',');
+
+export const userNames = import.meta.env['VITE_USERNAMES']?.split(',');

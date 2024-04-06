@@ -47,6 +47,10 @@ const ru: TranslatedText = {
     },
     poweredBy: 'Сделано с помощью',
     or: 'или',
+    users: {
+        nameEdit: 'изменить',
+        nameEditPromt: 'Введите свое имя (максимум {maxLength} символов) или оставьте поле ввода пустым, выбрать случайное имя'
+    },
 };
 
 export default ru;

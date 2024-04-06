@@ -45,6 +45,10 @@ const def = {
     },
     poweredBy: 'Powered by',
     or: 'or',
+    users: {
+        nameEdit: 'edit',
+        nameEditPromt: 'Enter your name (maximum {maxLength} characters) or leave the input blank to pick random name',
+    },
 };
 
 export type TranslatedText = typeof def;

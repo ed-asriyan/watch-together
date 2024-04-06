@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
-    import type { SourceType } from '../normalize-link';
-    import { analytics, isProduction } from '../settings';
+    import type { SourceType } from './normalize-link';
+    import { analytics, isProduction } from './settings';
 
     const trackRaw = function (...args: any[]) {
         if (isProduction) {
@@ -26,6 +26,10 @@
         }
     };
 
+    export const getUserId = function (): string {
+        return globalThis.gaGlobal?.vid.replace('.', '-');
+    };
+
     export class ClickEvent extends Event<{
         target: string;
     }> {
@@ -36,7 +40,6 @@
         roomId: string;
         sourceType: SourceType;
         url: string;
-        isExample: boolean;
     }> {
         readonly name: string = 'watch_minute';
     }

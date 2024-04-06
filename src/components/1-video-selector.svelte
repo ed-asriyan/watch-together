@@ -1,14 +1,14 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
     import { _ } from 'svelte-i18n';
-    import { track, ClickEvent, UrlPasteEvent } from './analytics.svelte';
+    import { track, ClickEvent, UrlPasteEvent } from '../analytics.svelte';
     import Interpolator from './interpolator.svelte';
     import { getExampleVideo, isExample, haveExamples } from '../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';
-    import { LocalRoom } from '../stores/local-room';
+    import { Room } from '../stores/room';
     import { SourceType } from '../normalize-link';
 
-    export let room: LocalRoom;
+    export let room: Room;
 
     $: url = room.url;
     $: isLocalMode = room.isLocalMode;

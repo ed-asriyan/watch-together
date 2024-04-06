@@ -57,7 +57,7 @@
         } catch {
             let url = link.url;
             if (isHls) {
-                url = `${proxies.hlsUrl}/${btoa(link.url) }.m3u8`;
+                url = `${proxies.hlsUrl}/${btoa(link.url)}.m3u8`;
             } else {
                 url = `${proxies.regularUrl}?url=${link.url}`;
             }

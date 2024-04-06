@@ -1,9 +1,9 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { track, ClickEvent } from './analytics.svelte';
-    import type { LocalRoom } from '../stores/local-room';
+    import { track, ClickEvent } from '../analytics.svelte';
+    import type { Room } from '../stores/room';
 
-    export let room: LocalRoom;
+    export let room: Room;
 
     $: blobUrl = room.blobUrl;
     $: fileName = room.fileName;

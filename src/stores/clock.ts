@@ -1,4 +1,4 @@
-let referencePointOffset: number = new Date().getTime();
+let referencePointOffset: number = 0;
 
 const fetchTime = async function () {
     const response = await fetch('https://worldtimeapi.org/api/timezone/UTC');
@@ -8,7 +8,7 @@ const fetchTime = async function () {
 
 const localNow = function (): number {
     return new Date().getTime() / 1000;
-}
+};
 
 export const syncTime = async function () {
     referencePointOffset = localNow() - await fetchTime();
