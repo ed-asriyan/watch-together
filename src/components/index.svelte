@@ -109,84 +109,54 @@
         clearInterval(timeSpentInterval);
     });
 
-    $: isLocading = !localRoom || isRoomLoading || isTimeLoading;
+    $: isLoading = !localRoom || isRoomLoading || isTimeLoading;
 </script>
 
-<div class="uk-section-secondary window-height uk-flex uk-flex-column">
-    <h1 class="header">
-        🎬 Watch Together
-    </h1>
-    <div class="uk-flex-1 uk-flex uk-flex-center" class:uk-flex-middle={isLocading}>
-        {#if isLocading}
-            <Loader/>
-        {:else}
-            <div uk-grid class="container uk-margin-top uk-grid-small" transition:fade>
-                <div class="player uk-width-expand">
-                    <VideoPlayer bind:paused={$paused} bind:currentTime={$currentTime} link={$play} />
-                </div>
-                <div class="controls">
-                    <div uk-grid class="uk-grid-small">
-                        <div class="tile uk-flex uk-flex-column">
-                            <h2 class="uk-card-title">🍿 { $_('selectVideo.title') }</h2>
-                            <VideoSelector room={localRoom} />
-                        </div>
-                        <div class="tile uk-flex uk-flex-column">
-                            <h2 class="uk-card-title">👥 { $_('invite.title') }</h2>
-                            <CopyUrl roomId={roomId}/>
-                        </div>
+<div class="uk-flex-1 uk-flex uk-flex-center" class:uk-flex-middle={isLoading}>
+    {#if isLoading}
+        <Loader/>
+    {:else}
+        <div uk-grid class="container uk-margin-top uk-grid-small" transition:fade>
+            <div class="player uk-width-expand">
+                <VideoPlayer bind:paused={$paused} bind:currentTime={$currentTime} link={$play} />
+            </div>
+            <div class="controls">
+                <div uk-grid class="uk-grid-small">
+                    <div class="tile uk-flex uk-flex-column">
+                        <h2 class="uk-card-title">🍿 { $_('selectVideo.title') }</h2>
+                        <VideoSelector room={localRoom} />
+                    </div>
+                    <div class="tile uk-flex uk-flex-column">
+                        <h2 class="uk-card-title">👥 { $_('invite.title') }</h2>
+                        <CopyUrl roomId={roomId}/>
+                    </div>
 
-                        <div class="buttons uk-flex uk-margin-top uk-flex-column">
-                            <button class="uk-button uk-button-default uk-margin" on:click={generateNewRoom}>
-                                ↻
-                                { $_('room.generateNewRoom.button') }
-                            </button>
-                            <button class="uk-button uk-button-default uk-margin-bottom" on:click={joinAnotherRoom}>
-                                { $_('room.joinAnotherRoom') }
-                                →
-                            </button>
+                    <div class="buttons uk-flex uk-margin-top uk-flex-column">
+                        <button class="uk-button uk-button-default uk-margin" on:click={generateNewRoom}>
+                            ↻
+                            { $_('room.generateNewRoom.button') }
+                        </button>
+                        <button class="uk-button uk-button-default uk-margin-bottom" on:click={joinAnotherRoom}>
+                            { $_('room.joinAnotherRoom') }
+                            →
+                        </button>
 
-                            <select class="uk-button uk-button-default bottom uk-text-center" bind:value={$locale} on:change={onLanguageChanged} on:click={onLanguageChangeClick}>
-                                {#each Object.entries(locales) as lang}
-                                    <option value={ lang[0] }>{ lang[1].locale.flag } { lang[1].locale.name }</option>
-                                {/each}
-                            </select>
-                        </div>
+                        <select class="uk-button uk-button-default bottom uk-text-center" bind:value={$locale} on:change={onLanguageChanged} on:click={onLanguageChangeClick}>
+                            {#each Object.entries(locales) as lang}
+                                <option value={ lang[0] }>{ lang[1].locale.flag } { lang[1].locale.name }</option>
+                            {/each}
+                        </select>
                     </div>
                 </div>
             </div>
-        {/if}
-    </div>
-    <div class="uk-text-small uk-text-muted uk-text-center uk-padding">
-        <div>
-            <span>{ $_('poweredBy') }</span>
-            · <a class="uk-text-muted" href="https://svelte.dev" target="_blank">Svelte</a>
-            · <a class="uk-text-muted" href="https://firebase.google.com" target="_blank">Firebase</a>
-            · <a class="uk-text-muted" href="https://vidstack.io" target="_blank">Vidstack</a>
-            · <a class="uk-text-muted" href="https://getuikit.com" target="_blank">UIkit</a>
         </div>
-    </div>
+    {/if}
 </div>
 
+
 <style lang="scss">
-    .window-height {
-        min-height: 100lvh;
-    }
-
-    .header {
-        text-align: center;
-        font-family: Avenir Next;
-        font-size: 2rem;
-        padding: 1rem;
-        border-bottom: 1px solid rgb(255 255 255 / .1);
-        background-color: #10101010;
-    }
-
     .container {
         width: 100%;
-    }
-
-    .uk-section-secondary {
-        background-color: #000;
     }
 
     .tile {
@@ -225,7 +195,7 @@
     }
 
     .player {
-        width: 100%;
+        width: 100vw;
         height: min(calc(100vw * 9 / 16), 60vh);
     }
 

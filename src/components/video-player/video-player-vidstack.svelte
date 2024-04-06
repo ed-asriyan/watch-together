@@ -65,3 +65,9 @@
     <media-audio-layout />
     <media-video-layout />
 </media-player>
+
+<style lang="scss">
+    :global(media-player) {
+        border: none !important;
+    }
+</style>
