@@ -10,7 +10,7 @@ const ru: TranslatedText = {
         link: {
             title: 'Онлайн',
             insertExample: 'нажми сюда, чтобы вставить пример',
-            description: 'Вставь ссылку на {type}Dailymotion{/type}, {type}YouTube{/type}, {type}Vimeo{/type}, {type}HLS{/type} плейлист, {type}видео{/type} или {type}аудио{/type} файл. Поле ввода синхронизованно со всему в этой комнате.',
+            description: 'Вставь ссылку на {type}Dailymotion{/type}, {type}YouTube{/type}, {type}Vimeo{/type}, {type}HLS{/type} плейлист, {type}видео{/type} или {type}аудио{/type} файл. Поле ввода синхронизованно со всеми в этой комнате.',
             hintNotWorking: 'Если фильм не грузится, убедись, что введена {u}прямая{/u} ссылка на видео.',
             hintEmpty: 'Не знаешь, как получить прямую ссылку на видео?',
             hintInvalid: 'Неверная ссылка',
@@ -47,9 +47,15 @@ const ru: TranslatedText = {
     },
     poweredBy: 'Сделано с помощью',
     or: 'или',
+    you: 'вы',
     users: {
-        nameEdit: 'изменить',
-        nameEditPromt: 'Введите свое имя (максимум {maxLength} символов) или оставьте поле ввода пустым, выбрать случайное имя'
+        nameEdit: 'Нажми, чтобы изменить никнейм',
+        nameEditPromt: 'Введите свое имя (максимум {maxLength} символов) или оставьте поле ввода пустым, выбрать случайное имя',
+        online: 'онлайн',
+    },
+    error: {
+        description: 'Произошла ошибка',
+        reload: 'Перезапустить приложение',
     },
 };
 

@@ -44,7 +44,7 @@
         {#if copyTumbler}
             { $_('invite.linkHasBeenCopied') }
         {:else}
-            <div 
+            <div
                 class="uk-button uk-button-link uk-text-lowercase"
                 uk-tooltip={canShare ? $_('invite.clickToShare') : $_('invite.clickToCopy')}
                 on:click={linkClick}

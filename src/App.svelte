@@ -7,6 +7,7 @@
     import Page from './components/index.svelte';
     import { environment, isProduction } from './settings';
     import './app.scss';
+    import LanguageSelector from './components/language-selector.svelte';
 
     let header;
     let roomId: string;
@@ -47,7 +48,8 @@
         {/if}
     </div>
     <div class="uk-text-small uk-text-muted uk-text-center uk-padding">
-        <div>
+        <LanguageSelector />
+        <div class="uk-margin-top">
             <span>{ $_('poweredBy') }</span>
             · <a class="uk-text-muted" href="https://svelte.dev" target="_blank">Svelte</a>
             · <a class="uk-text-muted" href="https://firebase.google.com" target="_blank">Firebase</a>

@@ -45,9 +45,15 @@ const def = {
     },
     poweredBy: 'Powered by',
     or: 'or',
+    you: 'you',
     users: {
-        nameEdit: 'edit',
+        nameEdit: 'Click to change nickname',
         nameEditPromt: 'Enter your name (maximum {maxLength} characters) or leave the input blank to pick random name',
+        online: 'online',
+    },
+    error: {
+        description: 'Error occurred',
+        reload: 'Reload the app',
     },
 };
 

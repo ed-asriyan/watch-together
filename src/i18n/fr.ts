@@ -47,9 +47,15 @@ const fr: TranslatedText = {
     },
     poweredBy: 'Alimenté par',
     or: 'ou',
+    you: 'vous',
     users: {
-        nameEdit: 'éditer',
+        nameEdit: 'Cliquez pour changer de nom',
         nameEditPromt: 'Entrez votre nom (maximum {maxLength} caractères) ou laissez le champ vide pour choisir un nom au hasard',
+        online: 'en ligne',
+    },
+    error: {
+        description: 'Une erreur s\'est produite',
+        reload: 'Recharger l\'application',
     },
 };
 
