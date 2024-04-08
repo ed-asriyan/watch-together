@@ -16,6 +16,7 @@
     export let link: Link;
     export let currentTime: number;
     export let paused: boolean;
+    export let muted: boolean;
 
     let player: MediaPlayerElement;
 
@@ -23,6 +24,7 @@
 
     $: isMounted && (player.currentTime = currentTime);
     $: isMounted && (player.paused = paused);
+    $: isMounted && (player.muted = muted);
 
     const onLoaded = function (this: HTMLVideoElement) {
         this.currentTime = currentTime;
@@ -34,14 +36,17 @@
         unsubscribe = player.subscribe(options => {
             const optionsTime = options.currentTime;
             const optionsPaused = options.paused;
+            const optionsMuted = options.muted;
             if (isMounted) {
                 paused = optionsPaused;
                 currentTime = optionsTime;
+                muted = optionsMuted;
             }
             isMounted = true;
         });
         player.currentTime = currentTime;
         player.paused = paused;
+        player.muted = muted;
     });
 
     onDestroy(() => {
@@ -57,7 +62,7 @@
     playsInline
     preload="metadata"
     crossOrigin
-    muted
+    muted={muted}
 >
     <media-provider>
     </media-provider>

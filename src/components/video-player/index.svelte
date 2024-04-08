@@ -21,6 +21,8 @@
     export let link: Link | null;
     export let currentTime: number;
     export let paused: boolean;
+    
+    let muted = true;
 
     let isLoading: boolean = true;
 
@@ -72,11 +74,11 @@
             <Loader/>
         {:then link}
             {#if playerType === 'native'}
-                <VideoPlayerNative link={link} bind:paused={paused} bind:currentTime={currentTime}/>
+                <VideoPlayerNative link={link} bind:paused={paused} bind:currentTime={currentTime} bind:muted={muted}/>
             {:else if playerType === 'vidstack'}
-                <VideoPlayerVidstack link={link} bind:paused={paused} bind:currentTime={currentTime}/>
+                <VideoPlayerVidstack link={link} bind:paused={paused} bind:currentTime={currentTime} bind:muted={muted}/>
             {:else if playerType === 'vime'}
-                <VideoPlayerVime link={link} bind:paused={paused} bind:currentTime={currentTime}/>
+                <VideoPlayerVime link={link} bind:paused={paused} bind:currentTime={currentTime} bind:muted={muted}/>
             {/if}
         {/await}
     {:else}

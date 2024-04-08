@@ -4,6 +4,7 @@
     export let link: Link;
     export let currentTime: number;
     export let paused: boolean;
+    export let muted: boolean;
 
     const onLoaded = function (this: HTMLVideoElement) {
         this.currentTime = currentTime;
@@ -20,7 +21,7 @@
     bind:paused={paused}
     bind:currentTime={currentTime}
     on:loadeddata={onLoaded}
-    muted
+    bind:muted={muted}
     controls
 >
 </video>

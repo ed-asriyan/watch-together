@@ -5,6 +5,7 @@
     export let link: Link;
     export let currentTime: number;
     export let paused: boolean;
+    export let muted: boolean;
 
     let player: Player;
 
@@ -33,7 +34,7 @@
     on:vmCurrentTimeChange={onTimeUpdate}
     on:vmPausedChange={onPausedUpdate}
     controls
-    muted
+    bind:muted={muted}
 >
     {#key link.url}
         {#if link.type === SourceType.DailyMotion}
