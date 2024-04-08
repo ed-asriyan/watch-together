@@ -27,14 +27,14 @@
         }
     };
 
-        const init = async function (roomId: string): Promise<Room> {
+    const init = async function (roomId: string): Promise<Room> {
         await initTime();
         await destroy();
         previousRoom = new Room(roomId);
         await previousRoom.init();
         return previousRoom;
     };
-    </script>
+</script>
 
 <div class="uk-flex-1 uk-flex uk-flex-center uk-flex-middle uk-flex-column">
     {#await init(roomId)}

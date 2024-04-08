@@ -7,7 +7,6 @@ import { BoundTimedStore } from './bound-timed-store';
 import { UsersBoundStore } from './bound-users';
 import { BoundMinutesWatched } from './bound-minutes-watched';
 import normalizeLink, { type Link } from '../normalize-link';
-import { myNameStore } from './my-name';
 import { now } from './clock';
 import { Destructable } from '../destructable';
 import { firebaseConfig } from '../settings';

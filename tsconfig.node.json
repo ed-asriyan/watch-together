@@ -4,7 +4,10 @@
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "strict": true
+    "strict": true,
+    "types": [
+      "vite-plugin-pwa/client"
+    ]
   },
   "include": ["vite.config.ts"]
 }

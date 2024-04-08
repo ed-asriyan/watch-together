@@ -57,6 +57,7 @@ const fr: TranslatedText = {
         description: 'Une erreur s\'est produite',
         reload: 'Recharger l\'application',
     },
+    noInternet: 'Pas de connexion internet',
 };
 
 export default fr;

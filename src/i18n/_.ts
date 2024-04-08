@@ -55,6 +55,7 @@ const def = {
         description: 'Error occurred',
         reload: 'Reload the app',
     },
+    noInternet: 'No internet connection',
 };
 
 export type TranslatedText = typeof def;

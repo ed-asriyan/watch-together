@@ -11,6 +11,7 @@
 
     let header;
     let roomId: string;
+    let isOnline: boolean;
 
     const testPrefix = 'test_';
     const syncHashAndRoomId = function () {
@@ -26,7 +27,7 @@
     syncHashAndRoomId();
 </script>
 
-<svelte:window on:hashchange={syncHashAndRoomId}></svelte:window>
+<svelte:window on:hashchange={syncHashAndRoomId} bind:online={isOnline}></svelte:window>
 
 <Analytics/>
 
@@ -36,8 +37,12 @@
     </span>
 {/if}
 
-<h1 bind:this={header} class="header">
-    🎬 Watch Together
+<h1 bind:this={header} class="header" class:offline={!isOnline}>
+    {#if isOnline}
+        🎬 Watch Together
+    {:else}
+        { $_('noInternet')}
+    {/if}
 </h1>
 
 <div class="uk-section-secondary window-height uk-flex uk-flex-column">
@@ -75,10 +80,15 @@
         text-align: center;
         font-family: Avenir Next;
         font-size: 2rem;
-        padding: 1rem;
+        padding: 1rem 0;
         border-bottom: 1px solid rgb(255 255 255 / .1);
         background-color: rgba(1, 1, 1, 0.9);
         z-index: 2;
+        transition: background-color 500ms ease-in-out;
+    }
+
+    .offline {
+        background-color: red;
     }
 
     .uk-section-secondary {

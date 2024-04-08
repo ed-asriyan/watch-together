@@ -57,6 +57,7 @@ const ru: TranslatedText = {
         description: 'Произошла ошибка',
         reload: 'Перезапустить приложение',
     },
+    noInternet: 'Нет интернет соединения',
 };
 
 export default ru;
