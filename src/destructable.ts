@@ -3,11 +3,11 @@ type Destructor = () => void;
 export class Destructable {
     private readonly destructors: Destructor[] = [];
 
-    protected onDestruct (destructor: Destructor) {
+    onDestruct (destructor: Destructor) {
         this.destructors.push(destructor);
     }
 
-    protected registerDependency (destructable: Destructable) {
+    registerDependency (destructable: Destructable) {
         this.onDestruct(() => destructable.destruct());
     }
 

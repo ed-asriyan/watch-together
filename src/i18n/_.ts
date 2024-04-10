@@ -4,10 +4,10 @@ const def = {
         name: 'English',
     },
     selectVideo: {
-        title: 'Select a video',
+        title: 'Select a video source',
         link: {
-            title: 'Online link',
-            insertExample: 'click here to paste random example',
+            title: 'From Link:',
+            insertExample: 'paste an example',
             description: 'Insert a link to {type}Dailymotion{/type}, {type}YouTube{/type}, {type}Vimeo{/type}, {type}HLS{/type} playlist, {type}video{/type} or {type}audio{/type} file. The input is synced with everyone in the room.',
             hintNotWorking: 'If the movie doesn\'t play, make sure the {u}direct{/u} video link is inserted.',
             hintEmpty: 'Don\'t know how to get a video link from a website?',
@@ -15,12 +15,16 @@ const def = {
             help: 'It\'s easy, {link}read here{/link}!'
         },
         file: {
-            title: 'From computer',
-            description: 'You all downloaded a movie already!? Well done! Everyone should select the same video file.',
+            title: 'From File:',
+            description: 'You downloaded a movie already!? Select a video file.',
             selectAnother: 'Click to select another video file',
+            selectAnotherStream: 'Replace the stream with your local file',
             select: 'Click to select video file',
             hint: 'Don\'t know how to download a video from a website?',
             help: 'It\'s easy, {link}watch here{/link}!',
+            streamingPending: 'Streaming pending...',
+            streamingConfirmation: 'Do you want to stream this copy of the video to other members in the room or do you want to play it for yourself only?\n\nClick "Ok" to stream with others; click "Cancel" to play for yourself only',
+            streamingFailed: 'Streaming failed',
         },
     },
     invite: {
@@ -42,6 +46,8 @@ const def = {
     },
     player: {
         placeholder: 'Video player will appear here when you insert a link or select file',
+        torrentNotSupported: 'Streaming is not supported in this browser since it doesn\'t support ServiceWorker. Please select a your local copy of the video',
+        isHostActive: 'This is taking too long... Please select a local copy of the video, or check that the streamer is online and has not refreshed the page',
     },
     poweredBy: 'Powered by',
     or: 'or',
@@ -56,6 +62,10 @@ const def = {
         reload: 'Reload the app',
     },
     noInternet: 'No internet connection',
+    seedingSpeed: 'You\'re seeding: {speed}',
+    downloadSpeed: 'Download: {speed}',
+    uploadSpeed: 'Upload: {speed}',
+    dontRefresh: 'Do not refresh the page or close the browser tab',
 };
 
 export type TranslatedText = typeof def;

@@ -4,7 +4,6 @@
     import { _ } from 'svelte-i18n';
     import Loader from './loader.svelte';
     import type { Room } from '../stores/room';
-    import { type Link } from '../normalize-link'
     import VideoSelector from './1-video-selector.svelte';
     import CopyUrl from './2-copy-url.svelte';
     import VideoPlayer from './video-player/index.svelte';
@@ -16,7 +15,7 @@
     export let room: Room;
 
     $: url = room?.url;
-    $: play = room?.play;
+    $: link = room?.link;
     $: paused = room?.paused;
     $: minutesWatched = room?.minutesWatched;
     $: currentTime = room?.currentTime;
@@ -55,7 +54,7 @@
 
 <div uk-grid class="container uk-margin-top uk-grid-small" transition:fade>
     <div class="player uk-width-expand">
-        <VideoPlayer bind:paused={$paused} bind:currentTime={$currentTime} link={$play} />
+        <VideoPlayer room={room} />
     </div>
     <div class="controls">
         <div uk-grid class="uk-grid-small">

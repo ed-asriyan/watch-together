@@ -1,25 +1,41 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { track, ClickEvent } from '../analytics.svelte';
-    import type { Room } from '../stores/room';
+    import { blobUrl } from '../stores/blob';
+    import { sendFile } from '../stores/web-torrent';
+    import normalizeLink, { SourceType } from '../normalize-link';
 
-    export let room: Room;
 
-    $: blobUrl = room.blobUrl;
-    $: fileName = room.fileName;
+    export let url: string;
 
     let input: HTMLInputElement;
 
+    let sharingPending = false;
     const loadSource = async function (file: any): Promise<void> {
-        room.blobUrl.set(window.URL.createObjectURL(file) as string);
-        room.fileName.set(file.name);
+        if (navigator.serviceWorker && confirm($_('selectVideo.file.streamingConfirmation'))) {
+            sharingPending = true;
+            try {
+                url = await sendFile(file);
+            } catch (e) {
+                alert($_('selectVideo.file.streamingFailed'));
+                console.trace(e);
+            } finally {
+                sharingPending = false;
+            }
+        } else {
+            $blobUrl = window.URL.createObjectURL(file);
+        }
         track(new ClickEvent({ target: 'file_select' }));
     };
 </script>
 
 <input bind:this={input} type="file" on:change={e => loadSource(e.target.files[0])}/>
-<button on:click={() => input.click()} class="uk-button uk-button-default block">
-    {#if $blobUrl}
+<button disabled={sharingPending} on:click={() => input.click()} class="uk-button uk-button-default block">
+    {#if sharingPending}
+        { $_('selectVideo.file.streamingPending') }
+    {:else if normalizeLink(url)?.type === SourceType.magnet}
+        { $_('selectVideo.file.selectAnotherStream') }
+    {:else if $blobUrl}
         { $_('selectVideo.file.selectAnother') }
     {:else}
         { $_('selectVideo.file.select') }

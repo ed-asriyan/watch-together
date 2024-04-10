@@ -1,6 +1,6 @@
 import { type Writable, writable, get, type Subscriber, type Updater } from 'svelte/store';
 import type { DatabaseReference } from 'firebase/database';
-import { now } from './clock';
+import { now } from '../clock';
 import { BoundTimedStore } from './bound-timed-store';
 
 const maximumDelta = 0.5;
