@@ -1,7 +1,7 @@
 import { type Writable, type Readable, readable, writable, get, type Subscriber, type Updater } from 'svelte/store';
 import type { DatabaseReference } from 'firebase/database';
 import { BoundStore } from './bound-store';
-import { now } from './clock';
+import { now } from '../clock';
 
 interface TimedValue<T> {
     value: T;
@@ -29,7 +29,13 @@ export class BoundTimedStore<T> implements Writable<T> {
     }
 
     subscribe (f: Subscriber<T>) {
-        return this.store.subscribe(({ value }) => f(value));
+        let oldValue: T | null = null;
+        return this.store.subscribe(({ value }) => {
+            if (value !== oldValue) {
+                oldValue = value;
+                f(value)
+            }
+        });
     }
 
     set (value: T) {

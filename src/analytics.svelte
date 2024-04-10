@@ -1,5 +1,4 @@
 <script lang="ts" context="module">
-    import type { SourceType } from './normalize-link';
     import { analytics, isProduction } from './settings';
 
     const trackRaw = function (...args: any[]) {
@@ -38,7 +37,6 @@
 
     export class WatchedMinuteEvent extends Event<{
         roomId: string;
-        sourceType: SourceType;
         url: string;
     }> {
         readonly name: string = 'watch_minute';

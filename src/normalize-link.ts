@@ -1,6 +1,6 @@
 export enum SourceType {
-    blob = 'blob',
     direct = 'direct',
+    magnet = 'magnet',
     DailyMotion = 'Dailymotion',
     YouTube = 'YouTube',
     Vimeo = 'Vimeo',
@@ -72,6 +72,19 @@ class Dailymotion extends LinkBuilderRegex {
     }
 }
 
+class Magnet extends LinkBuilder {
+    protected static type = SourceType.magnet;
+
+    parse(link: string): string | null {
+        try {
+            const url = new URL(link);
+            return url.protocol === "magnet:" ? link : null;
+        } catch {
+            return null;
+        }
+    }
+}
+
 class Direct extends LinkBuilder {
     protected static type = SourceType.direct;
 
@@ -85,19 +98,11 @@ class Direct extends LinkBuilder {
     }
 }
 
-class Blob extends LinkBuilder {
-    protected static type = SourceType.blob;
-
-    parse(link: string): string | null {
-        return link.startsWith("blob:") ? link : null;
-    }
-}
-
 const parsers: LinkBuilder[] = [
-    new Blob(),
     new YouTube(),
     new Vimeo(),
     new Dailymotion(),
+    new Magnet(),
     new Direct(), // direct should always be the last one
 ];
 

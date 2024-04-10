@@ -1,32 +1,27 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
     import { _ } from 'svelte-i18n';
+    import prettierBytes from 'prettier-bytes';
     import { track, ClickEvent, UrlPasteEvent } from '../analytics.svelte';
     import Interpolator from './interpolator.svelte';
     import { getExampleVideo, isExample, haveExamples } from '../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';
+    import { downloadSpeed, uploadSpeed, progress, isSeeding, peers } from '../stores/web-torrent';
     import { Room } from '../stores/room';
     import { SourceType } from '../normalize-link';
+    import { blobUrl } from '../stores/blob';
 
     export let room: Room;
 
     $: url = room.url;
-    $: isLocalMode = room.isLocalMode;
-    $: play = room.play;
+    $: link = room.link;
+    $: if ($url) {
+        $blobUrl = '';
+    }
 
     const selectExample = function () {
         $url = getExampleVideo();
         track(new ClickEvent({ target: 'example' }));
-    };
-
-    const selectOnlineMode = function () {
-        $isLocalMode = false;
-        track(new ClickEvent({ target: 'select_online_mode' }));
-    };
-
-    const selectLocalMode = function () {
-        $isLocalMode = true;
-        track(new ClickEvent({ target: 'select_local_mode' }));
     };
 
     const clickDownloadTutorial = function () {
@@ -42,44 +37,21 @@
     };
 </script>
 
+<b>🔗 { $_('selectVideo.link.title') }</b>
 <div class="uk-margin-bottom">
-    <button
-        class="uk-button uk-button-small"
-        class:uk-button-default={$isLocalMode}
-        class:uk-button-secondary={!$isLocalMode}
-        on:click={selectOnlineMode}
-    >
-        { $_('selectVideo.link.title')}
-    </button>
-    <span class="uk-margin-left uk-margin-right">{ $_('or') }</span>
-    <button
-        class="uk-button uk-button-small"
-        class:uk-button-default={!$isLocalMode}
-        class:uk-button-secondary={$isLocalMode}
-        on:click={selectLocalMode}
-    >
-        { $_('selectVideo.file.title')}
-    </button>
+    <Interpolator text={$_('selectVideo.link.description')} let:data={data}>
+        {#if data.name === 'type'}
+            <u>{ data.text }</u>
+        {/if}
+    </Interpolator>
 </div>
-{#if $isLocalMode}
-    <div class="uk-margin-bottom">
-        { $_('selectVideo.file.description') }
-    </div>
-        <VideoSelectorBtn room={room}/>
-{:else}
-    <div class="uk-margin-bottom">
-        <Interpolator text={$_('selectVideo.link.description')} let:data={data}>
-            {#if data.name === 'type'}
-                <u>{ data.text }</u>
-            {/if}
-        </Interpolator>
-    </div>
+<div class="uk-margin-bottom">
     <div class="uk-inline uk-width-1-1">
         <input
             bind:value={$url}
             on:input={onInput}
             class="uk-input"
-            class:uk-form-danger={!$play}
+            class:uk-form-danger={!$link}
             placeholder="Video URL"
         />
         {#if !$url && haveExamples}
@@ -93,50 +65,73 @@
             </a>
         {/if}
     </div>
-{/if}
+    {#if $link && $link.type == SourceType.magnet && !$isSeeding && isFinite($progress)}
+        <progress class="uk-progress progress uk-margin-remove" value={$progress} max="1"></progress>
+    {/if}
+    </div>
 
-<div class="hint uk-margin-top uk-text-center uk-text-small">
-    <i>
-        {#if $isLocalMode}
-            { $_('selectVideo.file.hint') }
-            <Interpolator text={$_('selectVideo.file.help')} let:data={data}>
-                {#if data.name === 'link'}
-                    <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank" on:click={clickDownloadTutorial}>{ data.text }</a>
-                {/if}
-            </Interpolator>
-        {:else}
-            {#if $url}
-                {#if $play}
-                    {#if $play.type == SourceType.direct}
-                        <Interpolator text={$_('selectVideo.link.hintNotWorking')} let:data={data}>
-                            {#if data.name === 'u'}
-                                <u>{ data.text }</u>
-                            {/if}
-                        </Interpolator>
-                        <Interpolator text={$_('selectVideo.link.help')} let:data={data}>
-                            {#if data.name === 'link'}
-                                <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>{ data.text }</a>
-                            {/if}
-                        </Interpolator>
+<div class="hint uk-text-center uk-text-small">
+    {#if $url}
+        {#if $link}
+            {#if $link.type == SourceType.direct}
+                <Interpolator text={$_('selectVideo.link.hintNotWorking')} let:data={data}>
+                    {#if data.name === 'u'}
+                        <u>{ data.text }</u>
                     {/if}
-                {:else}
-                    { $_('selectVideo.link.hintInvalid') }
-                {/if}
-            {:else}
-                { $_('selectVideo.link.hintEmpty') }
+                </Interpolator>
                 <Interpolator text={$_('selectVideo.link.help')} let:data={data}>
                     {#if data.name === 'link'}
                         <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>{ data.text }</a>
                     {/if}
                 </Interpolator>
+            {:else if $link && ($link.type === SourceType.magnet)}
+                {#if $peers}
+                    <div class="uk-flex uk-text-small uk-relative uk-padding-top">
+                        {#if $isSeeding}
+                            <div class="uk-flex-1">
+                                { $_('seedingSpeed', { values: { speed: `${prettierBytes($uploadSpeed || 0)}/s` }}) }
+                                <br/>
+                                { $_('dontRefresh') }
+                            </div>
+                        {:else}
+                            <div class="uk-flex-1">{ $_('downloadSpeed', { values: { speed: `${prettierBytes($downloadSpeed || 0)}/s` }}) }</div>
+                            <div class="uk-flex-1">{ $_('uploadSpeed', { values: { speed: `${prettierBytes($uploadSpeed || 0)}/s` }}) }</div>
+                        {/if}
+                    </div>
+                {/if}
             {/if}
+        {:else}
+            { $_('selectVideo.link.hintInvalid') }
         {/if}
-    </i>
+    {:else}
+        { $_('selectVideo.link.hintEmpty') }
+        <Interpolator text={$_('selectVideo.link.help')} let:data={data}>
+            {#if data.name === 'link'}
+                <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>{ data.text }</a>
+            {/if}
+        </Interpolator>
+    {/if}
+</div>
+
+<hr class="uk-margin-bottom"/>
+
+<b>📂 { $_('selectVideo.file.title') }</b>
+<div class="uk-margin-bottom">
+    { $_('selectVideo.file.description') }
+</div>
+<VideoSelectorBtn bind:url={$url} />
+<div class="hint uk-margin-top uk-text-center uk-text-small">
+    { $_('selectVideo.file.hint') }
+    <Interpolator text={$_('selectVideo.file.help')} let:data={data}>
+        {#if data.name === 'link'}
+            <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank" on:click={clickDownloadTutorial}>{ data.text }</a>
+        {/if}
+    </Interpolator>
 </div>
 
 <style lang="scss">
     .hint {
-        height: 1.5rem;
+       font-style: italic;
     }
 
     .example {
@@ -145,5 +140,12 @@
 
     .example:hover {
         text-decoration: underline;
+    }
+
+    .progress {
+        height: 5px;
+        background: transparent;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
     }
 </style>

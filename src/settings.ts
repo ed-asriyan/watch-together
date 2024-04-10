@@ -10,23 +10,27 @@ export const firebaseConfig = {
 };
 
 export const sentry = {
-    dsn: import.meta.env['VITE_SENTRY_DSN'],
+    dsn: import.meta.env['VITE_SENTRY_DSN']?.trim(),
 };
 
 export const environment = import.meta.env['MODE'];
 export const isProduction = import.meta.env['PROD'] && environment === 'production';
 
 export const analytics = {
-    measurementId: import.meta.env['VITE_ANALYTICS_MEASHUREMENT_ID'],
+    measurementId: import.meta.env['VITE_ANALYTICS_MEASHUREMENT_ID']?.trim(),
 };
 
 export const url = import.meta.env['VITE_URL'];
 
 export const proxies = {
-    hlsUrl: import.meta.env['VITE_PROXIES_HLS_URL'],
-    regularUrl: import.meta.env['VITE_PROXIES_REGULAR_URL'],
+    hlsUrl: import.meta.env['VITE_PROXIES_HLS_URL']?.trim(),
+    regularUrl: import.meta.env['VITE_PROXIES_REGULAR_URL']?.trim(),
 };
 
-export const urlExamples = import.meta.env['VITE_URL_EXAMPLES']?.split(',');
+export const iceServers = JSON.parse(atob(import.meta.env['VITE_ICE_SERVERS_JSON']));
 
-export const userNames = import.meta.env['VITE_USERNAMES']?.split(',');
+export const webTorrentTrackers: string[] = import.meta.env['VITE_WEB_TORRENT_TRACKERS']?.split(',').map((x: string) => x.trim());
+
+export const urlExamples: string[] = import.meta.env['VITE_URL_EXAMPLES']?.split(',').map((x: string) => x.trim());
+
+export const userNames: string[] = import.meta.env['VITE_USERNAMES']?.split(',').map((x: string) => x.trim());

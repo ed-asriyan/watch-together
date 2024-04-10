@@ -1,10 +1,10 @@
 import type { DatabaseReference } from 'firebase/database';
 import { type Readable, type Subscriber, type Unsubscriber, get } from 'svelte/store';
 import { BoundStore } from './bound-store';
-import { now } from './clock';
-import { myNameStore } from './my-name';
-import { Destructable } from '../destructable';
-import { myId } from '../stores/my-id';
+import { now } from '../clock';
+import { myNameStore } from '../my-name';
+import { Destructable } from '../../destructable';
+import { myId } from '../my-id';
 
 const onlineTimeout = 10;
 const onlineRefreshInteval = 5

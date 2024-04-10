@@ -6,10 +6,10 @@ const fr: TranslatedText = {
         name: 'French | Français',
     },
     selectVideo: {
-        title: 'Sélectionnez une vidéo',
+        title: 'Sélectionnez une source vidéo',
         link: {
-            title: 'Lien en ligne',
-            insertExample: 'cliquez ici pour coller un exemple aléatoire',
+            title: 'Du lien:',
+            insertExample: 'coller un exemple',
             description: 'Insérez un lien vers une playlist {type}Dailymotion{/type}, {type}YouTube{/type}, {type}Vimeo{/type}, {type}HLS{/type}, {type}vidéo{/type} ou Fichier {type}audio{/type}. L\'entrée est synchronisée avec toutes les personnes présentes dans la pièce.',
             hintNotWorking: 'Si le film ne démarre pas, assurez-vous que le lien vidéo {u}direct{/u} est inséré.',
             hintEmpty: 'Vous ne savez pas comment obtenir un lien vidéo à partir d\'un site Web ?',
@@ -17,12 +17,16 @@ const fr: TranslatedText = {
             help: 'C\'est facile, {link}lire ici{/link}!'
         },
         file: {
-            title: 'Depuis l\'ordinateur',
-            description: 'Vous avez déjà tous téléchargé un film !? Bien joué! Tout le monde devrait sélectionner le même fichier vidéo.',
+            title: 'Du dossier:',
+            description: 'Vous avez déjà téléchargé un film ? Sélectionner un fichier vidéo',
             selectAnother: 'Cliquez pour sélectionner un autre fichier vidéo',
             select: 'Cliquez pour sélectionner le fichier vidéo',
             hint: 'Vous ne savez pas comment télécharger une vidéo à partir d\'un site Web ?',
             help: 'C\'est simple, {link}regardez ici{/link}!',
+            selectAnotherStream: 'Remplacer le flux par votre fichier local',
+            streamingPending: 'Streaming en attente...',
+            streamingConfirmation: 'Voulez-vous diffuser cette copie de la vidéo aux autres membres de la salle ou voulez-vous la lire pour vous seul?\n\n Cliquez sur "Ok" pour diffuser la vidéo avec d\'autres membres ; cliquez sur "Cancel" pour la diffuser pour vous seul.',
+            streamingFailed: 'Échec de la diffusion en continu'
         },
     },
     invite: {
@@ -44,6 +48,8 @@ const fr: TranslatedText = {
     },
     player: {
         placeholder: 'Le lecteur vidéo apparaîtra ici lorsque vous insérez un lien ou sélectionnez un fichier',
+        torrentNotSupported: 'La diffusion en continu n\'est pas prise en charge par ce navigateur car il ne prend pas en charge ServiceWorker. Veuillez sélectionner une copie locale de la vidéo',
+        isHostActive: 'Cela prend trop de temps... Veuillez sélectionner votre copie locale de la vidéo ou vérifier si le diffuseur est en ligne et n\'a pas actualisé la page',
     },
     poweredBy: 'Alimenté par',
     or: 'ou',
@@ -58,6 +64,10 @@ const fr: TranslatedText = {
         reload: 'Recharger l\'application',
     },
     noInternet: 'Pas de connexion internet',
+    seedingSpeed: 'Je partage le fichier: {speed}',
+    downloadSpeed: 'Téléchargement: {speed}',
+    uploadSpeed: 'Téléversement: {speed}',
+    dontRefresh: 'Ne pas rafraîchir la page ou fermer l\'onglet du navigateur',
 };
 
 export default fr;

@@ -4,10 +4,10 @@
     import { _ } from 'svelte-i18n';
     import { randomStr } from './utils';
     import Analytics from './analytics.svelte';
+    import LanguageSelector from './components/language-selector.svelte';
     import Page from './components/index.svelte';
     import { environment, isProduction } from './settings';
     import './app.scss';
-    import LanguageSelector from './components/language-selector.svelte';
 
     let header;
     let roomId: string;
@@ -59,6 +59,7 @@
             · <a class="uk-text-muted" href="https://svelte.dev" target="_blank">Svelte</a>
             · <a class="uk-text-muted" href="https://firebase.google.com" target="_blank">Firebase</a>
             · <a class="uk-text-muted" href="https://vidstack.io" target="_blank">Vidstack</a>
+            · <a class="uk-text-muted" href="https://webtorrent.io" target="_blank">WebTorrent</a>
             · <a class="uk-text-muted" href="https://getuikit.com" target="_blank">UIkit</a>
         </div>
         <div>
