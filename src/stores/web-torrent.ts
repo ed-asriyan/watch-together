@@ -1,4 +1,3 @@
-import 'https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js';
 import { iceServers, webTorrentTrackers } from '../settings';
 import { readable, writable } from 'svelte/store';
 
@@ -7,8 +6,9 @@ window.WEBTORRENT_ANNOUNCE = null;
 
 let __client: any;
 let __torrent: any;
-export const initWebtorrent = async function () {
-    if (!navigator.serviceWorker) {
+let isInitiated = false;
+const initWebtorrent = async function () {
+    if (isInitiated || !navigator.serviceWorker) {
         return;
     }
 
@@ -22,10 +22,12 @@ export const initWebtorrent = async function () {
         if (!checkState(worker)) {
             worker.addEventListener('statechange', ({ target }) => {
                 if (checkState(target)) {
+                    isInitiated = true;
                     resolve();
                 }
             });
         } else {
+            isInitiated = true;
             resolve();
         }
     });
@@ -49,6 +51,7 @@ export const createWebTorrentClient = async function () {
     if (__client) {
         return __client;
     }
+    await import('https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js');
     // @ts-ignore
     const client = new WebTorrent({
         tracker: {
@@ -60,6 +63,7 @@ export const createWebTorrentClient = async function () {
             iceCandidatePoolsize: 1
         }
     });
+    await initWebtorrent();
     await promise(client, client.loadWorker, navigator.serviceWorker.controller);
     __client = client;
 };
@@ -81,6 +85,7 @@ export const sendFile = async function (file: File): Promise<string> {
 };
 
 export const getStreamUrl = async function (url: string) {
+    await initWebtorrent();
     await createWebTorrentClient();
     if (__torrent?.magnetURI !== url) {
         isSeeding.set(false);
