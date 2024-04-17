@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onDestroy } from 'svelte';
     import { _ } from 'svelte-i18n';
-    import { initWebtorrent } from '../stores/web-torrent';
     import Loader from './loader.svelte';
     import { Room } from '../stores/room';
     import { syncTime } from '../stores/clock';
@@ -30,7 +29,6 @@
 
     const init = async function (roomId: string): Promise<Room> {
         await initTime();
-        await initWebtorrent();
         await destroy();
         previousRoom = new Room(roomId);
         await previousRoom.init();
