@@ -5,14 +5,14 @@
     import { sendFile } from '../stores/web-torrent';
     import normalizeLink, { SourceType } from '../normalize-link';
 
-
-    export let url: string;
+    export let url: string = '';
+    export let forceLocal: boolean = false;
 
     let input: HTMLInputElement;
 
     let sharingPending = false;
     const loadSource = async function (file: any): Promise<void> {
-        if (navigator.serviceWorker && confirm($_('selectVideo.file.streamingConfirmation'))) {
+        if (!forceLocal && navigator.serviceWorker && confirm($_('selectVideo.file.streamingConfirmation'))) {
             sharingPending = true;
             try {
                 url = await sendFile(file);
@@ -30,13 +30,13 @@
 </script>
 
 <input bind:this={input} type="file" on:change={e => loadSource(e.target.files[0])}/>
-<button disabled={sharingPending} on:click={() => input.click()} class="uk-button uk-button-default block">
+<button disabled={sharingPending} on:click={() => input.click()} class="uk-button uk-button-default">
     {#if sharingPending}
         { $_('selectVideo.file.streamingPending') }
-    {:else if normalizeLink(url)?.type === SourceType.magnet}
-        { $_('selectVideo.file.selectAnotherStream') }
     {:else if $blobUrl}
         { $_('selectVideo.file.selectAnother') }
+    {:else if normalizeLink(url)?.type === SourceType.magnet}
+        { $_('selectVideo.file.selectAnotherStream') }
     {:else}
         { $_('selectVideo.file.select') }
     {/if}
