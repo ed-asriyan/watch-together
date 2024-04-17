@@ -4,6 +4,7 @@
     import Loader from '../loader.svelte';
     import { getStreamUrl } from '../../stores/web-torrent';
     import VideoPlayerNative from './video-player-native.svelte';
+    import VideoSelectorBtn from '../video-selector-btn.svelte';
 
     export let link: Link;
     export let currentTime: number;
@@ -22,8 +23,10 @@
         <Loader />
         {#await sleep(10000)}
         {:then}
-            <div class="uk-margin-top">
+            <div class="uk-margin-top uk-text-center">
                 { $_('player.isHostActive') }
+                <br class="uk-margin"/>
+                <VideoSelectorBtn forceLocal={true} />
             </div>
         {/await}
     {:then streamUrl}
