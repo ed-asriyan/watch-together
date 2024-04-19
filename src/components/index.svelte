@@ -3,33 +3,19 @@
     import { _ } from 'svelte-i18n';
     import Loader from './loader.svelte';
     import { Room } from '../stores/room';
-    import { syncTime } from '../stores/clock';
     import RoomPage from './room.svelte';
     import LanguageSelector from './language-selector.svelte';
         
     export let roomId: string;
 
     let previousRoom: Room;
-
     const destroy = async function () {
         previousRoom && await previousRoom.destruct();
     };
     onDestroy(destroy);
 
-    let isTimeSynced = false;
-    const initTime = async function () {
-        if (!isTimeSynced) {
-            try {
-                await syncTime();
-                isTimeSynced = true;
-            } catch {
-            }
-        }
-    };
-
     const init = async function (roomId: string): Promise<Room> {
-        await initTime();
-        await destroy();
+        destroy();
         previousRoom = new Room(roomId);
         await previousRoom.init();
         return previousRoom;

@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/svelte';
 import { initI18n } from './i18n';
+import { syncTime } from './stores/clock';
 import Root from './App.svelte';
 import { environment, sentry, url } from './settings';
 
@@ -25,6 +26,7 @@ if (sentry.dsn) {
 }
 
 initI18n();
+syncTime();
 
 export default new Root({
     target: document.getElementById('app'),
