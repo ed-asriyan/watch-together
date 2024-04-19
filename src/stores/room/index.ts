@@ -47,11 +47,13 @@ export class Room extends Destructable {
     }
 
     async init (): Promise<void> {
-        await this.url.init();
-        await this.currentTime.init();
-        await this.paused.init();
-        await this.minutesWatched.init();
-        await this.createdAt.init();
-        await this.users.init();
+        await Promise.all([
+            this.url.init(),
+            this.currentTime.init(),
+            this.paused.init(),
+            this.minutesWatched.init(),
+            this.createdAt.init(),
+            this.users.init(),
+        ]);
     }
 }
