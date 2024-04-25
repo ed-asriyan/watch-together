@@ -1,24 +1,19 @@
 <script lang="ts">
-    import { onDestroy} from 'svelte';
-    import { fade } from 'svelte/transition';
+    import { onDestroy } from 'svelte';
     import { _ } from 'svelte-i18n';
     import Loader from './loader.svelte';
     import type { Room } from '../stores/room';
-    import VideoSelector from './1-video-selector.svelte';
-    import CopyUrl from './2-copy-url.svelte';
+    import CardVideoSelector from './card-video-selector.svelte';
+    import CardCopyUrl from './card-copy-url.svelte';
     import VideoPlayer from './video-player/index.svelte';
     import Users from './users/index.svelte';
     import { randomStr } from '../utils';
     import { track, ClickEvent } from '../analytics.svelte';
     import { isExample } from '../stores/video-example';
-        
+
+    export let roomId: string;
     export let room: Room;
 
-    $: url = room?.url;
-    $: link = room?.link;
-    $: paused = room?.paused;
-    $: minutesWatched = room?.minutesWatched;
-    $: currentTime = room?.currentTime;
     $: users = room?.users;
 
     const updateRoom = function (newRoomId: string, copyData?: boolean) {
@@ -52,7 +47,7 @@
     };
 </script>
 
-<div uk-grid class="container uk-margin-top uk-grid-small" transition:fade>
+<div uk-grid class="container uk-margin-top uk-grid-small">
     <div class="player uk-width-expand">
         <VideoPlayer room={room} />
     </div>
@@ -60,11 +55,11 @@
         <div uk-grid class="uk-grid-small">
             <div class="tile uk-flex uk-flex-column">
                 <h2 class="uk-card-title">🍿 { $_('selectVideo.title') }</h2>
-                <VideoSelector room={room} />
+                <CardVideoSelector room={room} />
             </div>
             <div class="tile uk-flex uk-flex-column">
                 <h2 class="uk-card-title">👥 { $_('invite.title') }</h2>
-                <CopyUrl roomId={room.id} />
+                <CardCopyUrl roomId={roomId} />
             </div>
             <div class="uk-width-1-1">
                 <Users users={$users} />

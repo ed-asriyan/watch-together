@@ -11,11 +11,13 @@
 
 <div class="users uk-flex-center uk-flex uk-text-center uk-flex-middle">
     <User user={({ name: $myNameStore })} me={true} bind:myName={$myNameStore} />
-    {#each users as user (user.id)}
-        {#if $myNameStore !== user}
-            <User user={user} me={false} status={ $_('users.online')} />
-        {/if}
-    {/each}
+    {#if users}
+        {#each users as user (user.id)}
+            {#if $myNameStore !== user}
+                <User user={user} me={false} status={ $_('users.online')} />
+            {/if}
+        {/each}
+    {/if}
 </div>
 
 <style lang="scss">
