@@ -8,13 +8,14 @@
     import VideoSelectorBtn from './video-selector-btn.svelte';
     import { downloadSpeed, uploadSpeed, progress, isSeeding, peers } from '../stores/web-torrent';
     import { Room } from '../stores/room';
+    import Loader from './loader.svelte';
     import { SourceType } from '../normalize-link';
     import { blobUrl } from '../stores/blob';
 
     export let room: Room;
 
-    $: url = room.url;
-    $: link = room.link;
+    $: url = room?.url;
+    $: link = room?.link;
     $: if ($url) {
         $blobUrl = '';
     }
@@ -47,22 +48,26 @@
 </div>
 <div class="uk-margin-bottom">
     <div class="uk-inline uk-width-1-1">
-        <input
-            bind:value={$url}
-            on:input={onInput}
-            class="uk-input"
-            class:uk-form-danger={!$link}
-            placeholder="Video URL"
-        />
-        {#if !$url && haveExamples}
-            <a
-                class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto example pointer"
-                on:click|preventDefault={selectExample}
-                href="/#"
-                transition:fade
-            >
-                { $_('selectVideo.link.insertExample') }
-            </a>
+        {#if room}
+            <input
+                bind:value={$url}
+                on:input={onInput}
+                class="uk-input"
+                class:uk-form-danger={!$link}
+                placeholder="Video URL"
+            />
+            {#if !$url && haveExamples}
+                <a
+                    class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto example pointer"
+                    on:click|preventDefault={selectExample}
+                    href="/#"
+                    transition:fade
+                >
+                    { $_('selectVideo.link.insertExample') }
+                </a>
+            {/if}
+        {:else}
+            <button class="uk-input" disabled><Loader ratio={0.5} /></button>
         {/if}
     </div>
     {#if $link && $link.type == SourceType.magnet && !$isSeeding && isFinite($progress)}
@@ -119,7 +124,11 @@
 <div class="uk-margin-bottom">
     { $_('selectVideo.file.description') }
 </div>
-<VideoSelectorBtn bind:url={$url} />
+{#if room}
+    <VideoSelectorBtn bind:url={$url} />
+{:else}
+    <button class="uk-button uk-button-default" disabled><Loader ratio={0.5} /></button>
+{/if}
 <div class="hint uk-margin-top uk-text-center uk-text-small">
     { $_('selectVideo.file.hint') }
     <Interpolator text={$_('selectVideo.file.help')} let:data={data}>

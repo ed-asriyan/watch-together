@@ -14,17 +14,17 @@
 
     export let room: Room;
 
-    $: link = room.link;
-    $: url = room.url;
-    $: currentTime = room.currentTime;
-    $: paused = room.paused;
+    $: link = room?.link;
+    $: url = room?.url;
+    $: currentTime = room?.currentTime;
+    $: paused = room?.paused;
     
     let muted = true;
 
     let isLoading: boolean = true;
 
     type Player = 'vime' | 'vidstack' | 'magnet' | null;
-    $: playerType = derived<Readable<Link | null>, Player>(room.link, ($link) => {
+    $: playerType = room && derived<Readable<Link | null>, Player>(room.link, ($link) => {
         switch ($link?.type) {
             case SourceType.DailyMotion:
                 return 'vime';
@@ -67,7 +67,9 @@
 </script>
 
 <div class="viewer uk-text-small uk-flex uk-flex-center uk-flex-column uk-text-break uk-text-center">
-    {#if $blobUrl}
+    {#if !room}
+        <Loader />
+    {:else if $blobUrl}
         <VideoPlayerNative url={$blobUrl} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}/>
     {:else}
         {#if $link}
