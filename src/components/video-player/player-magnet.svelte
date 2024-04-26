@@ -3,6 +3,7 @@
     import type { Link } from '../normalize-link';
     import Loader from '../loader.svelte';
     import { getStreamUrl } from '../../stores/web-torrent';
+    import { sleep } from '../../utils';
     import VideoPlayerNative from './video-player-native.svelte';
     import VideoSelectorBtn from '../video-selector-btn.svelte';
 
@@ -10,10 +11,6 @@
     export let currentTime: number;
     export let paused: boolean;
     export let muted: boolean;
-
-    const sleep = function(ms: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    };
 </script>
 
 {#if !navigator.serviceWorker}
