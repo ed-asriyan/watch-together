@@ -1,6 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { track, ClickEvent } from '../analytics.svelte';
+    import Loader from './loader.svelte';
     import { blobUrl } from '../stores/blob';
     import { sendFile } from '../stores/web-torrent';
     import normalizeLink, { SourceType } from '../normalize-link';
@@ -32,7 +33,7 @@
 <input bind:this={input} type="file" on:change={e => loadSource(e.target.files[0])}/>
 <button disabled={sharingPending} on:click={() => input.click()} class="uk-button uk-button-default">
     {#if sharingPending}
-        { $_('selectVideo.file.streamingPending') }
+        <Loader ratio={0.6} /> { $_('selectVideo.file.streamingPending') }
     {:else if $blobUrl}
         { $_('selectVideo.file.selectAnother') }
     {:else if normalizeLink(url)?.type === SourceType.magnet}

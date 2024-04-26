@@ -1,36 +1,33 @@
-import { iceServers, webTorrentTrackers } from '../settings';
 import { readable, writable } from 'svelte/store';
+import { iceServers, webTorrentTrackers } from '../settings';
+import { sleep } from '../utils';
 
 // @ts-ignore
 window.WEBTORRENT_ANNOUNCE = null;
 
 let __client: any;
 let __torrent: any;
-let isInitiated = false;
+let serviceWorkerRegistration: ServiceWorkerRegistration;;
+
+const isServiceWorkerActivated = async function ()  {
+    return (await navigator.serviceWorker.ready)?.active?.state === 'activated';
+}
+
 const initWebtorrent = async function () {
-    if (isInitiated || !navigator.serviceWorker) {
+    if (!navigator.serviceWorker || serviceWorkerRegistration) {
         return;
     }
 
-    const reg = await navigator.serviceWorker.register('/sw.min.js');
-    const worker = reg.active || reg.waiting || reg.installing as ServiceWorker;
+    const registration = await navigator.serviceWorker.register('/sw.min.js');
 
-    await new Promise<void>(resolve => {
-        function checkState (worker: any): boolean {
-            return worker.state === 'activated';
-        }
-        if (!checkState(worker)) {
-            worker.addEventListener('statechange', ({ target }) => {
-                if (checkState(target)) {
-                    isInitiated = true;
-                    resolve();
-                }
-            });
+    while (true) {
+        if (await isServiceWorkerActivated()) {
+            serviceWorkerRegistration = registration;
+            return;
         } else {
-            isInitiated = true;
-            resolve();
+            await sleep(1000);
         }
-    });
+    }
 };
 
 const promise = async function (obj: any, f: any, ...arg: any) {
@@ -51,7 +48,11 @@ export const createWebTorrentClient = async function () {
     if (__client) {
         return __client;
     }
-    await import('https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js');
+    const [{ default: WebTorrent }] = await Promise.all([
+        // doc: https://github.com/webtorrent/webtorrent/blob/v2.2.1/docs/api.md
+        import('https://esm.sh/webtorrent@2.2.1'),
+        initWebtorrent(),
+    ]);
     // @ts-ignore
     const client = new WebTorrent({
         tracker: {
@@ -63,8 +64,7 @@ export const createWebTorrentClient = async function () {
             iceCandidatePoolsize: 1
         }
     });
-    await initWebtorrent();
-    await promise(client, client.loadWorker, navigator.serviceWorker.controller);
+    client.createServer({ controller: serviceWorkerRegistration });
     __client = client;
 };
 
@@ -98,7 +98,7 @@ export const getStreamUrl = async function (url: string) {
     while (!__torrent.files.length) {
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
-    return promise(__torrent.files[0], __torrent.files[0].getStreamURL);
+    return __torrent.files[0].streamURL;
 };
 
 

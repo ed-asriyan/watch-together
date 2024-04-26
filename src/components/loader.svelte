@@ -2,7 +2,7 @@
     export let ratio: number = 3;
 </script>
 
-<div class="container">
-    <div uk-spinner={`ratio: ${ratio}`}></div>
-    <div><slot/></div>
-</div>
+<span class="container">
+    <span uk-spinner={`ratio: ${ratio}`}></span>
+    <span><slot/></span>
+</span>
