@@ -1,4 +1,4 @@
-import type { DatabaseReference } from 'firebase/database';
+import { child, type DatabaseReference } from 'firebase/database';
 import { type Readable, type Subscriber, type Unsubscriber, get } from 'svelte/store';
 import { BoundStore } from './bound-store';
 import { now } from '../clock';
@@ -6,28 +6,37 @@ import { myNameStore } from '../my-name';
 import { Destructable } from '../../destructable';
 import { myId } from '../my-id';
 
-const onlineTimeout = 10;
-const onlineRefreshInteval = 5
+const onlineTimeout = 13;
+const onlineRefreshInteval = 5;
 
-export interface User {
-    id: string;
+interface RawUser {
     lastSeen: number;
     name: string;
 }
-interface Users {
-    [id: string]: Omit<User, 'id'>;
+export interface User extends RawUser {
+    id: string;
 }
+interface RawUsers {
+    [id: string]: RawUser;
+}
+
+const generateMe = function (): RawUser {
+    return { name: get(myNameStore), lastSeen: now() };
+}
+
 export class UsersBoundStore extends Destructable implements Readable<User[]> {
-    private readonly store: BoundStore<Users>;
+    private readonly storeUsers: BoundStore<RawUsers>;
+    private readonly storeUser: BoundStore<RawUser>;
 
     constructor (ref: DatabaseReference) {
         super();
-        this.store = new BoundStore<Users>(ref, {});
+        this.storeUsers = new BoundStore<RawUsers>(ref, {});
+        this.storeUser = new BoundStore<RawUser>(child(ref, myId), generateMe());
     }
 
     subscribe(run: Subscriber<User[]>): Unsubscriber {
         const timeNow = now();
-        return this.store.subscribe(users  => {
+        return this.storeUsers.subscribe(users  => {
             run(Object.entries(users)
                 .filter(([id, user]) => id !== myId && user.lastSeen + onlineTimeout > timeNow)
                 .map(([id, user]) => ({ ...user, id })));
@@ -38,28 +47,37 @@ export class UsersBoundStore extends Destructable implements Readable<User[]> {
         this.invalidate();
     }
 
+    async updateOnlineStatus () {
+        this.storeUser.set(generateMe());
+    }
+
     async invalidate () {
         const nowTime = now();
-        const newUsers: Users = {};
-        for (const [id, user] of Object.entries(get(this.store))) {
+        const newUsers: RawUsers = {};
+        let anythingRemoved = false;
+        for (const [id, user] of Object.entries(get(this.storeUsers))) {
             if (user.lastSeen + 10 >= nowTime) {
                 newUsers[id] = user;
+            } else {
+                anythingRemoved = true;
             }
         }
-        if (myId) {
-            newUsers[myId] = { name: get(myNameStore), lastSeen: now() };
-        }
-        this.store.set(newUsers);
+        anythingRemoved && this.storeUsers.set(newUsers);
     }
 
     async init() {
-        await this.store.init();
+        await this.storeUser.init();
+        await this.storeUsers.init();
 
-        const updateOnline = () => this.invalidate();
-        const idOnline = setInterval(updateOnline, onlineRefreshInteval * 1000);
-        await updateOnline();
+        const invalidateJob = () => this.invalidate();
+        const invalidateJobId = setInterval(invalidateJob, onlineTimeout * 1000);
+        await invalidateJob();
 
-        this.onDestruct(() => clearInterval(idOnline));
-        this.onDestruct(myNameStore.subscribe(() => this.invalidate()));
+        const updateOnlineStatusJob = () => this.updateOnlineStatus();
+        const updateOnlineStatusJobId = setInterval(updateOnlineStatusJob, onlineRefreshInteval * 1000);
+
+        this.onDestruct(() => clearInterval(invalidateJobId));
+        this.onDestruct(() => clearInterval(updateOnlineStatusJobId));
+        this.onDestruct(myNameStore.subscribe(updateOnlineStatusJob));
     }
 }
