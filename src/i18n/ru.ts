@@ -64,10 +64,10 @@ const ru: TranslatedText = {
         reload: 'Перезапустить приложение',
     },
     noInternet: 'Нет интернет соединения',
-    seedingSpeed: 'Вы раздаёте видео: {speed}',
     downloadSpeed: 'Скачивание: {speed}',
     uploadSpeed: 'Отдача: {speed}',
-    dontRefresh: 'Не перезагружайте страницу и не закрывайте вкладку браузера',
+    dontRefresh: 'Вы раздаёте видео. Не перезагружайте страницу и не закрывайте вкладку браузера',
+    peers: 'Пиры: {peers}',
 };
 
 export default ru;
