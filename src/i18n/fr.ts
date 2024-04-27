@@ -64,10 +64,10 @@ const fr: TranslatedText = {
         reload: 'Recharger l\'application',
     },
     noInternet: 'Pas de connexion internet',
-    seedingSpeed: 'Je partage le fichier: {speed}',
     downloadSpeed: 'Téléchargement: {speed}',
     uploadSpeed: 'Téléversement: {speed}',
-    dontRefresh: 'Ne pas rafraîchir la page ou fermer l\'onglet du navigateur',
+    dontRefresh: 'Je partage le fichier. Ne pas rafraîchir la page ou fermer l\'onglet du navigateur',
+    peers: 'Peers: {peers}',
 };
 
 export default fr;

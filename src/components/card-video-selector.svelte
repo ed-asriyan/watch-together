@@ -90,20 +90,16 @@
                     {/if}
                 </Interpolator>
             {:else if $link && ($link.type === SourceType.magnet)}
-                {#if $peers}
                     <div class="uk-flex uk-text-small uk-relative uk-padding-top">
-                        {#if $isSeeding}
-                            <div class="uk-flex-1">
-                                { $_('seedingSpeed', { values: { speed: `${prettierBytes($uploadSpeed || 0)}/s` }}) }
-                                <br/>
-                                { $_('dontRefresh') }
-                            </div>
-                        {:else}
                             <div class="uk-flex-1">{ $_('downloadSpeed', { values: { speed: `${prettierBytes($downloadSpeed || 0)}/s` }}) }</div>
                             <div class="uk-flex-1">{ $_('uploadSpeed', { values: { speed: `${prettierBytes($uploadSpeed || 0)}/s` }}) }</div>
-                        {/if}
+                            <div class="uk-flex-1">{ $_('peers', { values: { peers: $peers }}) }</div>
                     </div>
-                {/if}
+                    {#if $isSeeding}
+                        <div class="uk-margin-small-top">
+                            { $_('dontRefresh') }
+                        </div>
+                    {/if}
             {/if}
         {:else}
             { $_('selectVideo.link.hintInvalid') }

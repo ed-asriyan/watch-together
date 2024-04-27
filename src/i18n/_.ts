@@ -62,10 +62,10 @@ const def = {
         reload: 'Reload the app',
     },
     noInternet: 'No internet connection',
-    seedingSpeed: 'You\'re seeding: {speed}',
     downloadSpeed: 'Download: {speed}',
     uploadSpeed: 'Upload: {speed}',
-    dontRefresh: 'Do not refresh the page or close the browser tab',
+    dontRefresh: 'You\'re seeding. Do not refresh the page or close the browser tab',
+    peers: 'Peers: {peers}',
 };
 
 export type TranslatedText = typeof def;

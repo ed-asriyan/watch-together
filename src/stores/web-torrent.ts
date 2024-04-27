@@ -107,7 +107,7 @@ export const progress = readable<number>(0, set => {
     return () => clearInterval(id);
 });
 export const peers = readable<number>(0, set => {
-    const id = setInterval(() => set(__torrent?.numPeers), 1000);
+    const id = setInterval(() => set(__torrent?.numPeers || 0), 1000);
     return () => clearInterval(id);
 });
 export const downloadSpeed = readable<number>(0, set => {
