@@ -4,18 +4,19 @@ import { BoundStore } from './bound-store';
 import { track, WatchedMinuteEvent } from '../../analytics.svelte';
 import { Destructable } from '../../destructable';
 import { myId } from '../my-id';
+import { type Link } from '../../normalize-link';
 
 export class BoundMinutesWatched extends Destructable implements Readable<number> {
     private readonly store: BoundStore<number>;
     private readonly pausedStore: Readable<boolean>;
-    private readonly urlStore: Readable<string>;
+    private readonly linkStore: Readable<Link | null>;
     private readonly roomId: string;
 
-    constructor (ref: DatabaseReference, roomId: string, urlStore: Readable<string>, pausedStore: Readable<boolean>) {
+    constructor (ref: DatabaseReference, roomId: string, linkStore: Readable<Link | null>, pausedStore: Readable<boolean>) {
         super();
         this.roomId = roomId;
         this.pausedStore = pausedStore;
-        this.urlStore = urlStore;
+        this.linkStore = linkStore;
         this.store = new BoundStore<number>(child(ref, myId), 0);
     }
 
@@ -27,9 +28,10 @@ export class BoundMinutesWatched extends Destructable implements Readable<number
         await this.store.init();
 
         const idMinuteSpent = setInterval(() => {
-            if (get(this.urlStore) && !get(this.pausedStore)) {
+            const link = get(this.linkStore);
+            if (link && !get(this.pausedStore)) {
                 this.store.update(x => x + 1);
-                track(new WatchedMinuteEvent({ roomId: this.roomId }));
+                track(new WatchedMinuteEvent({ roomId: this.roomId, sourceType: link.type }));
             }
         }, 60000);
         this.onDestruct(() => clearInterval(idMinuteSpent));
