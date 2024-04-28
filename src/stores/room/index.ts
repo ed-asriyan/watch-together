@@ -40,7 +40,7 @@ export class Room extends Destructable {
         this.link = derived<Readable<string>, Link | null>(this.url, (($url) => {
             return normalizeLink($url);
         }));
-        this.minutesWatched = new BoundMinutesWatched(child(roomRef, 'minutesWatched'), roomId, this.url, this.paused);
+        this.minutesWatched = new BoundMinutesWatched(child(roomRef, 'minutesWatched'), roomId, this.link, this.paused);
 
         this.registerDependency(this.users);
         this.registerDependency(this.minutesWatched);

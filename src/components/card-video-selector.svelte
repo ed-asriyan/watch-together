@@ -34,7 +34,7 @@
     };
 
     const onInput = function () {
-        track(new UrlPasteEvent({ roomId: room.id, url: $url, isExample: isExample($url) }));
+        $link && track(new UrlPasteEvent({ roomId: room.id, url: $url, isExample: isExample($url) }));
     };
 </script>
 
