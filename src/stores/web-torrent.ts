@@ -71,7 +71,7 @@ export const createWebTorrentClient = async function () {
 export const sendFile = async function (file: File): Promise<string> {
     isSeeding.set(true);
     await createWebTorrentClient();
-    __torrent && await promise(__client, __client.remove, __torrent);
+    __torrent && await promise(__client, __client.remove, __torrent.magnetURI);
     return new Promise(resolve => {
         const opts: any = {};
         if (webTorrentTrackers) {
@@ -90,7 +90,7 @@ export const getStreamUrl = async function (url: string) {
     if (__torrent?.magnetURI !== url) {
         isSeeding.set(false);
         if (__torrent) {
-            await promise(__client, __client.remove, __torrent);
+            await promise(__client, __client.remove, __torrent.magnetURI);
         }
         __torrent = await promise(__client, __client.add, url);
     }
