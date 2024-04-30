@@ -5,6 +5,7 @@
     import type { Room } from '../stores/room';
     import CardVideoSelector from './card-video-selector.svelte';
     import CardCopyUrl from './card-copy-url.svelte';
+    import Interpolator from './interpolator.svelte';
     import VideoPlayer from './video-player/index.svelte';
     import Users from './users/index.svelte';
     import { randomStr } from '../utils';
@@ -75,6 +76,13 @@
                     { $_('room.joinAnotherRoom') }
                     →
                 </button>
+            </div>
+            <div class="uk-text-small uk-width-1-1">
+                <Interpolator text={$_('feedback.linkText')} let:data={data}>
+                    {#if data.name === 'link'}
+                        <a href={$_('feedback.link')} target="_blank">{ data.text }</a>
+                    {/if}
+                </Interpolator>
             </div>
         </div>
     </div>
