@@ -68,6 +68,10 @@ const ru: TranslatedText = {
     uploadSpeed: 'Отдача: {speed}',
     dontRefresh: 'Вы раздаёте видео. Не перезагружайте страницу и не закрывайте вкладку браузера',
     peers: 'Пиры: {peers}',
+    feedback: {
+        link: 'https://forms.gle/tXzRyTQimJkHXNuS7',
+        linkText: 'Возникли проблемы? Есть идеи? Оставьте обратную свзять {link}тут{/link}', 
+    },
 };
 
 export default ru;
