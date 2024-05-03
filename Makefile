@@ -22,13 +22,13 @@ dev_serve:
 	docker run ${RUN_DEV_PARAMS} -p 5173:5173 --env-file ${ENV_FILE} ${DOCKER_DEV_IMAGE_NAME} npm run dev -- --host
 
 dev_enter:
-	docker run ${RUN_DEV_PARAMS} -it --env-file ${ENV_FILE} ${DOCKER_DEV_IMAGE_NAME} bash
+	docker run ${RUN_DEV_PARAMS} --env-file ${ENV_FILE} ${DOCKER_DEV_IMAGE_NAME} bash
 
 dev_stats: build_dev_image
-	docker run ${RUN_DEV_PARAMS} -it --env-file ${ENV_FILE} ${DOCKER_DEV_IMAGE_NAME} npm run stats -- --host > stats.tsv
+	docker run ${RUN_DEV_PARAMS} --env-file ${ENV_FILE} ${DOCKER_DEV_IMAGE_NAME} npm run stats -- --host > stats.tsv
 
 dev_clean_db: build_dev_image
-	docker run ${RUN_DEV_PARAMS} -it --env-file ${ENV_FILE} ${DOCKER_DEV_IMAGE_NAME} npm run clean-db -- 2678400 # 31 day
+	docker run --workdir /app -v .:/app --rm --env-file ${ENV_FILE} ${DOCKER_DEV_IMAGE_NAME} npm run clean-db -- 2678400 # 31 day
 
 staging_serve: build_staging_image
 	docker run -it --rm -p 8080:80 ${DOCKER_STAGING_IMAGE_NAME}
