@@ -120,18 +120,20 @@
 <div class="uk-margin-bottom">
     { $_('selectVideo.file.description') }
 </div>
-{#if room}
-    <VideoSelectorBtn bind:url={$url} />
-{:else}
-    <button class="uk-button uk-button-default" disabled><Loader ratio={0.5} /></button>
-{/if}
-<div class="hint uk-margin-top uk-text-center uk-text-small">
-    { $_('selectVideo.file.hint') }
-    <Interpolator text={$_('selectVideo.file.help')} let:data={data}>
-        {#if data.name === 'link'}
-            <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank" on:click={clickDownloadTutorial}>{ data.text }</a>
-        {/if}
-    </Interpolator>
+<div class="uk-text-center">
+    {#if room}
+        <VideoSelectorBtn bind:url={$url} />
+    {:else}
+        <button class="uk-button uk-button-default" disabled><Loader ratio={0.5} /></button>
+    {/if}
+    <div class="hint uk-margin-top uk-text-center uk-text-small">
+        { $_('selectVideo.file.hint') }
+        <Interpolator text={$_('selectVideo.file.help')} let:data={data}>
+            {#if data.name === 'link'}
+                <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank" on:click={clickDownloadTutorial}>{ data.text }</a>
+            {/if}
+        </Interpolator>
+    </div>
 </div>
 
 <style lang="scss">

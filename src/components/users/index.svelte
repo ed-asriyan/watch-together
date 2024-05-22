@@ -22,6 +22,6 @@
 
 <style lang="scss">
     .users {
-        overflow-y: scroll;
+        overflow-y: hidden;
     }
 </style>
