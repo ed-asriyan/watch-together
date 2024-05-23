@@ -49,7 +49,7 @@
     <div style:height={header?.clientHeight + 'px'}></div>
     <div class="uk-flex-1 uk-flex uk-flex-center">
         {#if roomId}
-            <Page roomId={roomId}/>
+            <Page roomId={roomId} headerHeight={header?.clientHeight}/>
         {/if}
     </div>
     <div class="uk-text-small uk-text-muted uk-text-center uk-padding">

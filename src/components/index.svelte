@@ -6,6 +6,7 @@
     import LanguageSelector from './language-selector.svelte';
 
     export let roomId: string;
+    export let headerHeight: number;
 
     let previousRoom: Room;
     const destroy = async function () {
@@ -25,7 +26,7 @@
     {#await init(roomId)}
         <RoomPage roomId={roomId} />
     {:then room}
-        <RoomPage roomId={roomId} room={room} />
+        <RoomPage roomId={roomId} room={room} headerHeight={headerHeight} />
     {:catch e}
         <h3 class="uk-margin-medium-bottom uk-text-leads">{ $_('error.description') } 💩</h3>
         <button class="uk-button uk-button-default" on:click={() => location.reload()}>{ $_('error.reload') }</button>
