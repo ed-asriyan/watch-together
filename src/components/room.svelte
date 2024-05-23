@@ -15,6 +15,7 @@
 
     export let roomId: string;
     export let room: Room;
+    export let headerHeight: number;
 
     $: users = room?.users;
 
@@ -53,56 +54,68 @@
     };
 </script>
 
-<div class="uk-container player uk-width-expand">
+<div class="uk-container player uk-width-expand" style:top={headerHeight + 'px'}>
     <VideoPlayer room={room} />
 </div>
-<div class="uk-container uk-grid-collapse uk-grid-match uk-margin-top" uk-grid>
-    <div class="uk-width-1-2@m uk-padding-small">
-        <div class:gradient-border={highlightVideoSelector}>
-            <div class="tile uk-width-1-1">
-                <h2 class="uk-card-title uk-text-center">🍿 { $_('selectVideo.title') }</h2>
-                <CardVideoSelector room={room} />
+<div class="uk-width-expand controls uk-flex uk-flex-middle uk-flex-column">
+    <div class="uk-container uk-grid-collapse uk-grid-match" uk-grid>
+        <div class="uk-width-1-2@m uk-padding-small">
+            <div class:gradient-border={highlightVideoSelector}>
+                <div class="tile uk-width-1-1">
+                    <h2 class="uk-card-title uk-text-center">🍿 { $_('selectVideo.title') }</h2>
+                    <CardVideoSelector room={room} />
+                </div>
+            </div>
+        </div>
+        <div class="uk-width-1-2@m uk-padding-small">
+            <div class:gradient-border={highlightInvite}>
+                <div class="tile uk-text-center uk-width-1-1">
+                    <h2 class="uk-card-title" class:gradient-text={highlightInvite}>👥 { $_('invite.title') }</h2>
+                    <CardCopyUrl roomId={roomId} />
+                </div>
+            </div>
+            <div class="uk-width-1-1 uk-margin-top">
+                <Users users={$users} />
+            </div>
+            <div class="button uk-flex uk-margin-top uk-flex-column">
+                <button class="uk-button uk-button-default" on:click={generateNewRoom}>
+                    ↻
+                    { $_('room.generateNewRoom.button') }
+                </button>
+            </div>
+            <div class="button uk-flex uk-margin-top uk-flex-column">
+                <button class="uk-button uk-button-default" on:click={joinAnotherRoom}>
+                    { $_('room.joinAnotherRoom') }
+                    →
+                </button>
             </div>
         </div>
     </div>
-    <div class="uk-width-1-2@m uk-padding-small">
-        <div class:gradient-border={highlightInvite}>
-            <div class="tile uk-text-center uk-width-1-1">
-                <h2 class="uk-card-title">👥 { $_('invite.title') }</h2>
-                <CardCopyUrl roomId={roomId} />
-            </div>
-        </div>
-        <div class="uk-width-1-1 uk-margin-top">
-            <Users users={$users} />
-        </div>
-        <div class="button uk-flex uk-margin-top uk-flex-column">
-            <button class="uk-button uk-button-default" on:click={generateNewRoom}>
-                ↻
-                { $_('room.generateNewRoom.button') }
-            </button>
-        </div>
-        <div class="button uk-flex uk-margin-top uk-flex-column">
-            <button class="uk-button uk-button-default" on:click={joinAnotherRoom}>
-                { $_('room.joinAnotherRoom') }
-                →
-            </button>
-        </div>
+    <div class="uk-text-small uk-width-1-1 uk-text-center uk-margin-medium-top">
+        <Interpolator text={$_('feedback.linkText')} let:data={data}>
+            {#if data.name === 'link'}
+                <a href={$_('feedback.link')} target="_blank">{ data.text }</a>
+            {/if}
+        </Interpolator>
     </div>
 </div>
-<div class="uk-text-small uk-width-1-1 uk-text-center uk-margin-medium-top">
-    <Interpolator text={$_('feedback.linkText')} let:data={data}>
-        {#if data.name === 'link'}
-            <a href={$_('feedback.link')} target="_blank">{ data.text }</a>
-        {/if}
-    </Interpolator>
-</div>
-
 
 <style lang="scss">
     .player {
-        width: 100vw;
-        min-height: min(calc(100vw * 9 / 16), 65vh);
+        position: fixed;
+        left: 0;
+        z-index: 0;
+        height: min(calc(100vw * 9 / 16), 65vh);
         max-height: min(calc(100vw * 9 / 16), 65vh);
+    }
+
+    .controls {
+        z-index: 2;
+        background: radial-gradient(
+            100% 100% at bottom center,
+            #000 80%, transparent 100%
+        );
+        margin-top: min(calc(100vw * 9 / 16), 65vh);
     }
 
     @keyframes moveGradient {
@@ -112,7 +125,7 @@
         }
     }
 
-    $border-width: 1px;
+    $border-width: 2px;
     .gradient-border {
         position: relative;
         display: flex;
@@ -142,5 +155,21 @@
             border-radius: 1rem;
             animation: moveGradient 2s linear infinite;
         }
+    }
+
+    @-webkit-keyframes hue {
+        from {
+            -webkit-filter: hue-rotate(0deg);
+        }
+        to {
+            -webkit-filter: hue-rotate(-360deg);
+        }
+    }
+
+    .gradient-text {
+        background-image: linear-gradient(92deg, #f35626, #feab3a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: hue 5s infinite linear;
     }
 </style>
