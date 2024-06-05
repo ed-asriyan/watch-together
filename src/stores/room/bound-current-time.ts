@@ -21,7 +21,7 @@ const shouldUpdateCurrentTime = function(
 export class BoundCurrentTime implements Writable<number> {
     private readonly remote: BoundTimedStore<number>;
     private readonly currentTime: Writable<number>;
-    private readonly updatedAt: Writable<number>;
+    readonly updatedAt: Writable<number>;
 
     constructor (ref: DatabaseReference) {
         this.remote = new BoundTimedStore<number>(ref, 0);
