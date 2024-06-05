@@ -1,4 +1,4 @@
-import { derived,writable, type Writable, type Readable } from 'svelte/store';
+import { derived,writable, type Writable, type Readable, get } from 'svelte/store';
 import { ref, child, getDatabase } from 'firebase/database';
 import { initializeApp } from 'firebase/app';
 import { BoundStore } from './bound-store';
@@ -55,5 +55,13 @@ export class Room extends Destructable {
             this.createdAt.init(),
             this.users.init(),
         ]);
+
+        const CURRENT_TIME_SYNC_INTERVAL = 60;
+        const pausedSyncId = setInterval(() => {
+            if (!get(this.paused) && get(this.currentTime.updatedAt) + CURRENT_TIME_SYNC_INTERVAL < now()) {
+                this.paused.set(true);
+            }
+        }, CURRENT_TIME_SYNC_INTERVAL * 1000);
+        this.onDestruct(() => clearInterval(pausedSyncId));
     }
 }
