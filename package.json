@@ -14,7 +14,7 @@
 	},
 	"devDependencies": {
 		"@sentry/svelte": "^7.107.0",
-		"@sveltejs/vite-plugin-svelte": "^3.0.2",
+		"@sveltejs/vite-plugin-svelte": "^3.1.1",
 		"@tsconfig/svelte": "^5.0.2",
 		"@vime/core": "^5.4.1",
 		"@vime/svelte": "^5.4.1",
