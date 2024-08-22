@@ -7,6 +7,7 @@
     import VideoPlayerVime from './video-player-vime.svelte';
     import VideoPlayerMagnet from './player-magnet.svelte';
     import Chat from './chat/index.svelte';
+    import Online from './online/index.svelte';
     import { proxies } from '../../settings';
     import { blob } from '../../stores/blob';
     import { createCursorStore } from './cursor';
@@ -44,7 +45,7 @@
             return source;
         }
 
-        const paths = new URL(source.url).pathname.split('.');
+        const paths = new URL(source.src).pathname.split('.');
         const extenssion = paths[paths.length - 1];
         const isHls = extenssion === 'm3u8';
         if ((isHls && !proxies.hlsUrl) || (!isHls && !proxies.regularUrl)) {
@@ -72,6 +73,7 @@
     {:else if $blob}
         <VideoPlayerVidstack source={{ type: SourceType.blob, src: $blob }} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}>
             <Chat room={room} displayInput={displayControls} />
+            <Online room={room} visible={displayControls}/>
         </VideoPlayerVidstack>
     {:else}
         {#if $source}
@@ -81,12 +83,14 @@
                 {#if $playerType === 'vidstack'}
                     <VideoPlayerVidstack source={normalizedSource} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}>
                         <Chat room={room} displayInput={displayControls} />
+                        <Online room={room} visible={displayControls}/>
                     </VideoPlayerVidstack>
                 {:else if $playerType === 'vime'}
                     <VideoPlayerVime source={normalizedSource} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}/>
                 {:else if $playerType === 'magnet'}
                     <VideoPlayerMagnet source={normalizedSource} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}>
                         <Chat room={room} displayInput={displayControls} />
+                        <Online room={room} visible={displayControls}/>
                     </VideoPlayerMagnet>
                 {/if}
             {/await}
@@ -105,5 +109,4 @@
         height: 100%;
         max-height: 100%;
     }
-
 </style>

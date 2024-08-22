@@ -53,6 +53,7 @@ const ru: TranslatedText = {
         chat: {
             inputPlaceholder: 'Введите сообщение...',
         },
+        onlineUsers: 'Пользователи онлайн ({number}): {users}',
     },
     poweredBy: 'Сделано с помощью',
     or: 'или',
