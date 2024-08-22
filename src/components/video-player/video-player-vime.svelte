@@ -1,13 +1,11 @@
 <script lang="ts">
-    import { Player, Dailymotion, DefaultUi } from '@vime/svelte';
-    import { type Link, SourceType } from '../../normalize-link';
+    import { Player, Dailymotion } from '@vime/svelte';
+    import { type Source, SourceType } from '../../normalize-source';
 
-    export let link: Link;
+    export let source: Source;
     export let currentTime: number;
     export let paused: boolean;
     export let muted: boolean;
-
-    let player: Player;
 
     let isOdd = false;
     const onTimeUpdate = (event: CustomEvent<number>) => {
@@ -36,9 +34,9 @@
     controls
     bind:muted={muted}
 >
-    {#key link.url}
-        {#if link.type === SourceType.DailyMotion}
-            <Dailymotion videoId={link.url} />
+    {#key source.src}
+        {#if source.type === SourceType.DailyMotion}
+            <Dailymotion videoId={source.src} />
         {/if}
     {/key}
 </Player>

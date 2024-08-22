@@ -1,9 +1,6 @@
 <script lang="ts">
-    import { flip } from 'svelte/animate';
-    import { fade, blur, fly, slide, scale, draw } from 'svelte/transition';
     import { _ } from 'svelte-i18n';
     import User from './user.svelte';
-    import type { User } from '../../stores/remote-room';
     import { myNameStore } from '../../stores/my-name';
 
     export let users: User[];

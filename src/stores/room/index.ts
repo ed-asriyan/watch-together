@@ -5,18 +5,19 @@ import { BoundStore } from './bound-store';
 import { BoundTimedStore } from './bound-timed-store';
 import { UsersBoundStore } from './bound-users';
 import { BoundMinutesWatched } from './bound-minutes-watched';
-import normalizeLink, { type Link } from '../../normalize-link';
+import normalizeSource, { type Source } from '../../normalize-source';
 import { now } from '../clock';
 import { Destructable } from '../../destructable';
 import { firebaseConfig } from '../../settings';
 import { BoundCurrentTime } from './bound-current-time';
+import { MessagesBoundStore } from './bound-messages';
 
 const database = getDatabase(initializeApp(firebaseConfig));
 
 export class Room extends Destructable {
     readonly id: string;
 
-    readonly link: Readable<Link | null>;
+    readonly source: Readable<Source | null>;
     readonly fileName: Writable<string> = writable<string>('');
 
     readonly url: BoundTimedStore<string>;
@@ -24,6 +25,7 @@ export class Room extends Destructable {
     readonly minutesWatched: BoundMinutesWatched;
     readonly currentTime: BoundCurrentTime;
     readonly users: UsersBoundStore;
+    readonly messages: MessagesBoundStore;
 
     private readonly createdAt: BoundStore<number>;
 
@@ -37,11 +39,13 @@ export class Room extends Destructable {
         this.paused = new BoundTimedStore<boolean>(child(roomRef, 'paused'), true);
         this.createdAt = new BoundStore<number>(child(roomRef, 'createdAt'), now());
         this.users = new UsersBoundStore(child(roomRef, 'users'));
-        this.link = derived<Readable<string>, Link | null>(this.url, (($url) => {
-            return normalizeLink($url);
+        this.messages = new MessagesBoundStore(child(roomRef, 'messages'));
+        this.source = derived<Readable<string>, Source | null>(this.url, (($url) => {
+            return normalizeSource($url);
         }));
-        this.minutesWatched = new BoundMinutesWatched(child(roomRef, 'minutesWatched'), roomId, this.link, this.paused);
+        this.minutesWatched = new BoundMinutesWatched(child(roomRef, 'minutesWatched'), roomId, this.source, this.paused);
 
+        this.registerDependency(this.messages);
         this.registerDependency(this.users);
         this.registerDependency(this.minutesWatched);
     }
@@ -54,6 +58,7 @@ export class Room extends Destructable {
             this.minutesWatched.init(),
             this.createdAt.init(),
             this.users.init(),
+            this.messages.init(),
         ]);
 
         const CURRENT_TIME_SYNC_INTERVAL = 60;

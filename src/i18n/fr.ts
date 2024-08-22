@@ -50,6 +50,9 @@ const fr: TranslatedText = {
         placeholder: 'Le lecteur vidéo apparaîtra ici lorsque vous insérez un lien ou sélectionnez un fichier',
         torrentNotSupported: 'La diffusion en continu n\'est pas prise en charge par ce navigateur car il ne prend pas en charge ServiceWorker. Veuillez sélectionner une copie locale de la vidéo',
         isHostActive: 'Cela prend trop de temps... Veuillez sélectionner votre copie locale de la vidéo ou vérifier si le diffuseur est en ligne et n\'a pas actualisé la page',
+        chat: {
+            inputPlaceholder: 'Tapez ici...',
+        },
     },
     poweredBy: 'Alimenté par',
     or: 'ou',
