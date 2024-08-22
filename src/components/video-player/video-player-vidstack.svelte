@@ -10,10 +10,9 @@
 
     import { onMount, onDestroy } from 'svelte';
     import type { MediaPlayerElement } from 'vidstack/elements';
+    import type { Source } from '../../normalize-source';
 
-    import type { Link } from '../../normalize-link';
-
-    export let link: Link;
+    export let source: Source;
     export let currentTime: number;
     export let paused: boolean;
     export let muted: boolean;
@@ -25,11 +24,6 @@
     $: isMounted && (player.currentTime = currentTime);
     $: isMounted && (player.paused = paused);
     $: isMounted && (player.muted = muted);
-
-    const onLoaded = function (this: HTMLVideoElement) {
-        this.currentTime = currentTime;
-        isMounted = true;
-    };
 
     let unsubscribe: () => void;
     onMount(() => {
@@ -57,7 +51,7 @@
 <media-player
     class="uk-width-1-1 uk-height-1-1"
     bind:this={player}
-    src={link.url}
+    src={source.src}
     autoplay
     playsInline
     preload="metadata"
@@ -69,6 +63,11 @@
     <!-- Layouts -->
     <media-audio-layout />
     <media-video-layout />
+    <media-controls hideOnMouseLeave={true}>
+        <media-controls-group>
+            <slot />
+        </media-controls-group>
+    </media-controls>
 </media-player>
 
 <style lang="scss">

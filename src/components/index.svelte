@@ -4,7 +4,6 @@
     import { _ } from 'svelte-i18n';
     import { Room } from '../stores/room';
     import RoomPage from './room.svelte';
-    import LanguageSelector from './language-selector.svelte';
 
     export let roomId: string;
     export let headerHeight: number;
@@ -28,8 +27,15 @@
     };
 
     onMount(() => {
-        isDesktop && window.scrollTo({ top: 9999 });
+        isDesktop && scroll('bottom', false);
     });
+
+    const scroll = function (direction: 'top' | 'bottom', smooth: boolean = true) {
+        window.scrollTo({
+            top: direction === 'top' ? 0 : 9999,
+            behavior: smooth ? 'smooth' : 'instant'
+        });
+    };
 </script>
 
 <div class="uk-flex-1 uk-flex uk-flex-center uk-flex-middle uk-flex-column">

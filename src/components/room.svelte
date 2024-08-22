@@ -1,7 +1,5 @@
 <script lang="ts">
-    import { onDestroy } from 'svelte';
     import { _ } from 'svelte-i18n';
-    import Loader from './loader.svelte';
     import type { Room } from '../stores/room';
     import CardVideoSelector from './card-video-selector.svelte';
     import CardCopyUrl from './card-copy-url.svelte';
@@ -10,8 +8,7 @@
     import Users from './users/index.svelte';
     import { randomStr } from '../utils';
     import { track, ClickEvent } from '../analytics.svelte';
-    import { isExample } from '../stores/video-example';
-    import { blobUrl } from '../stores/blob';
+    import { blob } from '../stores/blob';
 
     export let roomId: string;
     export let room: Room;
@@ -20,7 +17,7 @@
     $: users = room?.users;
 
     $: url = room?.url;
-    $: highlightVideoSelector = room && !$url && !$blobUrl;
+    $: highlightVideoSelector = room && !$url && !$blob;
     $: highlightInvite = room && !highlightVideoSelector && $users?.length < 1;
 
     const updateRoom = function (newRoomId: string, copyData?: boolean) {
@@ -55,7 +52,7 @@
 </script>
 
 <div class="uk-container player uk-width-expand" style:top={headerHeight + 'px'}>
-    <VideoPlayer room={room} />
+    <VideoPlayer room={room}/>
 </div>
 <div class="uk-width-expand controls uk-flex uk-flex-middle uk-flex-column">
     <div class="uk-container uk-grid-collapse uk-grid-match" uk-grid>

@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
     import { analytics, isProduction } from './settings';
-    import { SourceType } from './normalize-link';
+    import { SourceType } from './normalize-source';
 
     const trackRaw = function (...args: any[]) {
         if (isProduction) {

@@ -1,3 +1,3 @@
 import { writable } from "svelte/store";
 
-export const blobUrl = writable<string>('');
+export const blob = writable<Blob | null>(null);

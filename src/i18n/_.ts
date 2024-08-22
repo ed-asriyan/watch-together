@@ -48,6 +48,9 @@ const def = {
         placeholder: 'Video player will appear here when you insert a link or select file',
         torrentNotSupported: 'Streaming is not supported in this browser since it doesn\'t support ServiceWorker. Please select a your local copy of the video',
         isHostActive: 'This is taking too long... Please select a local copy of the video, or check that the streamer is online and has not refreshed the page',
+        chat: {
+            inputPlaceholder: 'Type here...',
+        },
     },
     poweredBy: 'Powered by',
     or: 'or',

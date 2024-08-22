@@ -1,4 +1,5 @@
 export enum SourceType {
+    blob = 'blob',
     direct = 'direct',
     magnet = 'magnet',
     DailyMotion = 'Dailymotion',
@@ -6,28 +7,28 @@ export enum SourceType {
     Vimeo = 'Vimeo',
 }
 
-export interface Link {
-    url: string;
+export interface Source {
+    src: string;
     type: SourceType;
 }
 
-abstract class LinkBuilder {
+abstract class SourceBuilder {
     protected static type: SourceType;
 
     abstract parse(r: string): string | null;
 
-    recognize(id: string): Link | null {
+    recognize(id: string): Source | null {
         const url = this.parse(id);
         if (url) {
             // @ts-ignore
-            return { url, type: this.constructor.type };
+            return { src: url, type: this.constructor.type };
         } else {
             return null;
         }
     }
 }
 
-abstract class LinkBuilderRegex extends LinkBuilder {
+abstract class SourceBuilderRegex extends SourceBuilder {
     protected static regex: RegExp;
     protected static type: SourceType;
 
@@ -44,7 +45,7 @@ abstract class LinkBuilderRegex extends LinkBuilder {
     }
 }
 
-class YouTube extends LinkBuilderRegex {
+class YouTube extends SourceBuilderRegex {
     protected static regex = /^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|live\/|v\/)?)([\w\-]+)(\S+)?$/;
     protected static type = SourceType.YouTube;
 
@@ -53,7 +54,7 @@ class YouTube extends LinkBuilderRegex {
     }
 }
 
-class Vimeo extends LinkBuilderRegex {
+class Vimeo extends SourceBuilderRegex {
     protected static regex = /(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/i;
     protected static type = SourceType.Vimeo;
 
@@ -62,7 +63,7 @@ class Vimeo extends LinkBuilderRegex {
     }
 }
 
-class Dailymotion extends LinkBuilderRegex {
+class Dailymotion extends SourceBuilderRegex {
     // https://stackoverflow.com/a/50644701
     protected static regex = /^(?:(?:https?):)?(?:\/\/)?(?:www\.)?(?:(?:dailymotion\.com(?:\/embed)?\/video)|dai\.ly)\/([a-zA-Z0-9]+)(?:_[\w_-]+)?$/;
     protected static type = SourceType.DailyMotion;
@@ -72,7 +73,7 @@ class Dailymotion extends LinkBuilderRegex {
     }
 }
 
-class Magnet extends LinkBuilder {
+class Magnet extends SourceBuilder {
     protected static type = SourceType.magnet;
 
     parse(link: string): string | null {
@@ -85,7 +86,7 @@ class Magnet extends LinkBuilder {
     }
 }
 
-class Direct extends LinkBuilder {
+class Direct extends SourceBuilder {
     protected static type = SourceType.direct;
 
     parse(link: string): string | null {
@@ -98,7 +99,7 @@ class Direct extends LinkBuilder {
     }
 }
 
-const parsers: LinkBuilder[] = [
+const parsers: SourceBuilder[] = [
     new YouTube(),
     new Vimeo(),
     new Dailymotion(),
@@ -106,14 +107,14 @@ const parsers: LinkBuilder[] = [
     new Direct(), // direct should always be the last one
 ];
 
-export default function(url: string | null): Link | null {
-    if (!url) {
+export default function(src: string | null): Source | null {
+    if (!src) {
         return null;
     }
 
     for (const parser of parsers) {
-        const link = parser.recognize(url);
-        if (link) return link;
+        const result = parser.recognize(src);
+        if (result) return result;
     }
     return null;
 }

@@ -1,13 +1,14 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import type { Link } from '../normalize-link';
+    import type { Source } from '../../normalize-source';
+    import { SourceType } from '../../normalize-source';
     import Loader from '../loader.svelte';
     import { getStreamUrl } from '../../stores/web-torrent';
     import { sleep } from '../../utils';
-    import VideoPlayerNative from './video-player-native.svelte';
+    import VideoPlayerVidstack from './video-player-vidstack.svelte';
     import VideoSelectorBtn from '../video-selector-btn.svelte';
 
-    export let link: Link;
+    export let source: Source;
     export let currentTime: number;
     export let paused: boolean;
     export let muted: boolean;
@@ -15,8 +16,11 @@
 
 {#if !navigator.serviceWorker}
     { $_('player.torrentNotSupported') }
+    <div class="chat">
+        <slot name="chat" />
+    </div>
 {:else}
-    {#await getStreamUrl(link.url)}
+    {#await getStreamUrl(source.src)}
         <Loader />
         {#await sleep(10000)}
         {:then}
@@ -25,8 +29,13 @@
                 <br class="uk-margin"/>
                 <VideoSelectorBtn forceLocal={true} />
             </div>
+            <div class="chat">
+                <slot name="chat" />
+            </div>
         {/await}
     {:then streamUrl}
-        <VideoPlayerNative url={streamUrl} bind:paused={paused} bind:currentTime={currentTime} bind:muted={muted} />
+        <VideoPlayerVidstack source={{ type: SourceType.magnet, src: streamUrl }} bind:paused={paused} bind:currentTime={currentTime} bind:muted={muted}>
+            <slot />
+        </VideoPlayerVidstack>
     {/await}
 {/if}
