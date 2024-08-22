@@ -51,6 +51,7 @@ const def = {
         chat: {
             inputPlaceholder: 'Type here...',
         },
+        onlineUsers: 'Users online ({number}): {users}',
     },
     poweredBy: 'Powered by',
     or: 'or',

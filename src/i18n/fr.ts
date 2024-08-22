@@ -53,6 +53,7 @@ const fr: TranslatedText = {
         chat: {
             inputPlaceholder: 'Tapez ici...',
         },
+        onlineUsers: 'Spectateurs en lignes ({number}): {users}',
     },
     poweredBy: 'Alimenté par',
     or: 'ou',
