@@ -1,6 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import Message from './message.svelte';
+    import Lock from '../lock.svelte';
     import type { Room } from '../../../stores/room';
     import { fade } from 'svelte/transition';
 
@@ -11,6 +12,10 @@
     $: messages = room?.messages;
 
     let input: string;
+    let lockState: boolean = false;
+    let inputElement;
+
+    $: inputVisibility = displayInput || lockState || input;
 
     const sendMessage = function () {
         if (!input) return;
@@ -28,8 +33,14 @@
         </div>
     {/if}
 
-    <form class="uk-form uk-width-1-1" transition:fade style:visibility={displayInput ? '' : 'collapse'} on:submit|preventDefault={sendMessage}>
-        <input class="uk-input uk-width-1-1" bind:value={input} placeholder={$_('player.chat.inputPlaceholder')} />
+    <form class="uk-form uk-width-1-1" transition:fade style:visibility={inputVisibility ? '' : 'collapse'} on:submit|preventDefault={sendMessage}>
+        <input bind:this={inputElement} class="uk-input uk-width-1-1" bind:value={input} placeholder={$_('player.chat.inputPlaceholder')} />
+        <span
+            class="lock-btn uk-text-large"
+            transition:fade
+        >
+            <Lock bind:locked={lockState} />
+    </span>
     </form>
 </div>
 
@@ -38,8 +49,8 @@
         position: absolute;
         left: 1rem;
         bottom: 5rem;
-        z-index: 100000;
-        width: min(max(30%, 30rem), 100%);
+        z-index: 100;
+        width: min(min(30%, 30rem), 100%);
     }
 
     @media (max-width : 675px) {
@@ -47,5 +58,12 @@
             bottom: 4rem;
             left: 0;
         }
+    }
+
+    .lock-btn {
+        position: absolute;
+        bottom: 0.15rem;
+        right: 0.5rem;
+        text-decoration: none;
     }
 </style>
