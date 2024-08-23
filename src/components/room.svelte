@@ -9,6 +9,7 @@
     import { randomStr } from '../utils';
     import { track, ClickEvent } from '../analytics.svelte';
     import { blob } from '../stores/blob';
+    import { MessageType } from '../stores/room/bound-messages';
 
     export let roomId: string;
     export let room: Room;
@@ -19,6 +20,10 @@
     $: url = room?.url;
     $: highlightVideoSelector = room && !$url && !$blob;
     $: highlightInvite = room && !highlightVideoSelector && $users?.length < 1;
+
+    $: if (room && $blob) {
+        room?.messages.sendMessage('', MessageType.selectedLocalFile);
+    }
 
     const updateRoom = function (newRoomId: string, copyData?: boolean) {
         document.location.hash = `#${newRoomId}`;

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { createEventDispatcher } from 'svelte';
     import { _ } from 'svelte-i18n';
     import type { Source } from '../../normalize-source';
     import { SourceType } from '../../normalize-source';
@@ -12,6 +13,8 @@
     export let currentTime: number;
     export let paused: boolean;
     export let muted: boolean;
+
+    const dispatch = createEventDispatcher();
 </script>
 
 {#if !navigator.serviceWorker}
@@ -34,7 +37,15 @@
             </div>
         {/await}
     {:then streamUrl}
-        <VideoPlayerVidstack source={{ type: SourceType.magnet, src: streamUrl }} bind:paused={paused} bind:currentTime={currentTime} bind:muted={muted}>
+        <VideoPlayerVidstack
+            source={{ type: SourceType.magnet, src: streamUrl }}
+            bind:paused={paused}
+            bind:currentTime={currentTime}
+            bind:muted={muted}
+            on:seeked={({ details }) => dispatch('seeked', details)}
+            on:pause={({ details }) => dispatch('pause', details)}
+            on:play={({ details }) => dispatch('play', details)}
+        >
             <slot />
         </VideoPlayerVidstack>
     {/await}

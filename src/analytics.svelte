@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
     import { analytics, isProduction } from './settings';
     import { SourceType } from './normalize-source';
+    import type { MessageType } from './stores/room/bound-messages';
 
     const trackRaw = function (...args: any[]) {
         if (isProduction) {
@@ -51,6 +52,12 @@
         locale: string;
     }> {
         readonly name: string = 'locale_changed';
+    }
+
+    export class MessageSentEvent extends Event<{
+        messageType: MessageType;
+    }> {
+        readonly name: string = 'message_sent';
     }
 
     export const track = function<T> (event: Event<T>) {

@@ -53,6 +53,12 @@ const ru: TranslatedText = {
         chat: {
             inputPlaceholder: 'Введите сообщение...',
             inputReminder: 'Нажмите "x" or "X" чтобы открыть поле ввода чата',
+            message: {
+                seeked: 'перемотал(а) на {time}',
+                played: 'воспроизвел(а) с {time}',
+                paused: 'остановил(а) на {time}',
+                selectedLocalFile: 'выбрал(а) и воспроизводит локльный видео-файл',
+            },
         },
         onlineUsers: 'Пользователи онлайн ({number}): {users}',
     },
