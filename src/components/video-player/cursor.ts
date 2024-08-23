@@ -19,18 +19,10 @@ export const createCursorStore = function (timeout: number): Readable<boolean> {
         resetTimer();
     }
 
-    function handleUserInteraction() {
-        resetTimer();
-    }
-
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mousedown', handleUserInteraction);
-    window.addEventListener('keydown', handleUserInteraction);
 
     const destroy = function () {
         window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mousedown', handleUserInteraction);
-        window.removeEventListener('keydown', handleUserInteraction);
         if (timeoutId) {
             clearTimeout(timeoutId);
         }
