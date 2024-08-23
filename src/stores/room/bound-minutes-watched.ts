@@ -3,7 +3,7 @@ import { type Readable, type Subscriber, type Unsubscriber, get } from 'svelte/s
 import { BoundStore } from './bound-store';
 import { track, WatchedMinuteEvent } from '../../analytics.svelte';
 import { Destructable } from '../../destructable';
-import { myId } from '../my-id';
+import { me } from '../me';
 import { type Source } from '../../normalize-source';
 
 export class BoundMinutesWatched extends Destructable implements Readable<number> {
@@ -17,7 +17,7 @@ export class BoundMinutesWatched extends Destructable implements Readable<number
         this.roomId = roomId;
         this.pausedStore = pausedStore;
         this.sourceStore = sourceStore;
-        this.store = new BoundStore<number>(child(ref, myId), 0);
+        this.store = new BoundStore<number>(child(ref, get(me).id), 0);
     }
 
     subscribe(run: Subscriber<number>): Unsubscriber {

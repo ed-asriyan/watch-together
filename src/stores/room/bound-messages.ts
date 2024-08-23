@@ -1,14 +1,14 @@
-import { type DatabaseReference } from 'firebase/database';
+import { child, type DatabaseReference } from 'firebase/database';
 import { type Readable, type Subscriber, type Unsubscriber, get } from 'svelte/store';
 import { BoundStore } from './bound-store';
 import { now } from '../clock';
 import { Destructable } from '../../destructable';
-import { myId } from '../my-id';
+import { me } from '../me';
 import { randomStr } from '../../utils';
 import { track, MessageSentEvent } from '../../analytics.svelte';
 
 const messageTimeout = 10;
-const invalidateInterval = 1;
+const invalidateInterval = 3;
 
 export enum MessageType {
     regular,
@@ -48,15 +48,16 @@ const filterMessageMap = function (messagesMap: MessageMap): MessageMap {
 }
 
 export class MessagesBoundStore extends Destructable implements Readable<Message[]> {
+    private readonly ref: DatabaseReference;
     private readonly storeMessagesMap: BoundStore<MessageMap>;
 
     constructor (ref: DatabaseReference) {
         super();
+        this.ref = ref;
         this.storeMessagesMap = new BoundStore<MessageMap>(ref, {});
     }
 
     subscribe(run: Subscriber<Message[]>): Unsubscriber {
-        const timeNow = now();
         return this.storeMessagesMap.subscribe((messagesMap: MessageMap) => {
             run(
                 Object.entries(filterMessageMap(messagesMap))
@@ -86,9 +87,10 @@ export class MessagesBoundStore extends Destructable implements Readable<Message
 
     sendMessage(text: string, type: MessageType = MessageType.regular) {
         type === MessageType.regular && track(new MessageSentEvent({ messageType: type }));
-        this.storeMessagesMap.set({
-            ...get(this.storeMessagesMap),
-            [randomStr(6)]: { userId: myId, text, timestamp: now(), type },
-        })
+
+        new BoundStore<MessageRaw>(
+            child(this.ref, randomStr(6)),
+            null as unknown as Message
+        ).set({ userId: get(me).id, text, timestamp: now(), type });
     }
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
+    import { me } from '../../../stores/me';
     import type { Room } from '../../../stores/room';
     import Lock from '../lock.svelte';
 
@@ -8,7 +9,7 @@
 
     $: users = room?.users;
     $: usersList = $users.map(user => user.name);
-    $: usersStr = [$_('you')].concat(usersList).join(', ');
+    $: usersStr = [`${$me.name} (${$_('you')})`].concat(usersList).join(', ');
 
     let forceLock: boolean = false;
 </script>

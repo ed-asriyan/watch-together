@@ -42,9 +42,10 @@
             bind:paused={paused}
             bind:currentTime={currentTime}
             bind:muted={muted}
-            on:seeked={({ details }) => dispatch('seeked', details)}
-            on:pause={({ details }) => dispatch('pause', details)}
-            on:play={({ details }) => dispatch('play', details)}
+            on:seeked={() => dispatch('seeked')}
+            on:seeking={() => dispatch('seeking')}
+            on:pause={() => dispatch('pause')}
+            on:play={() => dispatch('play')}
         >
             <slot />
         </VideoPlayerVidstack>

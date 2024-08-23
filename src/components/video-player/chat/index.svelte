@@ -2,10 +2,11 @@
     import { onMount, onDestroy, tick } from 'svelte';
     import { fade } from 'svelte/transition';
     import { _ } from 'svelte-i18n';
-    import Message from './message.svelte';
+    import MessageComponent, { type GroupedMessages } from './message.svelte';
+    import { MessageType, type Message } from '../../../stores/room/bound-messages';
     import Lock from '../lock.svelte';
     import type { Room } from '../../../stores/room';
-    import { sleep } from '../../../utils';
+    import { groupConsecutiveElements, sleep } from '../../../utils';
 
     const temporaryUnlockTimeout = 10;
 
@@ -21,6 +22,15 @@
     let inputElement: HTMLInputElement;
 
     $: inputVisibility = displayInput || lockState || input || temporaryUnlock;
+
+    const groupByType = function (messages: Message[]): GroupedMessages[] {
+        return groupConsecutiveElements(messages, (m1, m2) => 
+            m1.type !== MessageType.regular
+            && m2.type !== MessageType.regular
+            && m1.type === m2.type
+            && m1.text === m2.text
+        );
+    }
 
     const sendMessage = function () {
         if (!input) return;
@@ -61,8 +71,8 @@
 <div class="chat">
     {#if messages}
         <div class="messages-box uk-margin-bottom uk-text-left">
-            {#each $messages as message (message.id)}
-                <Message message={message} users={$users} />
+            {#each groupByType($messages) as messageGroup (messageGroup.map(({ id }) => id).join('.'))}
+                <MessageComponent messageGroup={messageGroup} users={$users} />
             {/each}
         </div>
     {/if}
@@ -78,7 +88,7 @@
     </form>
     {#if !inputVisibility}
         {#await sleep(3000)}
-            <div class="tooltip uk-with-1-1 uk-text-left" out:fade>{ $_('player.chat.inputReminder') }</div>
+            <div class="video-text tooltip uk-with-1-1 uk-text-left" out:fade>{ $_('player.chat.inputReminder') }</div>
         {:then x} 
         {/await}
     {/if}
@@ -110,6 +120,5 @@
     .tooltip {
         position: absolute;
         bottom: 0;
-        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     }
 </style>

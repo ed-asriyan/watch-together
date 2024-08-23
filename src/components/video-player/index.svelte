@@ -67,16 +67,30 @@
         }
     };
 
-    const onSeek = function ({ detail: seconds }: CustomEvent<number>) {
-        room.messages.sendMessage(seconds, MessageType.seek);
-    };
 
+    let currentVideoTime = 0;
+    let saveCurrentTime = true;
+    let firstSeek = true;
+    const onSeeked = function () {
+        saveCurrentTime = true;
+        if (!firstSeek && Math.abs(currentVideoTime - $currentTime) > 2) {
+            room.messages.sendMessage($currentTime, MessageType.seek);
+        }
+        firstSeek = false;
+    };
+    const onSeeking = function () {
+        saveCurrentTime = false;
+    };
     const onPlay = function () {
-        room.messages.sendMessage($currentTime, MessageType.play);
+        room.messages.sendMessage(Math.round($currentTime), MessageType.play);
     };
-
     const onPause = function () {
-        room.messages.sendMessage($currentTime, MessageType.pause);
+        room.messages.sendMessage(Math.round($currentTime), MessageType.pause);
+    };
+    const onTimeUpdate = function () {
+        if (saveCurrentTime) {
+            currentVideoTime = $currentTime;
+        }
     };
 </script>
 
@@ -107,9 +121,11 @@
                         bind:paused={$paused}
                         bind:currentTime={$currentTime}
                         bind:muted={muted}
-                        on:seeked={onSeek}
+                        on:seeked={onSeeked}
+                        on:seeking={onSeeking}
                         on:pause={onPause}
                         on:play={onPlay}
+                        on:timeupdate={onTimeUpdate}
                     >
                         <Chat room={room} displayInput={displayControls} />
                         <Online room={room} visible={displayControls}/>
@@ -122,9 +138,11 @@
                         bind:paused={$paused}
                         bind:currentTime={$currentTime}
                         bind:muted={muted}
-                        on:seeked={onSeek}
+                        on:seeked={onSeeked}
+                        on:seeking={onSeeking}
                         on:pause={onPause}
                         on:play={onPlay}
+                        on:timeupdate={onTimeUpdate}
                     >
                         <Chat room={room} displayInput={displayControls} />
                         <Online room={room} visible={displayControls}/>
