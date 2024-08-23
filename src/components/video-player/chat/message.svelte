@@ -1,30 +1,31 @@
+<script lang="ts" context="module">
+    import type { Message } from '../../../stores/room/bound-messages';
+
+    export type GroupedMessages = Message[];
+</script>
+
 <script lang="ts">
     import { _ } from 'svelte-i18n';
     import { fade, slide } from 'svelte/transition';
+    import { MessageType } from '../../../stores/room/bound-messages';
     import type { User } from '../../../stores/room/bound-users';
-    import { MessageType, type Message } from '../../../stores/room/bound-messages';
-    import { myNameStore } from '../../../stores/my-name';
+    import { me } from '../../../stores/me';
 
-    export let message: Message;
+    export let messageGroup: GroupedMessages;
     export let users: User[];
 
-    const stringToColor = function (str: string) {
-        const hash = [...str].reduce((hash, char) => char.charCodeAt(0) + ((hash << 5) - hash), 0);
-        let colour = '#';
-        for (let i = 0; i < 3; i++) {
-            const value = 192 + (hash >> (i * 2)) & 0xff;
-            colour += value.toString(16).padStart(2, '0');
-        }
-        return colour;
+    const getUser = function (userId: string): User {
+        return users.find(({ id }) => id == userId);
     };
 
     const secondsToTimeStr = function (seconds: number): string {
         const date = new Date(0);
         date.setSeconds(seconds);
         return date.toISOString().slice(14, 19);
-    }
+    };
 
     const getMessageText = function (): string {
+        const message = messageGroup[0];
         switch (message.type) {
             case MessageType.regular:
                 return message.text;
@@ -37,23 +38,30 @@
             case MessageType.selectedLocalFile:
                 return $_('player.chat.message.selectedLocalFile');
         }
-    }
+    };
 </script>
 
 <div in:slide>
-    <div transition:fade class="message uk-text-break" class:user={message.type === MessageType.regular}>
-        <span style:color={stringToColor(message.userId)}>
-            { users.find(user => user.id == message.userId)?.name || $myNameStore }
-        </span>{#if message.type === MessageType.regular}:{/if}
+    <div transition:fade class="video-text uk-text-break" class:user-message={messageGroup[0].type === MessageType.regular}>
+        {#each new Set(messageGroup.map(({ userId }) => userId)) as userId, i}
+            {#if messageGroup.length > 1}
+                {#if i > 0 && i < messageGroup.length - 1}
+                    ,
+                {:else if i === messageGroup.length - 1}
+                &nbspand
+                {/if}
+            {/if}
+            <span style:color={getUser(userId)?.color}>
+                { getUser(userId)?.name || `${$me.name} (${$_('you')})` }
+            </span>
+        {/each}
+        {#if messageGroup[0].type === MessageType.regular}:{/if}
         { getMessageText() }
     </div>
 </div>
 
 <style lang="scss">
-    .message {
-        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-        &.user {
-            color: white;
-        }
+    .user-message {
+        color: white;
     }
 </style>

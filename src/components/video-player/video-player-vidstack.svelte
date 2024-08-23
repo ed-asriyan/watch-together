@@ -59,9 +59,11 @@
     preload="metadata"
     crossOrigin
     muted={muted}
-    on:seeking={({ detail }) => dispatch('seeked', detail)}
+    on:seeked={() => dispatch('seeked')}
+    on:seeking={() => dispatch('seeking')}
     on:pause={() => dispatch('pause')}
     on:play={() => dispatch('play')}
+    on:time-update={() => dispatch('timeupdate')}
 >
     <media-provider>
     </media-provider>
