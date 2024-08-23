@@ -52,7 +52,7 @@ const fr: TranslatedText = {
         isHostActive: 'Cela prend trop de temps... Veuillez sélectionner votre copie locale de la vidéo ou vérifier si le diffuseur est en ligne et n\'a pas actualisé la page',
         chat: {
             inputPlaceholder: 'Tapez ici...',
-            inputReminder: 'Appuyez sur "x" ou "X" pour ouvrir le chat',
+            inputReminder: 'Appuyez sur "q" ou "Q" pour ouvrir le chat',
             message: {
                 seeked: 'avancé à {time}',
                 played: 'regarder depuis {time}',

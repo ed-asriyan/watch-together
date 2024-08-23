@@ -51,7 +51,7 @@
 
     const onKeyPress = async function (event: KeyboardEvent) {
         resetTimeout();
-        if ((event.key === 'x' || event.key === 'X') && document.activeElement !== inputElement) {
+        if ((event.key === 'q' || event.key === 'Q') && document.activeElement !== inputElement) {
             event.preventDefault();
             resetTimeout();
             await tick();
