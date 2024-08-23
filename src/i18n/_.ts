@@ -50,7 +50,7 @@ const def = {
         isHostActive: 'This is taking too long... Please select a local copy of the video, or check that the streamer is online and has not refreshed the page',
         chat: {
             inputPlaceholder: 'Type here...',
-            inputReminder: 'Press "x" or "X" to open chat input',
+            inputReminder: 'Press "q" or "Q" to open chat input',
             message: {
                 seeked: 'scrubbed to {time}',
                 played: 'played from {time}',
