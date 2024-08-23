@@ -5,14 +5,24 @@ import { now } from '../clock';
 import { Destructable } from '../../destructable';
 import { myId } from '../my-id';
 import { randomStr } from '../../utils';
+import { track, MessageSentEvent } from '../../analytics.svelte';
 
 const messageTimeout = 10;
 const invalidateInterval = 1;
+
+export enum MessageType {
+    regular,
+    seek,
+    pause,
+    play,
+    selectedLocalFile,
+}
 
 interface MessageRaw {
     timestamp: number;
     userId: string;
     text: string;
+    type: MessageType;
 }
 
 export interface Message extends MessageRaw {
@@ -74,10 +84,11 @@ export class MessagesBoundStore extends Destructable implements Readable<Message
         this.onDestruct(() => clearInterval(invalidateJobId));
     }
 
-    addMessage(text: string) {
+    sendMessage(text: string, type: MessageType = MessageType.regular) {
+        type === MessageType.regular && track(new MessageSentEvent({ messageType: type }));
         this.storeMessagesMap.set({
             ...get(this.storeMessagesMap),
-            [randomStr(6)]: { userId: myId, text, timestamp: now() },
+            [randomStr(6)]: { userId: myId, text, timestamp: now(), type },
         })
     }
 }

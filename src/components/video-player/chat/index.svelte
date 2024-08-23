@@ -24,7 +24,7 @@
 
     const sendMessage = function () {
         if (!input) return;
-        messages.addMessage(input);
+        messages.sendMessage(input);
         input = '';
     };
 

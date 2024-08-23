@@ -8,9 +8,11 @@
     import 'vidstack/player/layouts';
     import 'vidstack/player/ui';
 
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import type { MediaPlayerElement } from 'vidstack/elements';
     import type { Source } from '../../normalize-source';
+
+    const dispatch = createEventDispatcher();
 
     export let source: Source;
     export let currentTime: number;
@@ -57,6 +59,9 @@
     preload="metadata"
     crossOrigin
     muted={muted}
+    on:seeking={({ detail }) => dispatch('seeked', detail)}
+    on:pause={() => dispatch('pause')}
+    on:play={() => dispatch('play')}
 >
     <media-provider>
     </media-provider>

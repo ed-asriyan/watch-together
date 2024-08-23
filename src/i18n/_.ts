@@ -51,6 +51,12 @@ const def = {
         chat: {
             inputPlaceholder: 'Type here...',
             inputReminder: 'Press "x" or "X" to open chat input',
+            message: {
+                seeked: 'scrubbed to {time}',
+                played: 'played from {time}',
+                paused: 'paused at {time}',
+                selectedLocalFile: 'selected and is playing a local video file',
+            },
         },
         onlineUsers: 'Users online ({number}): {users}',
     },

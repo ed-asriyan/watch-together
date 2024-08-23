@@ -10,6 +10,7 @@
     import Online from './online/index.svelte';
     import { proxies } from '../../settings';
     import { blob } from '../../stores/blob';
+    import { MessageType } from '../../stores/room/bound-messages';
     import { createCursorStore } from './cursor';
 
     export let room: Room;
@@ -65,13 +66,33 @@
             return { ...source, src };
         }
     };
+
+    const onSeek = function ({ detail: seconds }: CustomEvent<number>) {
+        room.messages.sendMessage(seconds, MessageType.seek);
+    };
+
+    const onPlay = function () {
+        room.messages.sendMessage($currentTime, MessageType.play);
+    };
+
+    const onPause = function () {
+        room.messages.sendMessage($currentTime, MessageType.pause);
+    };
 </script>
 
 <div class="viewer uk-text-small uk-flex uk-flex-center uk-flex-column uk-text-break uk-text-center">
     {#if !room}
         <Loader />
     {:else if $blob}
-        <VideoPlayerVidstack source={{ type: SourceType.blob, src: $blob }} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}>
+        <VideoPlayerVidstack
+            source={{ type: SourceType.blob, src: $blob }}
+            bind:paused={$paused}
+            bind:currentTime={$currentTime}
+            bind:muted={muted}
+            on:seeked={onSeek}
+            on:pause={onPause}
+            on:play={onPlay}
+        >
             <Chat room={room} displayInput={displayControls} />
             <Online room={room} visible={displayControls}/>
         </VideoPlayerVidstack>
@@ -81,14 +102,30 @@
                 <Loader/>
             {:then normalizedSource}
                 {#if $playerType === 'vidstack'}
-                    <VideoPlayerVidstack source={normalizedSource} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}>
+                    <VideoPlayerVidstack
+                        source={normalizedSource}
+                        bind:paused={$paused}
+                        bind:currentTime={$currentTime}
+                        bind:muted={muted}
+                        on:seeked={onSeek}
+                        on:pause={onPause}
+                        on:play={onPlay}
+                    >
                         <Chat room={room} displayInput={displayControls} />
                         <Online room={room} visible={displayControls}/>
                     </VideoPlayerVidstack>
                 {:else if $playerType === 'vime'}
                     <VideoPlayerVime source={normalizedSource} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}/>
                 {:else if $playerType === 'magnet'}
-                    <VideoPlayerMagnet source={normalizedSource} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}>
+                    <VideoPlayerMagnet
+                        source={normalizedSource}
+                        bind:paused={$paused}
+                        bind:currentTime={$currentTime}
+                        bind:muted={muted}
+                        on:seeked={onSeek}
+                        on:pause={onPause}
+                        on:play={onPlay}
+                    >
                         <Chat room={room} displayInput={displayControls} />
                         <Online room={room} visible={displayControls}/>
                     </VideoPlayerMagnet>

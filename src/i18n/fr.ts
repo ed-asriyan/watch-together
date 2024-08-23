@@ -53,6 +53,12 @@ const fr: TranslatedText = {
         chat: {
             inputPlaceholder: 'Tapez ici...',
             inputReminder: 'Appuyez sur "x" ou "X" pour ouvrir le chat',
+            message: {
+                seeked: 'avancé à {time}',
+                played: 'regarder depuis {time}',
+                paused: 'pause au {time}',
+                selectedLocalFile: 'a sélectionné et lit un fichier vidéo local',
+            },
         },
         onlineUsers: 'Spectateurs en lignes ({number}): {users}',
     },
