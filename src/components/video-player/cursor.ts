@@ -15,14 +15,21 @@ export const createCursorStore = function (timeout: number): Readable<boolean> {
         }, timeout);
     }
 
-    function handleMouseMove() {
-        resetTimer();
+    const events: (keyof WindowEventMap)[] = [
+        'mousedown',
+        'keydown',
+        'mousedown',
+        'mousemove',
+    ];
+
+    for (const event of events) {
+        window.addEventListener(event, resetTimer);
     }
 
-    window.addEventListener('mousemove', handleMouseMove);
-
     const destroy = function () {
-        window.removeEventListener('mousemove', handleMouseMove);
+        for (const event of events) {
+            window.removeEventListener(event, resetTimer);
+        }
         if (timeoutId) {
             clearTimeout(timeoutId);
         }

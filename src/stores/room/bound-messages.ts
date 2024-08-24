@@ -16,6 +16,7 @@ export enum MessageType {
     pause,
     play,
     selectedLocalFile,
+    reaction,
 }
 
 interface MessageRaw {

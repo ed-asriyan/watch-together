@@ -46,6 +46,7 @@
             on:seeking={() => dispatch('seeking')}
             on:pause={() => dispatch('pause')}
             on:play={() => dispatch('play')}
+            on:timeupdate={() => dispatch('timeupdate')}
         >
             <slot />
         </VideoPlayerVidstack>

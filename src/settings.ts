@@ -34,3 +34,5 @@ export const webTorrentTrackers: string[] = import.meta.env['VITE_WEB_TORRENT_TR
 export const urlExamples: string[] = import.meta.env['VITE_URL_EXAMPLES']?.split(',').map((x: string) => x.trim());
 
 export const userNames: string[] = import.meta.env['VITE_USERNAMES']?.split(',').map((x: string) => x.trim());
+
+export const reactions: string = import.meta.env['VITE_REACTIONS']?.split(',').map((x: string) => x.trim());
