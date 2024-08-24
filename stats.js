@@ -1,5 +1,5 @@
 import admin from 'firebase-admin';
-import { ref, onValue, get } from 'firebase/database';
+import { get } from 'firebase/database';
 import serviceAccount from './service-account-key.json' assert { type: "json" };
 
 admin.initializeApp({

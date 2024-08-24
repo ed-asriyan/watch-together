@@ -28,5 +28,4 @@ jobs:
           echo "$ENV_FILE_CONTENT" > .env
 
       - name: Clean
-        run: make dev_clean_db
-  
+        run: make ci_install ci_clean_db
