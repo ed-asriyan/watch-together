@@ -21,9 +21,9 @@ const main = async function() {
             if (typeof updatedAt !== 'number') {
                 process.stdout.write(`room#${childSnapshot.key}\twrong type: ${typeof updatedAt}\n`);
             } else if (updatedAt < now - diff) {
-                process.stdout.write(`room#${childSnapshot.key}\tupdated ${Math.round((now - updatedAt) / 60 / 60 / 24)} hours ago\n`);
+                process.stdout.write(`room#${childSnapshot.key}\tupdated ${Math.round((now - updatedAt) / 60 / 60 / 24)} days ago\n`);
             } else if (updatedAt > now + diff) {
-                process.stdout.write(`room#${childSnapshot.key}\tupdated ${Math.round((updatedAt - now) / 60 / 60 / 24)} hours ahead (in future)\n`);
+                process.stdout.write(`room#${childSnapshot.key}\tupdated ${Math.round((updatedAt - now) / 60 / 60 / 24)} days ahead (in future)\n`);
             } else {
                 return;
             }
