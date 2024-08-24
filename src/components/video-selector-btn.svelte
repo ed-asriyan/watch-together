@@ -5,9 +5,12 @@
     import { blob } from '../stores/blob';
     import { sendFile } from '../stores/web-torrent';
     import normalizeSource, { SourceType } from '../normalize-source';
+    import type { Room } from '../stores/room';
 
-    export let url: string = '';
     export let forceLocal: boolean = false;
+    export let room: Room;
+
+    $: url = room.url;
 
     let input: HTMLInputElement;
 
@@ -16,7 +19,7 @@
         if (!forceLocal && navigator.serviceWorker && confirm($_('selectVideo.file.streamingConfirmation'))) {
             sharingPending = true;
             try {
-                url = await sendFile(file);
+                $url = await sendFile(file);
             } catch (e) {
                 alert($_('selectVideo.file.streamingFailed'));
                 console.trace(e);
@@ -26,7 +29,7 @@
         } else {
             $blob = file;
         }
-        track(new ClickEvent({ target: 'file_select' }));
+        track(new ClickEvent(room, { target: 'file_select' }));
     };
 </script>
 
@@ -36,7 +39,7 @@
         <Loader ratio={0.6} /> { $_('selectVideo.file.streamingPending') }
     {:else if $blob}
         { $_('selectVideo.file.selectAnother') }
-    {:else if normalizeSource(url)?.type === SourceType.magnet}
+    {:else if normalizeSource($url)?.type === SourceType.magnet}
         { $_('selectVideo.file.selectAnotherStream') }
     {:else}
         { $_('selectVideo.file.select') }

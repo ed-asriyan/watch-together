@@ -4,7 +4,7 @@
     import prettierBytes from 'prettier-bytes';
     import { track, ClickEvent, UrlPasteEvent } from '../analytics.svelte';
     import Interpolator from './interpolator.svelte';
-    import { getExampleVideo, isExample, haveExamples } from '../stores/video-example';
+    import { getExampleVideo, haveExamples } from '../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';
     import { downloadSpeed, uploadSpeed, progress, isSeeding, peers } from '../stores/web-torrent';
     import { Room } from '../stores/room';
@@ -22,19 +22,19 @@
 
     const selectExample = function () {
         $url = getExampleVideo();
-        track(new ClickEvent({ target: 'example' }));
+        track(new ClickEvent(room, { target: 'example' }));
     };
 
     const clickDownloadTutorial = function () {
-        track(new ClickEvent({ target: 'download_tutorial' }));
+        track(new ClickEvent(room, { target: 'download_tutorial' }));
     };
 
     const clickUrlTutorial = function () {
-        track(new ClickEvent({ target: 'url_tutorial' }));
+        track(new ClickEvent(room, { target: 'url_tutorial' }));
     };
 
     const onInput = function () {
-        $source && track(new UrlPasteEvent({ roomId: room.id, url: $url, isExample: isExample($url) }));
+        $source && track(new UrlPasteEvent(room, { url: $url }));
     };
 </script>
 
@@ -122,7 +122,7 @@
 </div>
 <div class="uk-text-center">
     {#if room}
-        <VideoSelectorBtn bind:url={$url} />
+        <VideoSelectorBtn room={room} />
     {:else}
         <button class="uk-button uk-button-default" disabled><Loader ratio={0.5} /></button>
     {/if}

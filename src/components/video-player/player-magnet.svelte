@@ -1,8 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import { _ } from 'svelte-i18n';
-    import type { Source } from '../../normalize-source';
-    import { SourceType } from '../../normalize-source';
+    import { Source, SourceType } from '../../normalize-source';
     import Loader from '../loader.svelte';
     import { getStreamUrl } from '../../stores/web-torrent';
     import { sleep } from '../../utils';
@@ -22,6 +21,8 @@
     <div class="chat">
         <slot name="chat" />
     </div>
+{:else if source.src instanceof Blob}
+    <p>Blob src is provided to magnet player. Developers fucked up. Contact them.</p>
 {:else}
     {#await getStreamUrl(source.src)}
         <Loader />
@@ -38,7 +39,7 @@
         {/await}
     {:then streamUrl}
         <VideoPlayerVidstack
-            source={{ type: SourceType.magnet, src: streamUrl }}
+            source={new Source({ type: SourceType.magnet, src: streamUrl })}
             bind:paused={paused}
             bind:currentTime={currentTime}
             bind:muted={muted}

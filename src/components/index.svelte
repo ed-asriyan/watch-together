@@ -20,7 +20,7 @@
         destroy();
         previousRoom = new Room(roomId);
         await previousRoom.init();
-        if (isDesktop && get(previousRoom.link)) {
+        if (isDesktop && get(previousRoom.source)) {
             setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 1000);     
         }
         return previousRoom;

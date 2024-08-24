@@ -5,7 +5,7 @@ export const getExampleVideo = function (): string {
 };
 
 export const isExample = function (url: string): boolean {
-    return urlExamples?.includes(url);
+    return !!urlExamples?.find(example => example.includes(url));
 };
 
 export const haveExamples = Boolean(urlExamples?.length);

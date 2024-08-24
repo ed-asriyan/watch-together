@@ -18,7 +18,7 @@
 
     const sendReaction = function (reaction: string) {
         room.messages.sendMessage(reaction, MessageType.reaction);
-        track(new ReactionSentEvent({ reactionEmoji: reaction }));
+        track(new ReactionSentEvent(room, { reactionEmoji: reaction }));
     };
 
     const generateAnimation = function (): string {

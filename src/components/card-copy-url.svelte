@@ -2,8 +2,10 @@
     import { _ } from 'svelte-i18n';
     import Interpolator from './interpolator.svelte';
     import { track, ClickEvent } from '../analytics.svelte';
+    import type { Room } from '../stores/room';
+    import Loader from './loader.svelte';
 
-    export let roomId: string;
+    export let room: Room;
 
     let copyTumbler: boolean = false;
 
@@ -17,7 +19,7 @@
         trigger();
     };
 
-    $: url = `${location.protocol}//${location.host}${location.pathname}#${roomId}`; 
+    $: url = !!room && `${location.protocol}//${location.host}${location.pathname}#${room.id}`; 
     const canShare: boolean = Boolean(navigator.share);
 
     const linkClick = function () {
@@ -29,7 +31,7 @@
         } else {
             copyToClipboard();
         }
-        track(new ClickEvent({ target: 'link_share' }));
+        track(new ClickEvent(room, { target: 'link_share' }));
     };
 
     const trigger = function () {
@@ -44,13 +46,17 @@
         {#if copyTumbler}
             { $_('invite.linkHasBeenCopied') }
         {:else}
-            <div
-                class="uk-button uk-button-link uk-text-lowercase"
-                uk-tooltip={canShare ? $_('invite.clickToShare') : $_('invite.clickToCopy')}
-                on:click={linkClick}
-            >
-                {url}
-            </div>
+            {#if url}
+                <div
+                    class="uk-button uk-button-link uk-text-lowercase"
+                    uk-tooltip={canShare ? $_('invite.clickToShare') : $_('invite.clickToCopy')}
+                    on:click={linkClick}
+                >
+                    {url}
+                </div>
+            {:else}
+                <Loader ratio={0.5} />
+            {/if}
         {/if}
     </div>
 

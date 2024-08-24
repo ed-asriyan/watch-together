@@ -8,13 +8,13 @@
     import { _ } from 'svelte-i18n';
     import { fade, slide } from 'svelte/transition';
     import { MessageType } from '../../../stores/room/bound-messages';
-    import type { User } from '../../../stores/room/bound-users';
+    import type { User } from '../../../stores/user';
     import { me } from '../../../stores/me';
 
     export let messageGroup: GroupedMessages;
     export let users: User[];
 
-    const getUser = function (userId: string): User {
+    const getUser = function (userId: string): User | undefined {
         return users.find(({ id }) => id == userId);
     };
 
@@ -24,7 +24,7 @@
         return date.toISOString().slice(14, 19);
     };
 
-    const getMessageText = function (): string {
+    $: messageText = (function (): string {
         const message = messageGroup[0];
         switch (message.type) {
             case MessageType.regular:
@@ -38,27 +38,30 @@
             case MessageType.selectedLocalFile:
                 return $_('player.chat.message.selectedLocalFile');
         }
-    };
+        return '';
+    })();
 </script>
 
-<div in:slide>
-    <div transition:fade class="video-text uk-text-break" class:user-message={messageGroup[0].type === MessageType.regular}>
-        {#each new Set(messageGroup.map(({ userId }) => userId)) as userId, i}
-            {#if messageGroup.length > 1}
-                {#if i > 0 && i < messageGroup.length - 1}
-                    ,
-                {:else if i === messageGroup.length - 1}
-                &nbspand
+{#if messageText.trim() }
+    <div in:slide>
+        <div transition:fade class="video-text uk-text-break" class:user-message={messageGroup[0].type === MessageType.regular}>
+            {#each new Set(messageGroup.map(({ userId }) => userId)) as userId, i}
+                {#if messageGroup.length > 1}
+                    {#if i > 0 && i < messageGroup.length - 1}
+                        ,
+                    {:else if i === messageGroup.length - 1}
+                    &nbspand
+                    {/if}
                 {/if}
-            {/if}
-            <span style:color={getUser(userId)?.color}>
-                { getUser(userId)?.name || `${$me.name} (${$_('you')})` }
-            </span>
-        {/each}
-        {#if messageGroup[0].type === MessageType.regular}:{/if}
-        { getMessageText() }
+                <span style:color={getUser(userId)?.color}>
+                    { getUser(userId)?.name || `${$me.name} (${$_('you')})` }
+                </span>
+            {/each}
+            {#if messageGroup[0].type === MessageType.regular}:{/if}
+            { messageText }
+        </div>
     </div>
-</div>
+{/if}
 
 <style lang="scss">
     .user-message {

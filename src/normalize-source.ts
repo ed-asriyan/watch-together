@@ -1,3 +1,5 @@
+import { isExample } from './stores/video-example';
+
 export enum SourceType {
     blob = 'blob',
     direct = 'direct',
@@ -7,8 +9,8 @@ export enum SourceType {
     Vimeo = 'Vimeo',
 }
 
-export interface Source {
-    src: string;
+interface SourceParams {
+    src: string | Blob;
     type: SourceType;
 }
 
@@ -17,7 +19,8 @@ abstract class SourceBuilder {
 
     abstract parse(r: string): string | null;
 
-    recognize(id: string): Source | null {
+    recognize(id: string): SourceParams | null {
+        if (!id) return null;
         const url = this.parse(id);
         if (url) {
             // @ts-ignore
@@ -107,14 +110,32 @@ const parsers: SourceBuilder[] = [
     new Direct(), // direct should always be the last one
 ];
 
-export default function(src: string | null): Source | null {
+export class Source implements SourceParams {
+    src: string | Blob;
+    type: SourceType;
+
+    constructor (params: SourceParams) {
+        this.src = params.src;
+        this.type = params.type;
+    }
+
+    isExaple(): boolean {
+        return !!this.src && (this.src instanceof Blob || isExample(this.src));
+    }
+} 
+
+export default function(src: string | null | Blob): Source | null {
     if (!src) {
         return null;
     }
 
+    if (src instanceof Blob) {
+        return new Source({ src, type: SourceType.blob }); 
+    }
+
     for (const parser of parsers) {
         const result = parser.recognize(src);
-        if (result) return result;
+        if (result) return new Source(result);
     }
     return null;
 }
