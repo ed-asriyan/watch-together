@@ -14,7 +14,8 @@
     export let displayInput: boolean;
 
     $: users = room?.users;
-    $: messages = room?.messages;
+    $: messagesStore = room?.messages;
+    $: messages = $messagesStore.filter(({ type }) => type !== MessageType.reaction);
 
     let input: string;
     let lockState: boolean = false;
@@ -34,7 +35,7 @@
 
     const sendMessage = function () {
         if (!input) return;
-        messages.sendMessage(input);
+        messagesStore.sendMessage(input);
         input = '';
     };
 
@@ -71,7 +72,7 @@
 <div class="chat">
     {#if messages}
         <div class="messages-box uk-margin-bottom uk-text-left">
-            {#each groupByType($messages) as messageGroup (messageGroup.map(({ id }) => id).join('.'))}
+            {#each groupByType(messages) as messageGroup (messageGroup.map(({ id }) => id).join('.'))}
                 <MessageComponent messageGroup={messageGroup} users={$users} />
             {/each}
         </div>

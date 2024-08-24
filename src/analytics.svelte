@@ -60,6 +60,12 @@
         readonly name: string = 'message_sent';
     }
 
+    export class ReactionSentEvent extends Event<{
+        reactionEmoji: string;
+    }> {
+        readonly name: string = 'reaction_sent';
+    }
+
     export const track = function<T> (event: Event<T>) {
         trackRaw('event', event.name, event.params);
     };

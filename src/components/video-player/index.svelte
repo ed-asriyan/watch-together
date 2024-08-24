@@ -6,12 +6,12 @@
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
     import VideoPlayerVime from './video-player-vime.svelte';
     import VideoPlayerMagnet from './player-magnet.svelte';
-    import Chat from './chat/index.svelte';
-    import Online from './online/index.svelte';
+    import Inplayer from './inplayer.svelte';
     import { proxies } from '../../settings';
     import { blob } from '../../stores/blob';
     import { MessageType } from '../../stores/room/bound-messages';
     import { createCursorStore } from './cursor';
+
 
     export let room: Room;
 
@@ -103,12 +103,13 @@
             bind:paused={$paused}
             bind:currentTime={$currentTime}
             bind:muted={muted}
-            on:seeked={onSeek}
+            on:seeked={onSeeked}
+            on:seeking={onSeeking}
             on:pause={onPause}
             on:play={onPlay}
+            on:timeupdate={onTimeUpdate}
         >
-            <Chat room={room} displayInput={displayControls} />
-            <Online room={room} visible={displayControls}/>
+            <Inplayer room={room} visible={displayControls}/>
         </VideoPlayerVidstack>
     {:else}
         {#if $source}
@@ -127,8 +128,7 @@
                         on:play={onPlay}
                         on:timeupdate={onTimeUpdate}
                     >
-                        <Chat room={room} displayInput={displayControls} />
-                        <Online room={room} visible={displayControls}/>
+                        <Inplayer room={room} visible={displayControls}/>
                     </VideoPlayerVidstack>
                 {:else if $playerType === 'vime'}
                     <VideoPlayerVime source={normalizedSource} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}/>
@@ -144,8 +144,7 @@
                         on:play={onPlay}
                         on:timeupdate={onTimeUpdate}
                     >
-                        <Chat room={room} displayInput={displayControls} />
-                        <Online room={room} visible={displayControls}/>
+                        <Inplayer room={room} visible={displayControls}/>
                     </VideoPlayerMagnet>
                 {/if}
             {/await}
@@ -153,7 +152,7 @@
             <div class="uk-padding">
                 { $_('player.placeholder') }
             </div>
-            <Chat room={room} displayInput={displayControls} />
+            <Inplayer room={room} visible={displayControls}/>
         {/if}
     {/if}
 </div>
