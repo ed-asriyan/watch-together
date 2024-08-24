@@ -5,7 +5,6 @@ import { now } from '../clock';
 import { Destructable } from '../../destructable';
 import { me } from '../me';
 import { randomStr } from '../../utils';
-import { track, MessageSentEvent } from '../../analytics.svelte';
 
 const messageTimeout = 10;
 const invalidateInterval = 3;
@@ -87,8 +86,6 @@ export class MessagesBoundStore extends Destructable implements Readable<Message
     }
 
     sendMessage(text: string, type: MessageType = MessageType.regular) {
-        type === MessageType.regular && track(new MessageSentEvent({ messageType: type }));
-
         new BoundStore<MessageRaw>(
             child(this.ref, randomStr(6)),
             null as unknown as Message

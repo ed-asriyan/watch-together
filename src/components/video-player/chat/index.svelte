@@ -7,6 +7,7 @@
     import Lock from '../lock.svelte';
     import type { Room } from '../../../stores/room';
     import { groupConsecutiveElements, sleep } from '../../../utils';
+    import { MessageSentEvent, track } from '../../../analytics.svelte';
 
     const temporaryUnlockTimeout = 10;
 
@@ -37,6 +38,7 @@
         if (!input) return;
         messagesStore.sendMessage(input);
         input = '';
+        track(new MessageSentEvent(room, { messageType: MessageType.regular }));
     };
 
     const resetTimeout = function () {

@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import 'uikit/dist/js/uikit';
     import { _ } from 'svelte-i18n';
     import { randomStr } from './utils';

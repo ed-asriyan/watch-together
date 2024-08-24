@@ -32,7 +32,7 @@
     const generateNewRoom = function () {
         if (confirm($_('room.generateNewRoom.confirmation'))) {
             updateRoom(randomStr(6), true);
-            track(new ClickEvent({ target: 'generate_new_room' }));
+            track(new ClickEvent(room, { target: 'generate_new_room' }));
         }
     };
 
@@ -52,7 +52,7 @@
             newRoomId = input;
         }
         updateRoom(newRoomId, false);
-        track(new ClickEvent({ target: 'join_another_room' }));
+        track(new ClickEvent(room, { target: 'join_another_room' }));
     };
 </script>
 
@@ -73,7 +73,7 @@
             <div class:gradient-border={highlightInvite}>
                 <div class="tile uk-text-center uk-width-1-1">
                     <h2 class="uk-card-title" class:gradient-text={highlightInvite}>👥 { $_('invite.title') }</h2>
-                    <CardCopyUrl roomId={roomId} />
+                    <CardCopyUrl room={room} />
                 </div>
             </div>
             <div class="uk-width-1-1 uk-margin-top">
@@ -159,7 +159,7 @@
         }
     }
 
-    @-webkit-keyframes hue {
+    @keyframes hue {
         from {
             -webkit-filter: hue-rotate(0deg);
         }
@@ -170,8 +170,8 @@
 
     .gradient-text {
         background-image: linear-gradient(92deg, #f35626, #feab3a);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        fill-color: transparent;
         animation: hue 5s infinite linear;
     }
 </style>
