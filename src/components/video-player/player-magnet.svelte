@@ -7,7 +7,9 @@
     import { sleep } from '../../utils';
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
     import VideoSelectorBtn from '../video-selector-btn.svelte';
+    import type { Room } from '../../stores/room';
 
+    export let room: Room;
     export let source: Source;
     export let currentTime: number;
     export let paused: boolean;
@@ -31,7 +33,7 @@
             <div class="uk-margin-top uk-text-center">
                 { $_('player.isHostActive') }
                 <br class="uk-margin"/>
-                <VideoSelectorBtn forceLocal={true} />
+                <VideoSelectorBtn room={room} forceLocal={true} />
             </div>
             <div class="chat">
                 <slot name="chat" />
