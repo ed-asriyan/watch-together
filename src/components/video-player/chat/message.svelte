@@ -42,8 +42,8 @@
     })();
 </script>
 
-{#if messageText.trim() }
-    <div in:slide>
+<div transition:slide>
+    {#if messageText.trim() }
         <div transition:fade class="video-text uk-text-break" class:user-message={messageGroup[0].type === MessageType.regular}>
             {#each new Set(messageGroup.map(({ userId }) => userId)) as userId, i}
                 {#if messageGroup.length > 1}
@@ -60,8 +60,8 @@
             {#if messageGroup[0].type === MessageType.regular}:{/if}
             { messageText }
         </div>
-    </div>
-{/if}
+    {/if}
+</div>
 
 <style lang="scss">
     .user-message {

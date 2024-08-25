@@ -17,7 +17,6 @@ const database = getDatabase(initializeApp(firebaseConfig));
 export class Room extends Destructable {
     readonly id: string;
 
-    readonly source: Readable<Source | null>;
     readonly fileName: Writable<string> = writable<string>('');
 
     readonly url: BoundTimedStore<string>;
@@ -40,10 +39,7 @@ export class Room extends Destructable {
         this.createdAt = new BoundStore<number>(child(roomRef, 'createdAt'), now());
         this.users = new UsersBoundStore(child(roomRef, 'users'));
         this.messages = new MessagesBoundStore(child(roomRef, 'messages'));
-        this.source = derived<Readable<string>, Source | null>(this.url, (($url) => {
-            return normalizeSource($url);
-        }));
-        this.minutesWatched = new BoundMinutesWatched(child(roomRef, 'minutesWatched'), this.source, this.paused);
+        this.minutesWatched = new BoundMinutesWatched(child(roomRef, 'minutesWatched'), this.currentTime);
 
         this.registerDependency(this.messages);
         this.registerDependency(this.users);

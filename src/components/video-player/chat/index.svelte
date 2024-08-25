@@ -47,8 +47,10 @@
         }
         temporaryUnlock = setTimeout(async () => {
             temporaryUnlock = 0;
-            await tick()
-            inputElement.focus();
+            await tick();
+            inputElement?.focus();
+            await tick();
+            inputElement?.focus();
         }, temporaryUnlockTimeout * 1000);
     }
 
@@ -58,7 +60,9 @@
             event.preventDefault();
             resetTimeout();
             await tick();
-            inputElement.focus();
+            inputElement?.focus();
+            await tick();
+            inputElement?.focus();
         }
     };
 

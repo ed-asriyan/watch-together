@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
     import { analytics, isProduction } from './settings';
-    import { SourceType } from './normalize-source';
+    import normalizeSource, { SourceType } from './normalize-source';
+    import { blob } from './stores/blob';
     import type { MessageType } from './stores/room/bound-messages';
     import type { Room } from './stores/room';
     import { get } from 'svelte/store';
@@ -40,15 +41,38 @@
 
     abstract class RoomEvent<T> extends Event<T & RoomDetails> {
         constructor(room: Room, params: T) {
-            const src = get(room.source)?.src;
+            let srcType: SourceType | undefined;
+            let srcUrl: string | undefined;
+            let isExample: boolean = false;
+
+            const blobValue = get(blob);
+            if (blobValue) {
+                srcType = SourceType.blob;
+                isExample = false;
+            } else {
+                const source = normalizeSource(get(room.url));
+                if (source) {
+                    srcType = source.type;
+                    if (srcType === SourceType.direct) {
+                        srcUrl = new URL(source.src).hostname;
+                    } else {
+                        srcUrl = source.src;
+                    }
+                    isExample = source.isExaple();
+                } else {
+                    srcType = undefined;
+                    srcUrl = undefined;
+                }
+            }
+            
             super({
                 ...params,
                 roomId: room.id,
                 paused: get(room.paused),
-                srcType: get(room.source)?.type,
-                srcUrl: src instanceof Blob ? undefined : src,
+                srcType,
+                srcUrl,
                 usersCount: get(room.users)?.length || 1, // yourself
-                isExample: get(room.source)?.isExaple(),
+                isExample,
             });
         }
     }
