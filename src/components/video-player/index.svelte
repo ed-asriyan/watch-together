@@ -3,12 +3,12 @@
     import { derived, type Readable } from 'svelte/store';
     import { _ } from 'svelte-i18n';
     import { Source, SourceType } from '../../normalize-source';
+    import { exploreUrl } from './explore-url';
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
     import VideoPlayerVime from './video-player-vime.svelte';
     import VideoPlayerMagnet from './player-magnet.svelte';
     import Loader from '../loader.svelte';
     import Inplayer from './inplayer.svelte';
-    import { proxies } from '../../settings';
     import { blob } from '../../stores/blob';
     import type { Room } from '../../stores/room';
     import { MessageType } from '../../stores/room/bound-messages';
@@ -42,32 +42,6 @@
                 return null;
         }
     });
-
-    const normalizeSource = async function(source: Source): Promise<Source> {
-        if (source.type !== SourceType.direct || (!proxies.hlsUrl && !proxies.regularUrl) || source.src instanceof Blob) {
-            return source;
-        }
-
-        const paths = new URL(source.src).pathname.split('.');
-        const extenssion = paths[paths.length - 1];
-        const isHls = extenssion === 'm3u8';
-        if ((isHls && !proxies.hlsUrl) || (!isHls && !proxies.regularUrl)) {
-            return source;
-        }
-
-        try {
-            await fetch(source.src, { mode: 'cors', method: 'HEAD' });
-            return source;
-        } catch {
-            let src = source.src;
-            if (isHls) {
-                src = `${proxies.hlsUrl}/${btoa(source.src)}.m3u8`;
-            } else {
-                src = `${proxies.regularUrl}?url=${source.src}`;
-            }
-            return new Source({ ...source, src });
-        }
-    };
 
     let watchMinuteAnalyticsTimeInterval: number;;
     onMount(() => {
@@ -129,7 +103,7 @@
             </VideoPlayerVidstack>
         {:else}
             {#if $source}
-                {#await normalizeSource($source)}
+                {#await exploreUrl($source)}
                     <Loader/>
                 {:then normalizedSource}
                     {#if $playerType === 'vidstack'}
@@ -151,6 +125,7 @@
                     {:else if $playerType === 'magnet'}
                         <VideoPlayerMagnet
                             source={normalizedSource}
+                            room={room}
                             bind:paused={$paused}
                             bind:currentTime={$currentTime}
                             bind:muted={muted}
