@@ -9,13 +9,13 @@
     import { downloadSpeed, uploadSpeed, progress, isSeeding, peers } from '../stores/web-torrent';
     import { Room } from '../stores/room';
     import Loader from './loader.svelte';
-    import { SourceType } from '../normalize-source';
+    import normalizeSource, { SourceType } from '../normalize-source';
     import { blob } from '../stores/blob';
 
     export let room: Room;
 
     $: url = room?.url;
-    $: source = room?.source;
+    $: source = normalizeSource($url);
     $: if ($url) {
         $blob = null;
     }
@@ -34,7 +34,7 @@
     };
 
     const onInput = function () {
-        $source && track(new UrlPasteEvent(room, { url: $url }));
+        source && track(new UrlPasteEvent(room, { url: $url }));
     };
 </script>
 
@@ -53,7 +53,7 @@
                 bind:value={$url}
                 on:input={onInput}
                 class="uk-input"
-                class:uk-form-danger={!$source}
+                class:uk-form-danger={!source}
                 placeholder="Video URL"
             />
             {#if !$url && haveExamples}
@@ -70,15 +70,15 @@
             <button class="uk-input" disabled><Loader ratio={0.5} /></button>
         {/if}
     </div>
-    {#if $source && $source.type == SourceType.magnet && !$isSeeding && isFinite($progress)}
+    {#if source?.type == SourceType.magnet && !$isSeeding && isFinite($progress)}
         <progress class="uk-progress progress uk-margin-remove" value={$progress} max="1"></progress>
     {/if}
     </div>
 
 <div class="hint uk-text-center uk-text-small">
     {#if $url}
-        {#if $source}
-            {#if $source.type == SourceType.direct}
+        {#if source}
+            {#if source.type == SourceType.direct}
                 <Interpolator text={$_('selectVideo.link.hintNotWorking')} let:data={data}>
                     {#if data.name === 'u'}
                         <u>{ data.text }</u>
@@ -89,7 +89,7 @@
                         <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>{ data.text }</a>
                     {/if}
                 </Interpolator>
-            {:else if $source && ($source.type === SourceType.magnet)}
+            {:else if source && (source.type === SourceType.magnet)}
                     <div class="uk-flex uk-text-small uk-relative uk-padding-top">
                             <div class="uk-flex-1">{ $_('downloadSpeed', { values: { speed: `${prettierBytes($downloadSpeed || 0)}/s` }}) }</div>
                             <div class="uk-flex-1">{ $_('uploadSpeed', { values: { speed: `${prettierBytes($uploadSpeed || 0)}/s` }}) }</div>

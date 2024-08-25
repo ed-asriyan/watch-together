@@ -2,7 +2,7 @@ import { Source, SourceType } from '../../normalize-source';
 import { proxies } from '../../settings';
 
 export const exploreUrl = async function(source: Source): Promise<Source> {
-    if (source.type !== SourceType.direct || source.src instanceof Blob) {
+    if (source.type !== SourceType.direct) {
         return source;
     }
 

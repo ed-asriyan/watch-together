@@ -1,17 +1,15 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import type { User } from '../../stores/bound-user';
 
-    export let user: User;
-    export let myName: string;
-    export let me: boolean;
+    export let userName: string;
+    export let canEdit: string;
     export let status: string;
 
     const maxLength = 10;
 
     const updateName = function () {
-        if (me) {
-            myName = prompt($_('users.nameEditPromt', { values: { maxLength }}), myName);
+        if (canEdit) {
+            userName = prompt($_('users.nameEditPromt', { values: { maxLength }}), userName) || '';
         }
     };
 
@@ -26,19 +24,15 @@
 >
     <div
         class="uk-text-emphasis uk-margin-small-top"
-        class:pointer={me}
-        class:uk-text-large={user.name.length === 1 || isEmoji(user.name)}
+        class:pointer={canEdit}
+        class:uk-text-large={userName.length === 1 || isEmoji(userName)}
         on:click={updateName}
-        uk-tooltip={me ? $_('users.nameEdit') : undefined }
+        uk-tooltip={canEdit ? $_('users.nameEdit') : undefined }
     >
-        { user.name.slice(0, maxLength) }
+        { userName.slice(0, maxLength) }
     </div>
     <span class="uk-text-muted uk-text-small">
-        {#if me}
-            { $_('you') }
-        {:else}
-            { status }
-        {/if}
+        { status }
     </span>
 </div>
 

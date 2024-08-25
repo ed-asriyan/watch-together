@@ -8,7 +8,7 @@
     import 'vidstack/player/layouts';
     import 'vidstack/player/ui';
 
-    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import { onDestroy, createEventDispatcher } from 'svelte';
     import type { MediaPlayerElement } from 'vidstack/elements';
     import type { Source } from '../../normalize-source';
 
@@ -27,8 +27,10 @@
     $: isMounted && (player.paused = paused);
     $: isMounted && (player.muted = muted);
 
+
     let unsubscribe: () => void;
-    onMount(() => {
+    const init = function () {
+        destroy();
         unsubscribe = player.subscribe(options => {
             const optionsTime = options.currentTime;
             const optionsPaused = options.paused;
@@ -43,10 +45,18 @@
         player.currentTime = currentTime;
         player.paused = paused;
         player.muted = muted;
-    });
+    };
+
+    const destroy = function () {
+        unsubscribe && unsubscribe();
+    };
+
+    $: if (player) {
+        init();
+    }
 
     onDestroy(() => {
-        unsubscribe && unsubscribe();
+        destroy()
     });
 </script>
 

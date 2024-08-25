@@ -1,17 +1,18 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import User from './user.svelte';
+    import type { User as UserModel } from '../../stores/user';
     import { me } from '../../stores/me';
+    import User from './user.svelte';
 
-    export let users: User[];
+    export let users: UserModel[];
 </script>
 
 <div class="users uk-flex-center uk-flex uk-text-center uk-flex-middle">
-    <User user={({ name: $me.name })} me={true} bind:myName={$me.name} />
+    <User bind:userName={$me.name} canEdit={true} status={$_('you')} />
     {#if users}
         {#each users as user (user.id)}
             {#if $me.id !== user.id}
-                <User user={user} me={false} status={ $_('users.online')} />
+                <User userName={user.name} canEdit={false} status={$_('users.online')} />
             {/if}
         {/each}
     {/if}

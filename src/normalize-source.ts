@@ -10,7 +10,7 @@ export enum SourceType {
 }
 
 interface SourceParams {
-    src: string | Blob;
+    src: string;
     type: SourceType;
 }
 
@@ -111,7 +111,7 @@ const parsers: SourceBuilder[] = [
 ];
 
 export class Source implements SourceParams {
-    src: string | Blob;
+    src: string;
     type: SourceType;
 
     constructor (params: SourceParams) {
@@ -120,17 +120,13 @@ export class Source implements SourceParams {
     }
 
     isExaple(): boolean {
-        return !!this.src && (this.src instanceof Blob || isExample(this.src));
+        return isExample(this.src);
     }
 } 
 
-export default function(src: string | null | Blob): Source | null {
+export default function(src: string | null): Source | null {
     if (!src) {
         return null;
-    }
-
-    if (src instanceof Blob) {
-        return new Source({ src, type: SourceType.blob }); 
     }
 
     for (const parser of parsers) {

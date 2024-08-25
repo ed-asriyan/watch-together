@@ -23,8 +23,6 @@
     <div class="chat">
         <slot name="chat" />
     </div>
-{:else if source.src instanceof Blob}
-    <p>Blob src is provided to magnet player. Developers fucked up. Contact them.</p>
 {:else}
     {#await getStreamUrl(source.src)}
         <Loader />

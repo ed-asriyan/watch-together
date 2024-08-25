@@ -2,7 +2,7 @@
     import { onDestroy, onMount } from 'svelte';
     import { derived, type Readable } from 'svelte/store';
     import { _ } from 'svelte-i18n';
-    import { Source, SourceType } from '../../normalize-source';
+    import normalizeSource, { Source, SourceType } from '../../normalize-source';
     import { exploreUrl } from './explore-url';
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
     import VideoPlayerVime from './video-player-vime.svelte';
@@ -17,9 +17,10 @@
 
     export let room: Room;
 
-    $: source = room?.source;
+    $: url = room?.url;
     $: currentTime = room?.currentTime;
     $: paused = room?.paused;
+    $: source = normalizeSource($url);
 
     const cursor = createCursorStore(2000);
 
@@ -28,8 +29,8 @@
     let muted = true;
 
     type Player = 'vime' | 'vidstack' | 'magnet' | null;
-    $: playerType = room && derived<Readable<Source | null>, Player>(room.source, ($source) => {
-        switch ($source?.type) {
+    $: playerType = (function() {
+        switch (source?.type) {
             case SourceType.DailyMotion:
                 return 'vime';
             case SourceType.Vimeo:
@@ -41,12 +42,12 @@
             default:
                 return null;
         }
-    });
+    })();
 
     let watchMinuteAnalyticsTimeInterval: number;;
     onMount(() => {
         watchMinuteAnalyticsTimeInterval = setInterval(() => {
-            if ($source && !$paused) {
+            if (source && !$paused) {
                 track(new WatchedMinuteEvent(room));
             }
         }, 60000);
@@ -102,11 +103,11 @@
                 <Inplayer room={room} visible={displayControls}/>
             </VideoPlayerVidstack>
         {:else}
-            {#if $source}
-                {#await exploreUrl($source)}
+            {#if source}
+                {#await exploreUrl(source)}
                     <Loader/>
                 {:then normalizedSource}
-                    {#if $playerType === 'vidstack'}
+                    {#if playerType === 'vidstack'}
                         <VideoPlayerVidstack
                             source={normalizedSource}
                             bind:paused={$paused}
@@ -120,9 +121,9 @@
                         >
                             <Inplayer room={room} visible={displayControls}/>
                         </VideoPlayerVidstack>
-                    {:else if $playerType === 'vime'}
+                    {:else if playerType === 'vime'}
                         <VideoPlayerVime source={normalizedSource} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}/>
-                    {:else if $playerType === 'magnet'}
+                    {:else if playerType === 'magnet'}
                         <VideoPlayerMagnet
                             source={normalizedSource}
                             room={room}

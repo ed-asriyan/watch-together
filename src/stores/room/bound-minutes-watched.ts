@@ -3,17 +3,15 @@ import { type Readable, type Subscriber, type Unsubscriber, get } from 'svelte/s
 import { BoundStore } from './bound-store';
 import { Destructable } from '../../destructable';
 import { me } from '../me';
-import { type Source } from '../../normalize-source';
+import type { BoundCurrentTime } from './bound-current-time';
 
 export class BoundMinutesWatched extends Destructable implements Readable<number> {
     private readonly store: BoundStore<number>;
-    private readonly pausedStore: Readable<boolean>;
-    private readonly sourceStore: Readable<Source | null>;
+    private readonly currentTimeStore: BoundCurrentTime;
 
-    constructor (ref: DatabaseReference, sourceStore: Readable<Source | null>, pausedStore: Readable<boolean>) {
+    constructor (ref: DatabaseReference, currentTimeStore: BoundCurrentTime) {
         super();
-        this.pausedStore = pausedStore;
-        this.sourceStore = sourceStore;
+        this.currentTimeStore = currentTimeStore;
         this.store = new BoundStore<number>(child(ref, get(me).id), 0);
     }
 
@@ -24,10 +22,12 @@ export class BoundMinutesWatched extends Destructable implements Readable<number
     async init() {
         await this.store.init();
 
+        let lastTime = get(this.currentTimeStore);
         const idMinuteSpent = setInterval(() => {
-            const source = get(this.sourceStore);
-            if (source && !get(this.pausedStore)) {
+            const currentTime = get(this.currentTimeStore);
+            if (currentTime !== lastTime) {
                 this.store.update(x => x + 1);
+                lastTime = currentTime;
             }
         }, 60000);
         this.onDestruct(() => clearInterval(idMinuteSpent));
