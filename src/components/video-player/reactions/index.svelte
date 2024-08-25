@@ -52,7 +52,7 @@
         position: absolute;
         right: 1rem;
         bottom: 5rem;
-        z-index: 100;
+        z-index: 10;
         & .reaction-btn {
             display: inline-grid;
             user-select: none;
