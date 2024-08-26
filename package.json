@@ -18,7 +18,7 @@
 		"@tsconfig/svelte": "^5.0.2",
 		"@vime/core": "^5.4.1",
 		"@vime/svelte": "^5.4.1",
-		"firebase": "^10.12.4",
+		"firebase": "^10.13.0",
 		"firebase-admin": "^12.0.0",
 		"prettier-bytes": "^1.0.4",
 		"sass": "^1.77.8",
