@@ -106,6 +106,7 @@
             {#if source}
                 {#await exploreUrl(source)}
                     <Loader/>
+                    <div class="uk-margin-top">{ $_('player.analyzing') }</div>              
                 {:then normalizedSource}
                     {#if playerType === 'vidstack'}
                         <VideoPlayerVidstack

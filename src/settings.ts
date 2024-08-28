@@ -22,9 +22,10 @@ export const analytics = {
 
 export const url = import.meta.env['VITE_URL'];
 
-export const proxies = {
-    hlsUrl: import.meta.env['VITE_PROXIES_HLS_URL']?.trim(),
-    regularUrl: import.meta.env['VITE_PROXIES_REGULAR_URL']?.trim(),
+export const api = {
+    hlsProxyUrl: import.meta.env['VITE_API_HLS_PROXY_URL']?.trim(),
+    httpProxyUrl: import.meta.env['VITE_API_HTTP_PROXY_URL']?.trim(),
+    videoExtractorUrl: import.meta.env['VITE_API_VIDEO_EXTRACTOR_URL']?.trim(),
 };
 
 export const iceServers = JSON.parse(atob(import.meta.env['VITE_ICE_SERVERS_JSON']));
