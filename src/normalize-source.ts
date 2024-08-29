@@ -120,7 +120,7 @@ export class Source implements SourceParams {
     }
 
     isExaple(): boolean {
-        return isExample(this.src);
+        return isExample(this);
     }
 } 
 
