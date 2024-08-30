@@ -71,7 +71,7 @@
                 paused: get(room.paused),
                 srcType,
                 srcUrl,
-                usersCount: get(room.users)?.length || 1, // yourself
+                usersCount: (get(room.users)?.length || 0) + 1, // yourself
                 isExample,
             });
         }
