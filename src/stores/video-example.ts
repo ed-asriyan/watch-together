@@ -6,6 +6,7 @@ export const getExampleVideo = function (): string {
 };
 
 export const isExample = function (source: Source): boolean {
+    if (!source) return false;
     let pattern: string;
     switch (source.type) {
         case SourceType.YouTube:

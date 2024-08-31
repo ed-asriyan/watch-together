@@ -80,15 +80,18 @@
     <!-- Layouts -->
     <media-audio-layout />
     <media-video-layout />
-    <media-controls hideOnMouseLeave={true}>
-        <media-controls-group>
-            <slot />
-        </media-controls-group>
-    </media-controls>
+    <!-- <media-controls>
+        
+    </media-controls> -->
 </media-player>
 
 <style lang="scss">
     :global(media-player) {
         border: none !important;
+    }
+
+    :global(media-fullscreen-button) {
+        opacity: 0;
+        visibility:hidden;
     }
 </style>

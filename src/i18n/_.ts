@@ -78,6 +78,8 @@ const def = {
     uploadSpeed: 'Upload: {speed}',
     dontRefresh: 'You\'re seeding. Do not refresh the page or close the browser tab',
     peers: 'Peers: {peers}',
+    fullscreen: 'Fullscreen',
+    scrollUp: 'scroll up',
     feedback: {
         link: 'https://forms.gle/YY8ypRnJ5b65QWhc6',
         linkText: 'Experience issues? Have any ideas? Please provide your feedback {link}here{/link}', 

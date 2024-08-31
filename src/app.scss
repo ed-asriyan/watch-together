@@ -17,11 +17,34 @@ html {
     background-color: #000;
 }
 
+.glass {
+    border: 1px solid rgba(255, 255, 255, .25);
+    background-color: rgba(255, 255, 255, 0.01);
+    box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(30px) brightness(70%);
+}
+
 .tile {
-    border: 1px solid rgb(255 255 255 / .1);
-    background-color: #1c1c1c;
-    border-radius: 1rem;
+    @extend .glass;
     padding: 2rem 1rem;
+    color: white;
+    border-radius: 1rem;
+}
+
+@keyframes hue {
+    from {
+        filter: hue-rotate(0deg);
+    }
+    to {
+        filter: hue-rotate(-360deg);
+    }
+}
+
+.gradient-text {
+    color: transparent !important;
+    background-image: linear-gradient(92deg, #f35626, #feac3a);
+    background-clip: text;
+    animation: hue 5s infinite linear;
 }
 
 .video-text {

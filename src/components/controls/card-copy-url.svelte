@@ -1,11 +1,12 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import Interpolator from './interpolator.svelte';
-    import { track, ClickEvent } from '../analytics.svelte';
-    import type { Room } from '../stores/room';
-    import Loader from './loader.svelte';
+    import Interpolator from '../interpolator.svelte';
+    import { track, ClickEvent } from '../../analytics.svelte';
+    import type { Room } from '../../stores/room';
+    import Loader from '../loader.svelte';
 
     export let room: Room;
+    export let highlight: boolean;
 
     let copyTumbler: boolean = false;
 
@@ -48,7 +49,9 @@
         {:else}
             {#if url}
                 <div
-                    class="uk-button uk-button-link uk-text-lowercase"
+                    class="uk-button-link uk-text-lowercase pointer"
+                    class:gradient-text={highlight}
+                    class:uk-text-bold={highlight}
                     uk-tooltip={canShare ? $_('invite.clickToShare') : $_('invite.clickToCopy')}
                     on:click={linkClick}
                 >

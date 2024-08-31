@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { derived, type Readable } from 'svelte/store';
     import { _ } from 'svelte-i18n';
     import normalizeSource, { Source, SourceType } from '../../normalize-source';
     import { exploreUrl } from './explore-url';
@@ -11,9 +10,10 @@
     import Inplayer from './inplayer.svelte';
     import { blob } from '../../stores/blob';
     import type { Room } from '../../stores/room';
+    import { cursorActive } from '../../stores/cursor';
     import { MessageType } from '../../stores/room/bound-messages';
-    import { createCursorStore } from './cursor';
     import { PausedEvent, PlayedEvent, SeekedEvent, track, WatchedMinuteEvent } from '../../analytics.svelte';
+    import { defaultVideo } from '../../settings';
 
     export let room: Room;
 
@@ -22,9 +22,7 @@
     $: paused = room?.paused;
     $: source = normalizeSource($url);
 
-    const cursor = createCursorStore(2000);
-
-    $: displayControls = $paused || $cursor;
+    $: displayControls = (source && $paused) || $cursorActive;
     
     let muted = true;
 
@@ -99,9 +97,7 @@
                 on:pause={onPause}
                 on:play={onPlay}
                 on:timeupdate={onTimeUpdate}
-            >
-                <Inplayer room={room} visible={displayControls}/>
-            </VideoPlayerVidstack>
+            />
         {:else}
             {#if source}
                 {#await exploreUrl(source)}
@@ -119,9 +115,7 @@
                             on:pause={onPause}
                             on:play={onPlay}
                             on:timeupdate={onTimeUpdate}
-                        >
-                            <Inplayer room={room} visible={displayControls}/>
-                        </VideoPlayerVidstack>
+                        />
                     {:else if playerType === 'vime'}
                         <VideoPlayerVime source={normalizedSource} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}/>
                     {:else if playerType === 'magnet'}
@@ -136,25 +130,24 @@
                             on:pause={onPause}
                             on:play={onPlay}
                             on:timeupdate={onTimeUpdate}
-                        >
-                            <Inplayer room={room} visible={displayControls}/>
-                        </VideoPlayerMagnet>
+                        />
                     {/if}
                 {/await}
             {:else}
-                <div class="uk-padding">
-                    { $_('player.placeholder') }
-                </div>
-                <Inplayer room={room} visible={displayControls}/>
+                {#if defaultVideo}
+                    <VideoPlayerVidstack source={normalizeSource(defaultVideo)} muted={true}/>
+                {/if}
             {/if}
         {/if}
+    {/if}
+    {#if room}
+        <Inplayer room={room} visible={displayControls}/>
     {/if}
 </div>
 
 <style lang="scss">
     .viewer {
-        width: 100%;
-        height: 100%;
-        max-height: 100%;
+        width: 100vw;
+        height: 100vh;
     }
 </style>

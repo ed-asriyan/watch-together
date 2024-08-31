@@ -80,6 +80,8 @@ const fr: TranslatedText = {
     uploadSpeed: 'Téléversement: {speed}',
     dontRefresh: 'Je partage le fichier. Ne pas rafraîchir la page ou fermer l\'onglet du navigateur',
     peers: 'Peers: {peers}',
+    fullscreen: 'plein écran',
+    scrollUp: 'faire défiler vers le haut',
     feedback: {
         link: 'https://forms.gle/YY8ypRnJ5b65QWhc6',
         linkText: 'Vous rencontrez des problèmes? Vous avez des idées? Veuillez nous faire part de vos commentaires {link}ici (anglais){/link}', 

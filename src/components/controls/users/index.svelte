@@ -1,7 +1,7 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import type { User as UserModel } from '../../stores/user';
-    import { me } from '../../stores/me';
+    import type { User as UserModel } from '../../../stores/user';
+    import { me } from '../../../stores/me';
     import User from './user.svelte';
 
     export let users: UserModel[];

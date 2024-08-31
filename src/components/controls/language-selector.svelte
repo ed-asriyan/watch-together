@@ -1,7 +1,7 @@
 <script lang="ts">
     import { _, locale } from 'svelte-i18n';
-    import { locales } from '../i18n/index';
-    import { track, LocaleChangedEvent } from '../analytics.svelte';
+    import { locales } from '../../i18n/index';
+    import { track, LocaleChangedEvent } from '../../analytics.svelte';
 
     const onLanguageChanged = function () {
         track(new LocaleChangedEvent({ locale: $locale as string }));

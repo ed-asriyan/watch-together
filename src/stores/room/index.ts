@@ -1,11 +1,10 @@
-import { derived,writable, type Writable, type Readable, get } from 'svelte/store';
+import { writable, type Writable, type Readable, get } from 'svelte/store';
 import { ref, child, getDatabase } from 'firebase/database';
 import { initializeApp } from 'firebase/app';
 import { BoundStore } from './bound-store';
 import { BoundTimedStore } from './bound-timed-store';
 import { UsersBoundStore } from './bound-users';
 import { BoundMinutesWatched } from './bound-minutes-watched';
-import normalizeSource, { type Source } from '../../normalize-source';
 import { now } from '../clock';
 import { Destructable } from '../../destructable';
 import { firebaseConfig } from '../../settings';

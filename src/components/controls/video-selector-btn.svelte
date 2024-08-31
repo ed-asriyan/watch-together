@@ -1,11 +1,11 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import { track, ClickEvent } from '../analytics.svelte';
-    import Loader from './loader.svelte';
-    import { blob } from '../stores/blob';
-    import { sendFile } from '../stores/web-torrent';
-    import normalizeSource, { SourceType } from '../normalize-source';
-    import type { Room } from '../stores/room';
+    import { track, ClickEvent } from '../../analytics.svelte';
+    import Loader from '../loader.svelte';
+    import { blob } from '../../stores/blob';
+    import { sendFile } from '../../stores/web-torrent';
+    import normalizeSource, { SourceType } from '../../normalize-source';
+    import type { Room } from '../../stores/room';
 
     export let forceLocal: boolean = false;
     export let room: Room;

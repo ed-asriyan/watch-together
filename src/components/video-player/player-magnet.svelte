@@ -6,7 +6,7 @@
     import { getStreamUrl } from '../../stores/web-torrent';
     import { sleep } from '../../utils';
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
-    import VideoSelectorBtn from '../video-selector-btn.svelte';
+    import VideoSelectorBtn from '../controls/video-selector-btn.svelte';
     import type { Room } from '../../stores/room';
 
     export let room: Room;

@@ -35,26 +35,26 @@ export default defineConfig({
                 "start_url":"/",
                 "screenshots": [
                     {
-                        "src": "screenshots/1.jpeg",
-                        "sizes": "1170x2391",
+                        "src": "screenshots/mobile-1.jpeg",
+                        "sizes": "1170x2532",
                         "type": "image/jpeg",
                         "form_factor": "narrow"
                     },
                     {
-                        "src": "screenshots/2.jpeg",
-                        "sizes": "1170x2391",
+                        "src": "screenshots/mobile-2.jpeg",
+                        "sizes": "1170x2532",
                         "type": "image/jpeg",
                         "form_factor": "narrow"
                     },
                     {
-                        "src": "screenshots/3.jpeg",
-                        "sizes": "2480x1740",
+                        "src": "screenshots/desktop-1.jpeg",
+                        "sizes": "3456x2234",
                         "type": "image/jpeg",
                         "form_factor": "wide"
                     },
                     {
                         "src": "screenshots/4.jpeg",
-                        "sizes": "2480x1740",
+                        "sizes": "3456x2234",
                         "type": "image/jpeg",
                         "form_factor": "wide"
                     }

@@ -2,15 +2,15 @@
     import { fade } from 'svelte/transition';
     import { _ } from 'svelte-i18n';
     import prettierBytes from 'prettier-bytes';
-    import { track, ClickEvent, UrlPasteEvent } from '../analytics.svelte';
-    import Interpolator from './interpolator.svelte';
-    import { getExampleVideo, haveExamples } from '../stores/video-example';
+    import { track, ClickEvent, UrlPasteEvent } from '../../analytics.svelte';
+    import Interpolator from '../interpolator.svelte';
+    import { getExampleVideo, haveExamples } from '../../stores/video-example';
     import VideoSelectorBtn from './video-selector-btn.svelte';
-    import { downloadSpeed, uploadSpeed, progress, isSeeding, peers } from '../stores/web-torrent';
-    import { Room } from '../stores/room';
-    import Loader from './loader.svelte';
-    import normalizeSource, { SourceType } from '../normalize-source';
-    import { blob } from '../stores/blob';
+    import { downloadSpeed, uploadSpeed, progress, isSeeding, peers } from '../../stores/web-torrent';
+    import { Room } from '../../stores/room';
+    import Loader from '../loader.svelte';
+    import normalizeSource, { SourceType } from '../../normalize-source';
+    import { blob } from '../../stores/blob';
 
     export let room: Room;
 
@@ -108,7 +108,9 @@
         { $_('selectVideo.link.hintEmpty') }
         <Interpolator text={$_('selectVideo.link.help')} let:data={data}>
             {#if data.name === 'link'}
-                <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>{ data.text }</a>
+                <u>
+                    <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" on:click={clickUrlTutorial}>{ data.text }</a>
+                </u>
             {/if}
         </Interpolator>
     {/if}
@@ -130,7 +132,9 @@
         { $_('selectVideo.file.hint') }
         <Interpolator text={$_('selectVideo.file.help')} let:data={data}>
             {#if data.name === 'link'}
-                <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank" on:click={clickDownloadTutorial}>{ data.text }</a>
+                <u>
+                    <a href="https://www.youtube.com/watch?v=FsT7kUaqBdM" target="_blank" on:click={clickDownloadTutorial}>{ data.text }</a>
+                </u>
             {/if}
         </Interpolator>
     </div>

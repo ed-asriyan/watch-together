@@ -2,7 +2,7 @@
     import { _ } from 'svelte-i18n';
 
     export let userName: string;
-    export let canEdit: string;
+    export let canEdit: boolean;
     export let status: string;
 
     const maxLength = 10;
