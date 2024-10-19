@@ -24,7 +24,7 @@ export class BoundCurrentTime implements Writable<number> {
     readonly updatedAt: Writable<number>;
 
     constructor (ref: DatabaseReference) {
-        this.remote = new BoundTimedStore<number>(ref, 0);
+        this.remote = new BoundTimedStore<number>(ref, 0, 0.5);
         this.currentTime = writable<number>(get(this.remote), set => {
             return this.remote.subscribe(newCurrentTime => {
                 const remoteUpdatedAtValue = get(this.remote.updatedAt);

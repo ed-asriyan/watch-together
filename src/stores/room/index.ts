@@ -34,7 +34,7 @@ export class Room extends Destructable {
         const roomRef = child(ref(database), `room/${roomId}`);
         this.url = new BoundTimedStore<string>(child(roomRef, 'url'), '');
         this.currentTime = new BoundCurrentTime(child(roomRef, 'currentTime'));
-        this.paused = new BoundTimedStore<boolean>(child(roomRef, 'paused'), true);
+        this.paused = new BoundTimedStore<boolean>(child(roomRef, 'paused'), true, 0.5);
         this.createdAt = new BoundStore<number>(child(roomRef, 'createdAt'), now());
         this.users = new UsersBoundStore(child(roomRef, 'users'));
         this.messages = new MessagesBoundStore(child(roomRef, 'messages'));

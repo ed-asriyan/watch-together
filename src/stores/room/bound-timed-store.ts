@@ -12,13 +12,13 @@ export class BoundTimedStore<T> implements Writable<T> {
     private readonly store: Writable<TimedValue<T>>;
     readonly updatedAt: Readable<number>;
 
-    constructor (ref: DatabaseReference, defaultValue: T) {
+    constructor (ref: DatabaseReference, defaultValue: T, tolerance: number = 0) {
         const defauleRaw = { value: defaultValue, updatedAt: 0 };
         this.remote = new BoundStore(ref, defauleRaw);
         this.store = writable<TimedValue<T>>(defauleRaw, set => {
             return this.remote.subscribe(newValue => {
                 const storeValue = get(this.store);
-                if (newValue.updatedAt > storeValue.updatedAt) {
+                if (newValue.updatedAt > storeValue.updatedAt + tolerance) {
                     set(newValue);
                 }
             });
