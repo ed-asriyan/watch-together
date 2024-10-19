@@ -12,8 +12,19 @@ export const locales = {
 const fallbackLocale = 'en';
 const localStorageKey = 'locale';
 
+const getLocaleFromQuery = function() {
+    const params = new URLSearchParams(location.search);
+    const lang = params.get('lang');
+    if (lang) {
+        params.delete('lang');
+        const newUrl = `${location.pathname}?${params.toString()}`;
+        history.replaceState(null, '', newUrl);
+    }
+    return lang;
+};
+
 const getLocale = function() {
-    const lang = localStorage.getItem(localStorageKey) || getLocaleFromNavigator();
+    const lang = getLocaleFromQuery() || localStorage.getItem(localStorageKey) || getLocaleFromNavigator();
     if (locales[lang]) {
         return lang;
     }
