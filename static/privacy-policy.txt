@@ -1,0 +1,38 @@
+Privacy Policy for watchtogether.online
+Last updated: 2024-10-19
+
+At watchtogether.online, we are committed to protecting your privacy. This Privacy Policy outlines how we collect, use, and protect your personal information when you use the Website.
+
+1. Information We Collect
+We do not collect any personal information that can identify you directly. However, we may collect the following non-personal information:
+* Cookies and Local Storage: We use cookies and local storage to enhance the user experience and provide Website functionality (e.g., saving user preferences). Cookies may also be used to collect anonymous statistical data through third-party services such as Google Analytics.
+* Analytics Data: Google Analytics is enabled on our Website to track anonymous usage statistics, including but not limited to IP addresses, browser types, device information, and interaction data. This information helps us understand how users interact with the Website and allows us to improve the service.
+
+2. How We Use Information
+The non-personal data collected is used for the following purposes:
+* Improving User Experience: To enhance the functionality of the Website and ensure it operates efficiently for all users.
+* Analytics and Performance Monitoring: To monitor Website traffic, track trends, and analyze how users interact with the platform.
+* Security: To ensure that the Website is secure and protected from malicious activity.
+
+3. Data Sharing
+Since we do not collect any personal information, we do not share any personal information with third parties. However, we may share aggregated and anonymous data (such as website usage statistics) with third-party services, including Google Analytics.
+
+4. Cookies and Tracking Technologies
+We use cookies to:
+* Store user preferences for session management.
+* Facilitate synchronization of playback between users.
+* Enable Google Analytics to track anonymous usage data.
+
+You can control or delete cookies in your browser settings, but please note that disabling cookies may affect the functionality of the Website.
+
+5. Security
+We take reasonable measures to protect the information collected and ensure the security of your interaction with the Website. However, since the Website does not collect or store personal data, we encourage users to practice safe browsing habits.
+
+6. Third-Party Links
+The Website may include links to third-party websites, such as video providers. We are not responsible for the privacy practices or the content of these third-party sites. We encourage you to review their privacy policies when accessing them.
+
+7. Changes to This Privacy Policy
+We may update this Privacy Policy from time to time. Any changes will be posted on this page with the updated date. We encourage you to review the policy periodically.
+
+8. Contact Us
+If you have any questions or concerns about this Privacy Policy, please contact us at: watchtogether.online@asriyan.me.

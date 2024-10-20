@@ -82,6 +82,9 @@ const fr: TranslatedText = {
     peers: 'Peers: {peers}',
     fullscreen: 'plein écran',
     scrollUp: 'faire défiler vers le haut',
+    termsAndConditions: `Conditions générales d'utilisation`,
+    privacyPolicy: `Politique de confidentialité`,
+    termsAndConditionsReminder: `En utilisant ce site web, vous acceptez les {termsAndConditions}Terms and Conditions{/termsAndConditions}, et {privacyPolicy}Privacy Policy{/privacyPolicy}`,
     feedback: {
         link: 'https://forms.gle/YY8ypRnJ5b65QWhc6',
         linkText: 'Vous rencontrez des problèmes? Vous avez des idées? Veuillez nous faire part de vos commentaires {link}ici (anglais){/link}', 

@@ -7,6 +7,7 @@
     import Header from './header.svelte';
     import Controls from './controls/index.svelte';
     import Fullscreen from './fullscreen.svelte';
+    import JuristicionalBullshitBanner from './jurisdictional-bullshit-banner.svelte';
     import ScrollIcon from './scroll-icon.svelte';
     import { cursorActive } from '../stores/cursor';
 
@@ -23,6 +24,8 @@
 <svelte:window bind:scrollY={scrollY} bind:innerHeight={clientHeight}></svelte:window>
 
 <Header display={scrollY !== 0}/>
+<JuristicionalBullshitBanner />
+
 <div class="player" style:filter={`blur(${Math.round((scrollY / clientHeight) * 10)}px) brightness(${1 - (scrollY / clientHeight) * 0.5})`}>
     <VideoPlayer room={room}/>
 </div>

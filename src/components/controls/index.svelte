@@ -121,7 +121,7 @@
         {/if}
     </Interpolator>
 </div>
-<div class="footer uk-text-small uk-text-muted uk-text-center uk-padding">
+<div class="footer uk-text-small uk-text-muted uk-text-center uk-padding uk-padding-remove-bottom">
     <LanguageSelector />
     <div class="uk-margin-top">
         <span>{ $_('poweredBy') }</span>
@@ -133,6 +133,11 @@
     </div>
     <div>
         <a class="uk-text-muted" href="https://asriyan.me" target="_blank">Ed Asriyan</a>
+    </div>
+    <div class="uk-margin-top uk-text-small">
+        <a href="/terms-and-conditions.txt" class="uk-text-muted" target="_blank">{ $_('termsAndConditions') }</a>
+        |
+        <a href="/privacy-policy.txt" class="uk-text-muted" target="_blank">{ $_('privacyPolicy') }</a>
     </div>
 </div>
 

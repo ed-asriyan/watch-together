@@ -80,6 +80,9 @@ const def = {
     peers: 'Peers: {peers}',
     fullscreen: 'Fullscreen',
     scrollUp: 'scroll up',
+    termsAndConditions: 'Terms and Conditions',
+    privacyPolicy: 'Privacy Policy',
+    termsAndConditionsReminder: 'By using this website, you agree with {termsAndConditions}Terms and Conditions{/termsAndConditions}, and {privacyPolicy}Privacy Policy{/privacyPolicy}',
     feedback: {
         link: 'https://forms.gle/YY8ypRnJ5b65QWhc6',
         linkText: 'Experience issues? Have any ideas? Please provide your feedback {link}here{/link}', 

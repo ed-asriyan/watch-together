@@ -83,6 +83,9 @@ const ru: TranslatedText = {
     peers: 'Пиры: {peers}',
     fullscreen: 'Плоноэкранный режим',
     scrollUp: 'прокрутите вверх',
+    termsAndConditions: 'Условия и положения',
+    privacyPolicy: 'Политика конфиденциальности',
+    termsAndConditionsReminder: 'Используя этот сайт, вы соглашаетесь с {termsAndConditions}Правилами и условиями{/termsAndConditions}, и {privacyPolicy}Политикой конфиденциальности{/privacyPolicy}',
     feedback: {
         link: 'https://forms.gle/tXzRyTQimJkHXNuS7',
         linkText: 'Возникли проблемы? Есть идеи? Оставьте обратную свзять {link}тут{/link}', 
