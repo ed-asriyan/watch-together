@@ -28,7 +28,7 @@
 		"tslib": "^2.6.2",
 		"typescript": "^5.2.2",
 		"uikit": "^3.21.13",
-		"vidstack": "^1.10.9",
+		"vidstack": "^1.12.11",
 		"vite": "^5.4.1",
 		"vite-plugin-pwa": "^0.19.8"
 	},
