@@ -1,8 +1,15 @@
 <script lang="ts">
-    export let ratio: number = 3;
+    interface Props {
+        ratio?: number;
+        children?: import('svelte').Snippet;
+    }
+
+    let { ratio = 3, children }: Props = $props();
+
+    const children_render = $derived(children);
 </script>
 
 <span class="container">
     <span uk-spinner={`ratio: ${ratio}`}></span>
-    <span><slot/></span>
+    <span>{@render children_render?.()}</span>
 </span>

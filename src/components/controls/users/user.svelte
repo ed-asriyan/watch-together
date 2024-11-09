@@ -1,9 +1,13 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
 
-    export let userName: string;
-    export let canEdit: boolean;
-    export let status: string;
+    interface Props {
+        userName: string;
+        canEdit: boolean;
+        status: string;
+    }
+
+    let { userName = $bindable(), canEdit, status }: Props = $props();
 
     const maxLength = 10;
 
@@ -26,7 +30,7 @@
         class="uk-text-emphasis uk-margin-small-top"
         class:pointer={canEdit}
         class:uk-text-large={userName.length === 1 || isEmoji(userName)}
-        on:click={updateName}
+        onclick={updateName}
         uk-tooltip={canEdit ? $_('users.nameEdit') : undefined }
     >
         { userName.slice(0, maxLength) }

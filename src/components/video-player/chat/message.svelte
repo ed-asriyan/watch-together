@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
     import type { Message } from '../../../stores/room/bound-messages';
 
     export type GroupedMessages = Message[];
@@ -11,8 +11,12 @@
     import type { User } from '../../../stores/user';
     import { me } from '../../../stores/me';
 
-    export let messageGroup: GroupedMessages;
-    export let users: User[];
+    interface Props {
+        messageGroup: GroupedMessages;
+        users: User[];
+    }
+
+    let { messageGroup, users }: Props = $props();
 
     const getUser = function (userId: string): User | undefined {
         return users.find(({ id }) => id == userId);
@@ -24,7 +28,7 @@
         return date.toISOString().slice(14, 19);
     };
 
-    $: messageText = (function (): string {
+    let messageText = $derived((function (): string {
         const message = messageGroup[0];
         switch (message.type) {
             case MessageType.regular:
@@ -39,11 +43,11 @@
                 return $_('player.chat.message.selectedLocalFile');
         }
         return '';
-    })();
+    })());
 </script>
 
 <div transition:slide>
-    {#if messageText.trim() }
+    {#if messageText.trim()}
         <div transition:fade class="video-text uk-text-break" class:user-message={messageGroup[0].type === MessageType.regular}>
             {#each new Set(messageGroup.map(({ userId }) => userId)) as userId, i}
                 {#if messageGroup.length > 1}

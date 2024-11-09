@@ -7,14 +7,18 @@
     import normalizeSource, { SourceType } from '../../normalize-source';
     import type { Room } from '../../stores/room';
 
-    export let forceLocal: boolean = false;
-    export let room: Room;
+    interface Props {
+        forceLocal?: boolean;
+        room: Room;
+    }
 
-    $: url = room.url;
+    let { forceLocal = false, room }: Props = $props();
 
-    let input: HTMLInputElement;
+    let url = $derived(room.url);
 
-    let sharingPending = false;
+    let input: HTMLInputElement = $state();
+
+    let sharingPending = $state(false);
     const loadSource = async function (file: any): Promise<void> {
         if (!forceLocal && navigator.serviceWorker && confirm($_('selectVideo.file.streamingConfirmation'))) {
             sharingPending = true;
@@ -33,8 +37,8 @@
     };
 </script>
 
-<input bind:this={input} type="file" on:change={e => loadSource(e.target.files[0])}/>
-<button disabled={sharingPending} on:click={() => input.click()} class="uk-button uk-button-default">
+<input bind:this={input} type="file" onchange={e => loadSource(e.target.files[0])}/>
+<button disabled={sharingPending} onclick={() => input.click()} class="uk-button uk-button-default">
     {#if sharingPending}
         <Loader ratio={0.6} /> { $_('selectVideo.file.streamingPending') }
     {:else if $blob}

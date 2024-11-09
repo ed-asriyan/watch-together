@@ -13,7 +13,7 @@
     }
 </script>
 
-<img transition:fade class="fullscreen pointer" on:click={fullscreen} src="https://img.icons8.com/?size=100&id=bVZzgZnZ6TqW&format=png&color=FFFFFF"
+<img transition:fade class="fullscreen pointer" onclick={fullscreen} src="https://img.icons8.com/?size=100&id=bVZzgZnZ6TqW&format=png&color=FFFFFF"
     uk-tooltip={ $_('fullscreen') }
 />
 

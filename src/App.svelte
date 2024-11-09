@@ -7,7 +7,7 @@
     import { environment, isProduction } from './settings';
     import './app.scss';
 
-    let roomId: string;
+    let roomId: string = $state();
 
     const testPrefix = 'test_';
     const syncHashAndRoomId = function () {
@@ -23,7 +23,7 @@
     syncHashAndRoomId();
 </script>
 
-<svelte:window on:hashchange={syncHashAndRoomId}></svelte:window>
+<svelte:window onhashchange={syncHashAndRoomId}></svelte:window>
 
 <Analytics/>
 

@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import { _ } from 'svelte-i18n';
     import type { Room } from '../stores/room';
     import VideoPlayer from './video-player/index.svelte';
@@ -11,14 +13,20 @@
     import ScrollIcon from './scroll-icon.svelte';
     import { cursorActive } from '../stores/cursor';
 
-    export let roomId: string;
-    export let room: Room;
-    let scrollY: number;
-    let clientHeight: number;
-
-    $: if (room && $blob) {
-        room?.messages.sendMessage('', MessageType.selectedLocalFile);
+    interface Props {
+        roomId: string;
+        room: Room;
     }
+
+    let { roomId, room }: Props = $props();
+    let scrollY: number = $state();
+    let clientHeight: number = $state();
+
+    run(() => {
+        if (room && $blob) {
+            room?.messages.sendMessage('', MessageType.selectedLocalFile);
+        }
+    });
 </script>
 
 <svelte:window bind:scrollY={scrollY} bind:innerHeight={clientHeight}></svelte:window>

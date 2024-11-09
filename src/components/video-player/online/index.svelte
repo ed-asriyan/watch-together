@@ -4,14 +4,18 @@
     import type { Room } from '../../../stores/room';
     import Lock from '../lock.svelte';
 
-    export let room: Room;
-    export let visible: boolean;
+    interface Props {
+        room: Room;
+        visible: boolean;
+    }
 
-    $: users = room?.users;
-    $: usersList = $users.map(user => user.name);
-    $: usersStr = [`${$me.name} (${$_('you')})`].concat(usersList).join(', ');
+    let { room, visible }: Props = $props();
 
-    let forceLock: boolean = false;
+    let users = $derived(room?.users);
+    let usersList = $derived($users.map(user => user.name));
+    let usersStr = $derived([`${$me.name} (${$_('you')})`].concat(usersList).join(', '));
+
+    let forceLock: boolean = $state(false);
 </script>
 
 {#if visible || forceLock}

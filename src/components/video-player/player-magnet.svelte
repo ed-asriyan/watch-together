@@ -9,19 +9,35 @@
     import VideoSelectorBtn from '../controls/video-selector-btn.svelte';
     import type { Room } from '../../stores/room';
 
-    export let room: Room;
-    export let source: Source;
-    export let currentTime: number;
-    export let paused: boolean;
-    export let muted: boolean;
+    interface Props {
+        room: Room;
+        source: Source;
+        currentTime: number;
+        paused: boolean;
+        muted: boolean;
+        chat?: import('svelte').Snippet;
+        children?: import('svelte').Snippet;
+    }
+
+    let {
+        room,
+        source,
+        currentTime = $bindable(),
+        paused = $bindable(),
+        muted = $bindable(),
+        chat,
+        children
+    }: Props = $props();
 
     const dispatch = createEventDispatcher();
+
+    const children_render = $derived(children);
 </script>
 
 {#if !navigator.serviceWorker}
     { $_('player.torrentNotSupported') }
     <div class="chat">
-        <slot name="chat" />
+        {@render chat?.()}
     </div>
 {:else}
     {#await getStreamUrl(source.src)}
@@ -34,7 +50,7 @@
                 <VideoSelectorBtn room={room} forceLocal={true} />
             </div>
             <div class="chat">
-                <slot name="chat" />
+                {@render chat?.()}
             </div>
         {/await}
     {:then streamUrl}
@@ -49,7 +65,9 @@
             on:play={() => dispatch('play')}
             on:timeupdate={() => dispatch('timeupdate')}
         >
-            <slot />
+            {#snippet children({ source })}
+                {@render children_render?.()}
+            {/snippet}
         </VideoPlayerVidstack>
     {/await}
 {/if}

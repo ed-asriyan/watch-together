@@ -1,3 +1,4 @@
+import { vite as vidstack } from 'vidstack/plugins';
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -6,6 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
     plugins: [
         svelte(),
+        vidstack(),
         // https://adueck.github.io/blog/caching-everything-for-totally-offline-pwa-vite-react
         VitePWA({
             workbox: {

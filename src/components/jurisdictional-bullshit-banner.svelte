@@ -20,13 +20,15 @@
 {#if +$counter < LIMIT}
     {#await sleep(5000)}
         <div transition:fade class="terms-and-conditions uk-text-center">
-            <Interpolator text={$_('termsAndConditionsReminder')} let:data={data}>
-                {#if data.name === 'termsAndConditions'}
-                    <a href="/terms-and-conditions.txt" class="uk-text-muted" target="_blank">{ data.text }</a>
-                {/if}
-                {#if data.name === 'privacyPolicy'}
-                <a href="/privacy-policy.txt" class="uk-text-muted" target="_blank">{ data.text }</a>
-            {/if}
+            <Interpolator text={$_('termsAndConditionsReminder')} >
+                {#snippet children({ data: data })}
+                    {#if data.name === 'termsAndConditions'}
+                        <a href="/terms-and-conditions.txt" class="uk-text-muted" target="_blank">{ data.text }</a>
+                    {/if}
+                    {#if data.name === 'privacyPolicy'}
+                        <a href="/privacy-policy.txt" class="uk-text-muted" target="_blank">{ data.text }</a>
+                    {/if}
+                {/snippet}
             </Interpolator>
         </div>
     {:then a}

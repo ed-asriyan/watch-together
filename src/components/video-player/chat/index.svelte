@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { preventDefault } from 'svelte/legacy';
+
     import { onMount, onDestroy, tick } from 'svelte';
     import { fade } from 'svelte/transition';
     import { _ } from 'svelte-i18n';
@@ -11,19 +13,23 @@
 
     const temporaryUnlockTimeout = 10;
 
-    export let room: Room;
-    export let displayInput: boolean;
+    interface Props {
+        room: Room;
+        displayInput: boolean;
+    }
 
-    $: users = room?.users;
-    $: messagesStore = room?.messages;
-    $: messages = $messagesStore.filter(({ type }) => type !== MessageType.reaction);
+    let { room, displayInput }: Props = $props();
 
-    let input: string;
-    let lockState: boolean = false;
-    let temporaryUnlock: number = 0;
-    let inputElement: HTMLInputElement;
+    let users = $derived(room?.users);
+    let messagesStore = $derived(room?.messages);
+    let messages = $derived($messagesStore.filter(({ type }) => type !== MessageType.reaction));
 
-    $: inputVisibility = displayInput || lockState || input || temporaryUnlock;
+    let input: string = $state();
+    let lockState: boolean = $state(false);
+    let temporaryUnlock: number = $state(0);
+    let inputElement: HTMLInputElement = $state();
+
+    let inputVisibility = $derived(displayInput || lockState || input || temporaryUnlock);
 
     const groupByType = function (messages: Message[]): GroupedMessages[] {
         return groupConsecutiveElements(messages, (m1, m2) => 
@@ -84,7 +90,7 @@
         </div>
     {/if}
 
-    <form class="uk-form uk-width-1-1" transition:fade style:visibility={inputVisibility ? '' : 'collapse'} on:submit|preventDefault={sendMessage}>
+    <form class="uk-form uk-width-1-1" transition:fade style:visibility={inputVisibility ? '' : 'collapse'} onsubmit={preventDefault(sendMessage)}>
         <input bind:this={inputElement} class="uk-input uk-width-1-1" bind:value={input} placeholder={$_('player.chat.inputPlaceholder')} />
         <span
             class="lock-btn uk-text-large"

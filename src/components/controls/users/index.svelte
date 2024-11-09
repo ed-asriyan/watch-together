@@ -4,7 +4,11 @@
     import { me } from '../../../stores/me';
     import User from './user.svelte';
 
-    export let users: UserModel[];
+    interface Props {
+        users: UserModel[];
+    }
+
+    let { users }: Props = $props();
 </script>
 
 <div class="users uk-flex-center uk-flex uk-text-center uk-flex-middle">

@@ -2,8 +2,12 @@
     import { _ } from 'svelte-i18n';
     import { fade } from 'svelte/transition';
 
-    export let display: boolean;
-    let isOnline: boolean;
+    interface Props {
+        display: boolean;
+    }
+
+    let { display }: Props = $props();
+    let isOnline: boolean = $state();
 </script>
 
 <svelte:window bind:online={isOnline}></svelte:window>

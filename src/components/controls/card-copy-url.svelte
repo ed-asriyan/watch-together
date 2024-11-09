@@ -5,10 +5,14 @@
     import type { Room } from '../../stores/room';
     import Loader from '../loader.svelte';
 
-    export let room: Room;
-    export let highlight: boolean;
+    interface Props {
+        room: Room;
+        highlight: boolean;
+    }
 
-    let copyTumbler: boolean = false;
+    let { room, highlight }: Props = $props();
+
+    let copyTumbler: boolean = $state(false);
 
     const copyToClipboard = function () {
         const input = document.createElement('input');
@@ -20,7 +24,7 @@
         trigger();
     };
 
-    $: url = !!room && `${location.protocol}//${location.host}${location.pathname}#${room.id}`; 
+    let url = $derived(!!room && `${location.protocol}//${location.host}${location.pathname}#${room.id}`); 
     const canShare: boolean = Boolean(navigator.share);
 
     const linkClick = function () {
@@ -53,7 +57,7 @@
                     class:gradient-text={highlight}
                     class:uk-text-bold={highlight}
                     uk-tooltip={canShare ? $_('invite.clickToShare') : $_('invite.clickToCopy')}
-                    on:click={linkClick}
+                    onclick={linkClick}
                 >
                     {url}
                 </div>
@@ -68,10 +72,12 @@
             <br/>
         {:else}
             {#if canShare}
-                <Interpolator text={$_('invite.clickToShareHint')} let:data={data}>
-                    {#if data.name === 'link' }
-                        <span class="uk-text-secondary pointer" on:click={copyToClipboard}>{ data.text }</span>
-                    {/if}
+                <Interpolator text={$_('invite.clickToShareHint')} >
+                    {#snippet children({ data: data })}
+                                        {#if data.name === 'link'}
+                            <span class="uk-text-secondary pointer" onclick={copyToClipboard}>{ data.text }</span>
+                        {/if}
+                    {/snippet}
                 </Interpolator>
             {:else}
                 { $_('invite.copyLink') }

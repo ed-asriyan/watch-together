@@ -1,8 +1,12 @@
 <script lang="ts">
-    export let locked: boolean;
+    interface Props {
+        locked: boolean;
+    }
+
+    let { locked = $bindable() }: Props = $props();
 </script>
 
-<span class="lock pointer" on:click={() => locked = !locked }>
+<span class="lock pointer" onclick={() => locked = !locked}>
     {#if locked}
         🔒
     {:else}

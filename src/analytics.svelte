@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
     import { analytics, isProduction } from './settings';
     import normalizeSource, { SourceType } from './normalize-source';
     import { blob } from './stores/blob';

@@ -14,19 +14,23 @@
     import { PausedEvent, PlayedEvent, SeekedEvent, track, WatchedMinuteEvent } from '../../analytics.svelte';
     import { defaultVideo } from '../../settings';
 
-    export let room: Room;
+    interface Props {
+        room: Room;
+    }
 
-    $: url = room?.url;
-    $: currentTime = room?.currentTime;
-    $: paused = room?.paused;
-    $: source = normalizeSource($url);
+    let { room }: Props = $props();
 
-    $: displayControls = (source && $paused) || $cursorActive;
+    let url = $derived(room?.url);
+    let currentTime = $derived(room?.currentTime);
+    let paused = $derived(room?.paused);
+    let source = $derived(normalizeSource($url));
+
+    let displayControls = $derived((source && $paused) || $cursorActive);
     
-    let muted = true;
+    let muted = $state(true);
 
     type Player = 'vidstack' | 'magnet' | null;
-    $: playerType = (function() {
+    let playerType = $derived((function() {
         switch (source?.type) {
             case SourceType.Vimeo:
             case SourceType.YouTube:
@@ -37,7 +41,7 @@
             default:
                 return null;
         }
-    })();
+    })());
 
     let watchMinuteAnalyticsTimeInterval: number;;
     onMount(() => {

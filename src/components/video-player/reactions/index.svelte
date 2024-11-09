@@ -6,15 +6,19 @@
     import { reactions } from '../../../settings';
     import { ReactionSentEvent, track } from '../../../analytics.svelte';
 
-    export let room: Room;
-    export let displayButtons: boolean;
+    interface Props {
+        room: Room;
+        displayButtons: boolean;
+    }
 
-    $: messagesStore = room?.messages;
-    $: chatReactions = $messagesStore
+    let { room, displayButtons }: Props = $props();
+
+    let messagesStore = $derived(room?.messages);
+    let chatReactions = $derived($messagesStore
         .filter(({ type }) => type == MessageType.reaction)
-        .map(({ text, id, timestamp }) => ({ id, text, count: Math.round(timestamp * 1000) % 9 + 1 }));
+        .map(({ text, id, timestamp }) => ({ id, text, count: Math.round(timestamp * 1000) % 9 + 1 })));
 
-    $: buttonsVisibility = displayButtons;
+    let buttonsVisibility = $derived(displayButtons);
 
     const sendReaction = function (reaction: string) {
         room.messages.sendMessage(reaction, MessageType.reaction);
@@ -36,7 +40,7 @@
 {#if buttonsVisibility}
     <div class="reactions-btns noselect" transition:fade>
         {#each reactions as reaction}
-            <span class="reaction-btn pointer" on:click={() => sendReaction(reaction)}>{ reaction }</span>
+            <span class="reaction-btn pointer" onclick={() => sendReaction(reaction)}>{ reaction }</span>
         {/each}
     </div>
 {/if}

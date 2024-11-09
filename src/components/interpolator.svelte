@@ -3,7 +3,12 @@
     const regex = /({[^}]*}[^{]*{\/[^}]*}|{[^}]+})/i;
     const itemRegex = /{([^}]*)}([^{]*){\/[^}]*}/i;
 
-    export let text: string;
+    interface Props {
+        text: string;
+        children?: import('svelte').Snippet<[any]>;
+    }
+
+    let { text, children }: Props = $props();
 
     const getData = function (item: string) {
         const result = item.split(itemRegex);
@@ -13,7 +18,7 @@
 
 {#each text.split(regex) as item}
     {#if item.startsWith('{')}
-        <slot data={getData(item)}/>
+        {@render children?.({ data: getData(item), })}
     {:else}
         { item }
     {/if}

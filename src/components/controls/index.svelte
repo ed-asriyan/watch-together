@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { run } from 'svelte/legacy';
+
     import { tick } from 'svelte';
     import { _ } from 'svelte-i18n';
     import type { Room } from '../../stores/room';
@@ -12,14 +14,18 @@
     import { randomStr } from '../../utils';
     import normalizeSource, { type Source } from '../../normalize-source';
 
-    export let room: Room;
+    interface Props {
+        room: Room;
+    }
 
-    $: users = room?.users;
-    $: url = room?.url;
-    $: highlightVideoSelector = room && !$url && !$blob;
-    $: highlightInvite = room && !highlightVideoSelector && $users?.length < 1;
+    let { room }: Props = $props();
 
-    $: source = url && $url && normalizeSource($url);
+    let users = $derived(room?.users);
+    let url = $derived(room?.url);
+    let highlightVideoSelector = $derived(room && !$url && !$blob);
+    let highlightInvite = $derived(room && !highlightVideoSelector && $users?.length < 1);
+
+    let source = $derived(url && $url && normalizeSource($url));
 
     const updateRoom = function (newRoomId: string) {
         document.location.hash = `#${newRoomId}`;
@@ -61,11 +67,11 @@
         window.scrollTo({ top, behavior: 'smooth' });
     };
 
-    let container: HTMLElement;
-    let firstTime = true;
-    let lastSource: Source | null | "" = null;
-    let lastUsersCount = 0;
-    $: {
+    let container: HTMLElement = $state();
+    let firstTime = $state(true);
+    let lastSource: Source | null | "" = $state(null);
+    let lastUsersCount = $state(0);
+    run(() => {
         let shouldScroll: boolean = false;
         if (firstTime) {
             if (users) {
@@ -80,7 +86,7 @@
             lastUsersCount = $users.length;
         }
         shouldScroll && tick().then(() => scroll(source && $users.length ? 'top' : 'bottom'));
-    };
+    });
 </script>
 
 <div bind:this={container} class="uk-container uk-grid-collapse uk-grid-match" uk-grid>
@@ -101,13 +107,13 @@
             <Users users={$users} />
         </div>
         <div class="button uk-flex uk-margin-top uk-flex-column">
-            <button class="uk-button uk-button-default glass" on:click={generateNewRoom}>
+            <button class="uk-button uk-button-default glass" onclick={generateNewRoom}>
                 ↻
                 { $_('room.generateNewRoom.button') }
             </button>
         </div>
         <div class="button uk-flex uk-margin-top uk-flex-column">
-            <button class="uk-button uk-button-default glass" on:click={joinAnotherRoom}>
+            <button class="uk-button uk-button-default glass" onclick={joinAnotherRoom}>
                 { $_('room.joinAnotherRoom') }
                 →
             </button>
@@ -115,11 +121,13 @@
     </div>
 </div>
 <div class="uk-text-small uk-width-1-1 uk-text-center uk-margin-medium-top">
-    <Interpolator text={$_('feedback.linkText')} let:data={data}>
-        {#if data.name === 'link'}
-            <a href={$_('feedback.link')} target="_blank">{ data.text }</a>
-        {/if}
-    </Interpolator>
+    <Interpolator text={$_('feedback.linkText')} >
+        {#snippet children({ data: data })}
+                {#if data.name === 'link'}
+                <a href={$_('feedback.link')} target="_blank">{ data.text }</a>
+            {/if}
+                    {/snippet}
+        </Interpolator>
 </div>
 <div class="footer uk-text-small uk-text-muted uk-text-center uk-padding uk-padding-remove-bottom">
     <LanguageSelector />

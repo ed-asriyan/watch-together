@@ -4,8 +4,12 @@
     import Online from './online/index.svelte';
     import Reactions from './reactions/index.svelte';
 
-    export let room: Room
-    export let visible: boolean;
+    interface Props {
+        room: Room;
+        visible: boolean;
+    }
+
+    let { room, visible }: Props = $props();
 </script>
 
 <Chat room={room} displayInput={visible} />

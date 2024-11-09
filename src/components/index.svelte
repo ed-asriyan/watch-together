@@ -4,7 +4,11 @@
     import { Room } from '../stores/room';
     import RoomPage from './room.svelte';
 
-    export let roomId: string;
+    interface Props {
+        roomId: string;
+    }
+
+    let { roomId }: Props = $props();
 
     let previousRoom: Room;
     const destroy = async function () {
@@ -27,7 +31,7 @@
         <RoomPage roomId={roomId} room={room} />
     {:catch e}
         <h3 class="uk-margin-medium-bottom uk-text-leads">{ $_('error.description') } 💩</h3>
-        <button class="uk-button uk-button-default" on:click={() => location.reload()}>{ $_('error.reload') }</button>
+        <button class="uk-button uk-button-default" onclick={() => location.reload()}>{ $_('error.reload') }</button>
         <code class="uk-margin-medium-top uk-text-smsall">{ e.stack || e }</code>
     {/await}
 </div>

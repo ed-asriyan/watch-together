@@ -1,31 +1,42 @@
 <script lang="ts">
-    // Import styles.
-    import 'vidstack/player/styles/default/theme.css';
-    import 'vidstack/player/styles/default/layouts/audio.css';
-    import 'vidstack/player/styles/default/layouts/video.css';
-    // Register elements.
-    import 'vidstack/player';
-    import 'vidstack/player/layouts';
-    import 'vidstack/player/ui';
+    import { run } from 'svelte/legacy';
+    import 'vidstack/bundle';
+    import { defineCustomElement, MediaPlayerElement } from 'vidstack/elements';
 
     import { onDestroy, createEventDispatcher } from 'svelte';
-    import type { MediaPlayerElement } from 'vidstack/elements';
     import type { Source } from '../../normalize-source';
+
+    defineCustomElement(MediaPlayerElement);
 
     const dispatch = createEventDispatcher();
 
-    export let source: Source;
-    export let currentTime: number;
-    export let paused: boolean;
-    export let muted: boolean;
+    interface Props {
+        source: Source;
+        currentTime: number;
+        paused: boolean;
+        muted: boolean;
+    }
 
-    let player: MediaPlayerElement;
+    let {
+        source,
+        currentTime = $bindable(),
+        paused = $bindable(),
+        muted = $bindable()
+    }: Props = $props();
 
-    let isMounted = false;
+    let player: MediaPlayerElement = $state();
 
-    $: isMounted && (player.currentTime = currentTime);
-    $: isMounted && (player.paused = paused);
-    $: isMounted && (player.muted = muted);
+    let isMounted = $state(false);
+
+    run(() => {
+        isMounted && (player.currentTime = currentTime);
+    });
+    run(() => {
+        isMounted && (player.paused = paused);
+    });
+    run(() => {
+        isMounted && (player.muted = muted);
+    });
 
 
     let unsubscribe: () => void;
@@ -51,9 +62,11 @@
         unsubscribe && unsubscribe();
     };
 
-    $: if (player) {
-        init();
-    }
+    run(() => {
+        if (player) {
+            init();
+        }
+    });
 
     onDestroy(() => {
         destroy()
@@ -78,8 +91,8 @@
     <media-provider>
     </media-provider>
     <!-- Layouts -->
-    <media-audio-layout />
-    <media-video-layout />
+    <media-audio-layout></media-audio-layout>
+    <media-video-layout></media-video-layout>
     <!-- <media-controls>
         
     </media-controls> -->
