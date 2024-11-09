@@ -10,7 +10,7 @@ const ru: TranslatedText = {
         link: {
             title: 'Онлайн ссылка:',
             insertExample: 'вставить пример',
-            description: 'Вставь ссылку на {type}Dailymotion{/type}, {type}YouTube{/type}, {type}Vimeo{/type}, {type}HLS{/type} плейлист, {type}видео{/type} или {type}аудио{/type} файл. Поле ввода синхронизованно со всеми в этой комнате.',
+            description: 'Вставь ссылку на {type}YouTube{/type}, {type}Vimeo{/type}, {type}HLS{/type} плейлист, {type}видео{/type} или {type}аудио{/type} файл. Поле ввода синхронизованно со всеми в этой комнате.',
             hintNotWorking: 'Если фильм не грузится, убедись, что введена {u}прямая{/u} ссылка на видео.',
             hintEmpty: 'Не знаешь, как получить прямую ссылку на видео?',
             hintInvalid: 'Неверная ссылка',

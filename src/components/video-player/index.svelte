@@ -4,7 +4,6 @@
     import normalizeSource, { Source, SourceType } from '../../normalize-source';
     import { exploreUrl } from './explore-url';
     import VideoPlayerVidstack from './video-player-vidstack.svelte';
-    import VideoPlayerVime from './video-player-vime.svelte';
     import VideoPlayerMagnet from './player-magnet.svelte';
     import Loader from '../loader.svelte';
     import Inplayer from './inplayer.svelte';
@@ -26,11 +25,9 @@
     
     let muted = true;
 
-    type Player = 'vime' | 'vidstack' | 'magnet' | null;
+    type Player = 'vidstack' | 'magnet' | null;
     $: playerType = (function() {
         switch (source?.type) {
-            case SourceType.DailyMotion:
-                return 'vime';
             case SourceType.Vimeo:
             case SourceType.YouTube:
             case SourceType.direct:
@@ -116,8 +113,6 @@
                             on:play={onPlay}
                             on:timeupdate={onTimeUpdate}
                         />
-                    {:else if playerType === 'vime'}
-                        <VideoPlayerVime source={normalizedSource} bind:paused={$paused} bind:currentTime={$currentTime} bind:muted={muted}/>
                     {:else if playerType === 'magnet'}
                         <VideoPlayerMagnet
                             source={normalizedSource}

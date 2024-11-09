@@ -10,7 +10,7 @@ const fr: TranslatedText = {
         link: {
             title: 'Du lien:',
             insertExample: 'coller un exemple',
-            description: 'Insérez un lien vers une playlist {type}Dailymotion{/type}, {type}YouTube{/type}, {type}Vimeo{/type}, {type}HLS{/type}, {type}vidéo{/type} ou Fichier {type}audio{/type}. L\'entrée est synchronisée avec toutes les personnes présentes dans la pièce.',
+            description: 'Insérez un lien vers une playlist {type}YouTube{/type}, {type}Vimeo{/type}, {type}HLS{/type}, {type}vidéo{/type} ou Fichier {type}audio{/type}. L\'entrée est synchronisée avec toutes les personnes présentes dans la pièce.',
             hintNotWorking: 'Si le film ne démarre pas, assurez-vous que le lien vidéo {u}direct{/u} est inséré.',
             hintEmpty: 'Vous ne savez pas comment obtenir un lien vidéo à partir d\'un site Web ?',
             hintInvalid: 'le lien vidéo n\'est pas valide',

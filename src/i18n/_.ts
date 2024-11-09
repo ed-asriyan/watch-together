@@ -8,7 +8,7 @@ const def = {
         link: {
             title: 'From Link:',
             insertExample: 'paste an example',
-            description: 'Insert a link to {type}Dailymotion{/type}, {type}YouTube{/type}, {type}Vimeo{/type}, {type}HLS{/type} playlist, {type}video{/type} or {type}audio{/type} file. The input is synced with everyone in the room.',
+            description: 'Insert a link to {type}YouTube{/type}, {type}Vimeo{/type}, {type}HLS{/type} playlist, {type}video{/type} or {type}audio{/type} file. The input is synced with everyone in the room.',
             hintNotWorking: 'If the movie doesn\'t play, make sure the {u}direct{/u} video link is inserted.',
             hintEmpty: 'Don\'t know how to get a video link from a website?',
             hintInvalid: 'Video link is invalid',

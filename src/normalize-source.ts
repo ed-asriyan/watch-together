@@ -4,7 +4,6 @@ export enum SourceType {
     blob = 'blob',
     direct = 'direct',
     magnet = 'magnet',
-    DailyMotion = 'Dailymotion',
     YouTube = 'YouTube',
     Vimeo = 'Vimeo',
 }
@@ -66,16 +65,6 @@ class Vimeo extends SourceBuilderRegex {
     }
 }
 
-class Dailymotion extends SourceBuilderRegex {
-    // https://stackoverflow.com/a/50644701
-    protected static regex = /^(?:(?:https?):)?(?:\/\/)?(?:www\.)?(?:(?:dailymotion\.com(?:\/embed)?\/video)|dai\.ly)\/([a-zA-Z0-9]+)(?:_[\w_-]+)?$/;
-    protected static type = SourceType.DailyMotion;
-
-    parseRegex(result: RegExpMatchArray): string {
-        return result[1];
-    }
-}
-
 class Magnet extends SourceBuilder {
     protected static type = SourceType.magnet;
 
@@ -105,7 +94,6 @@ class Direct extends SourceBuilder {
 const parsers: SourceBuilder[] = [
     new YouTube(),
     new Vimeo(),
-    new Dailymotion(),
     new Magnet(),
     new Direct(), // direct should always be the last one
 ];
