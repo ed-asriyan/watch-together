@@ -76,7 +76,7 @@
 <media-player
     class="uk-width-1-1 uk-height-1-1"
     bind:this={player}
-    src={source.src}
+    src={{ src: source.src }}
     autoplay
     playsInline
     preload="metadata"
@@ -88,14 +88,9 @@
     on:play={() => dispatch('play')}
     on:time-update={() => dispatch('timeupdate')}
 >
-    <media-provider>
-    </media-provider>
-    <!-- Layouts -->
+    <media-provider></media-provider>
     <media-audio-layout></media-audio-layout>
     <media-video-layout></media-video-layout>
-    <!-- <media-controls>
-        
-    </media-controls> -->
 </media-player>
 
 <style lang="scss">
