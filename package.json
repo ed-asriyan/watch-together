@@ -28,7 +28,7 @@
 		"uikit": "^3.21.13",
 		"vidstack": "^1.11.30",
 		"vite": "^5.4.4",
-		"vite-plugin-pwa": "^0.19.8"
+		"vite-plugin-pwa": "^0.21.0"
 	},
 	"type": "module"
 }
