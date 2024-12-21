@@ -12,7 +12,7 @@
     import { cursorActive } from '../../stores/cursor';
     import { MessageType } from '../../stores/room/bound-messages';
     import { PausedEvent, PlayedEvent, SeekedEvent, track, WatchedMinuteEvent } from '../../analytics.svelte';
-    import { defaultVideo } from '../../settings';
+    import { defaultVideos } from '../../settings';
 
     interface Props {
         room: Room;
@@ -55,6 +55,10 @@
     onDestroy(() => {
         clearInterval(watchMinuteAnalyticsTimeInterval);
     });
+
+    const getRandomDefaultVideo = function (): string {
+        return defaultVideos[Math.floor(Math.random() * defaultVideos.length)];
+    };
 
     let currentVideoTime = 0;
     let saveCurrentTime = true;
@@ -133,8 +137,8 @@
                     {/if}
                 {/await}
             {:else}
-                {#if defaultVideo}
-                    <VideoPlayerVidstack source={normalizeSource(defaultVideo)} muted={true}/>
+                {#if defaultVideos}
+                    <VideoPlayerVidstack source={normalizeSource(getRandomDefaultVideo())} muted={true}/>
                 {/if}
             {/if}
         {/if}

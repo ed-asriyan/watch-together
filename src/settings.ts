@@ -38,4 +38,4 @@ export const userNames: string[] = import.meta.env['VITE_USERNAMES']?.split(',')
 
 export const reactions: string = import.meta.env['VITE_REACTIONS']?.split(',').map((x: string) => x.trim());
 
-export const defaultVideo: string = import.meta.env['VITE_DEFAULT_VIDEO'];
+export const defaultVideos: string[] = import.meta.env['VITE_DEFAULT_VIDEOS'].split(',').map((x: string) => x.trim());
