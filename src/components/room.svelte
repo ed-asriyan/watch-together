@@ -14,11 +14,10 @@
     import { cursorActive } from '../stores/cursor';
 
     interface Props {
-        roomId: string;
         room: Room;
     }
 
-    let { roomId, room }: Props = $props();
+    let { room }: Props = $props();
     let scrollY: number = $state();
     let clientHeight: number = $state();
 
@@ -48,17 +47,26 @@
 {/if}
 
 <style lang="scss">
+    .player, .controls {
+        --height: 100vh;
+    }
+    @media (max-width : 675px) {
+        .player, .controls {
+            --height: 50vh;
+        }
+    }
+
     .player {
         position: fixed;
         left: 0;
         top: 0;
         z-index: 0;
-        height: 100vh;
+        height: var(--height);
         width: 100vw;
     }
 
     .controls {
         z-index: 2;
-        margin-top: 100vh;
+        margin-top: var(--height);
     }
 </style>

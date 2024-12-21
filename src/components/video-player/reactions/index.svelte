@@ -75,6 +75,19 @@
         }
     }
 
+    @media (max-width: 675px) {
+        .reactions-btns {
+            left: 0;
+            width: 100%;
+            margin: 0;
+            bottom: -1rem;
+
+            & .reaction-btn {
+                font-size: 2rem;
+            }
+        }
+    }
+
     .reaction {
         position: absolute;
         display: inline-block;

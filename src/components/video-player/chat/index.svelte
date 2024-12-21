@@ -118,8 +118,9 @@
 
     @media (max-width : 675px) {
         .chat {
-            bottom: 4rem;
-            left: 0;
+            bottom: 3rem;
+            width: calc(100% - 2rem);
+            left: 1rem;
         }
     }
 

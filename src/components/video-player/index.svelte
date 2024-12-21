@@ -25,12 +25,14 @@
     let paused = $derived(room?.paused);
     let source = $derived(normalizeSource($url));
 
-    let displayControls = $derived((source && $paused) || $cursorActive);
+    let innerWidth: number = $state();
+
+    let displayControls = $derived((source && $paused) || $cursorActive || innerWidth < 675);
     
     let muted = $state(true);
 
     type Player = 'vidstack' | 'magnet' | null;
-    let playerType = $derived((function() {
+    let playerType: Player = $derived((function(): Player {
         switch (source?.type) {
             case SourceType.Vimeo:
             case SourceType.YouTube:
@@ -88,6 +90,8 @@
         }
     };
 </script>
+
+<svelte:window bind:innerWidth />
 
 <div class="viewer uk-text-small uk-flex uk-flex-center uk-flex-column uk-text-break uk-text-center">
     {#if room}
@@ -150,7 +154,13 @@
 
 <style lang="scss">
     .viewer {
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
+    }
+
+    @media (max-width: 675px) {
+        .viewer {
+            height: calc(100% - 6rem);
+        }
     }
 </style>

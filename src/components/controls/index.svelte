@@ -73,17 +73,20 @@
     let lastUsersCount = $state(0);
     run(() => {
         let shouldScroll: boolean = false;
-        if (firstTime) {
-            if (users) {
-                firstTime = false;
-                shouldScroll = true;
+
+        if (window.innerWidth > 675) {
+            if (firstTime) {
+                if (users) {
+                    firstTime = false;
+                    shouldScroll = true;
+                }
+            } else {
+                if (lastUsersCount === 0 && $users.length || (lastSource === "" || lastSource === null) !== (source === "" || source === null)) {
+                    shouldScroll = true;
+                }
+                lastSource = source;
+                lastUsersCount = $users.length;
             }
-        } else {
-            if (lastUsersCount === 0 && $users.length || (lastSource === "" || lastSource === null) !== (source === "" || source === null)) {
-                shouldScroll = true;
-            }
-            lastSource = source;
-            lastUsersCount = $users.length;
         }
         shouldScroll && tick().then(() => scroll(source && $users.length ? 'top' : 'bottom'));
     });
@@ -151,6 +154,6 @@
 
 <style lang="scss">
     .uk-card-title {
-        font-weight: bold;;
+        font-weight: bold;
     }
 </style>
