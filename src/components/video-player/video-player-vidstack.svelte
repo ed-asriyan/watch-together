@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
     import 'vidstack/bundle';
     import { defineCustomElement, MediaPlayerElement } from 'vidstack/elements';
 
@@ -28,16 +27,13 @@
 
     let isMounted = $state(false);
 
-    run(() => {
-        isMounted && (player.currentTime = currentTime);
+    $effect(() => {
+        if (isMounted) {
+            player.currentTime = currentTime;
+            player.paused = paused;
+            player.muted = muted;
+        }
     });
-    run(() => {
-        isMounted && (player.paused = paused);
-    });
-    run(() => {
-        isMounted && (player.muted = muted);
-    });
-
 
     let unsubscribe: () => void;
     const init = function () {
@@ -62,7 +58,7 @@
         unsubscribe && unsubscribe();
     };
 
-    run(() => {
+    $effect(() => {
         if (player) {
             init();
         }

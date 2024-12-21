@@ -116,11 +116,15 @@
         width: min(min(30%, 30rem), 100%);
     }
 
-    @media (max-width : 675px) {
+    @media (max-width: 675px) {
         .chat {
             bottom: 3rem;
             width: calc(100% - 2rem);
             left: 1rem;
+        }
+
+        .messages-box {
+            margin-bottom: 5rem !important;
         }
     }
 

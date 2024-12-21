@@ -18,7 +18,7 @@ export class BoundTimedStore<T> implements Writable<T> {
         this.store = writable<TimedValue<T>>(defauleRaw, set => {
             return this.remote.subscribe(newValue => {
                 const storeValue = get(this.store);
-                if (newValue.updatedAt > storeValue.updatedAt + tolerance) {
+                if (newValue.value !== storeValue.value && newValue.updatedAt > storeValue.updatedAt + tolerance) {
                     set(newValue);
                 }
             });
@@ -38,18 +38,22 @@ export class BoundTimedStore<T> implements Writable<T> {
         });
     }
 
-    set (value: T) {
-        if (value !== undefined) {
+    private setWithKnownCurrentValue (value: T, currentValue: T) {
+        if (value !== undefined && value !== currentValue) {
             const raw = { value, updatedAt: now() };
             this.store.set(raw);
             this.remote.set(raw);
         }
     }
 
+    set (value: T) {
+        this.setWithKnownCurrentValue(value, get(this.store)?.value);
+    }
+
     update (func: Updater<T>) {
         const currentValue = get(this.store)?.value;
         const newValue = func(currentValue);
-        this.set(newValue);
+        this.setWithKnownCurrentValue(newValue, currentValue);
     }
 
     async init () {
