@@ -1,9 +1,10 @@
 <script lang="ts">
     import { _ } from 'svelte-i18n';
-    import Interpolator from '../interpolator.svelte';
-    import { track, ClickEvent } from '../../analytics.svelte';
-    import type { Room } from '../../stores/room';
-    import Loader from '../loader.svelte';
+    import Interpolator from '../../interpolator.svelte';
+    import { track, ClickEvent } from '../../../analytics.svelte';
+    import type { Room } from '../../../stores/room';
+    import Loader from '../../loader.svelte';
+    import Users from './users/index.svelte';
 
     interface Props {
         room: Room;
@@ -12,6 +13,7 @@
 
     let { room, highlight }: Props = $props();
 
+    let users = $derived(room?.users || []);
     let copyTumbler: boolean = $state(false);
 
     const copyToClipboard = function () {
@@ -84,4 +86,13 @@
             {/if}
         {/if}
     </div>
+</div>
+
+<hr class="uk-margin-bottom"/>
+
+<div class="uk-width-1-1">
+    <div class="uk-text-center uk-text-muted uk-text-small uk-margin-small-bottom">
+        { $_('player.onlineUsers') }
+    </div>
+    <Users users={$users} />
 </div>

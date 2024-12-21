@@ -5,9 +5,8 @@
     import { _ } from 'svelte-i18n';
     import type { Room } from '../../stores/room';
     import { blob } from '../../stores/blob';
-    import CardCopyUrl from './card-copy-url.svelte';
+    import CardUsers from './card-users/index.svelte';
     import CardVideoSelector from './card-video-selector.svelte';
-    import Users from './users/index.svelte';
     import Interpolator from '../interpolator.svelte';
     import LanguageSelector from './language-selector.svelte';
     import { ClickEvent, track } from '../../analytics.svelte';
@@ -100,14 +99,9 @@
         </div>
     </div>
     <div class="uk-width-1-2@m uk-padding-small">
-        <div class:gradient-border={highlightInvite}>
-            <div class="tile uk-text-center uk-width-1-1">
-                <h2 class="uk-card-title" class:gradient-text={highlightInvite}>👥 { $_('invite.title') }</h2>
-                <CardCopyUrl room={room} highlight={highlightInvite} />
-            </div>
-        </div>
-        <div class="uk-width-1-1 uk-margin-top">
-            <Users users={$users} />
+        <div class="tile uk-text-center uk-width-1-1">
+            <h2 class="uk-card-title" class:gradient-text={highlightInvite}>👥 { $_('invite.title') }</h2>
+            <CardUsers room={room} highlight={highlightInvite} />
         </div>
         <div class="button uk-flex uk-margin-top uk-flex-column">
             <button class="uk-button uk-button-default glass" onclick={generateNewRoom}>

@@ -21,7 +21,7 @@
 {#if visible || forceLock}
     <div class="users">
         <Lock bind:locked={forceLock} />
-        { $_('player.onlineUsers',  { values: { users: usersStr, number: usersList.length + 1 }}) }
+        { $_('player.onlineUsersList',  { values: { users: usersStr, number: usersList.length + 1 }}) }
     </div>
 {/if}
 

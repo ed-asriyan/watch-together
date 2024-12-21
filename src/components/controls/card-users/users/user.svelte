@@ -24,12 +24,12 @@
 </script>
 
 <div
-    class="tile user uk-text-center uk-flex uk-flex-column uk-flex-center uk-flex-middle uk-flex-middle uk-margin-small-right uk-margin-small-left"
+    class="user uk-text-center uk-flex uk-flex-column uk-flex-center uk-flex-middle uk-flex-middle uk-margin-small-right uk-margin-small-left"
 >
     <div
         class="uk-text-emphasis uk-margin-small-top"
         class:pointer={canEdit}
-        class:uk-text-large={userName.length === 1 || isEmoji(userName)}
+        class:text-large={userName.length === 1 || isEmoji(userName)}
         onclick={updateName}
         uk-tooltip={canEdit ? $_('users.nameEdit') : undefined }
     >
@@ -46,5 +46,10 @@
         width: 4.5rem;
         text-wrap: wrap;
         padding: 0.5rem;
+        font-size: 1.5rem;
+    }
+
+    .text-large {
+        font-size: 3rem;
     }
 </style>
