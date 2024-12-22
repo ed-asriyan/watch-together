@@ -31,6 +31,9 @@ jobs:
         run: |
           echo "$ENV_FILE_CONTENT" > .env
 
+      - name: Add git commit hash to .env file
+        run: echo -e "\nVITE_VERSION=$(git rev-parse --short HEAD)" >> .env
+
       - name: Build the app
         run: make prod_build_bundle
 

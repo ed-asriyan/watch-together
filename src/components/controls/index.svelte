@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run } from 'svelte/legacy';
-
     import { tick } from 'svelte';
     import { _ } from 'svelte-i18n';
     import type { Room } from '../../stores/room';
@@ -12,6 +10,7 @@
     import { ClickEvent, track } from '../../analytics.svelte';
     import { randomStr } from '../../utils';
     import normalizeSource, { type Source } from '../../normalize-source';
+    import { version } from '../../settings';
 
     interface Props {
         room: Room;
@@ -70,7 +69,7 @@
     let firstTime = $state(true);
     let lastSource: Source | null | "" = $state(null);
     let lastUsersCount = $state(0);
-    run(() => {
+    $effect(() => {
         let shouldScroll: boolean = false;
 
         if (window.innerWidth > 675) {
@@ -129,6 +128,10 @@
 <div class="footer uk-text-small uk-text-muted uk-text-center uk-padding uk-padding-remove-bottom">
     <LanguageSelector />
     <div class="uk-margin-top">
+        <a href="/terms-and-conditions.txt" class="uk-text-muted" target="_blank">{ $_('termsAndConditions') }</a>
+        · <a href="/privacy-policy.txt" class="uk-text-muted" target="_blank">{ $_('privacyPolicy') }</a>
+    </div>
+    <div class="uk-margin-top">
         <span>{ $_('poweredBy') }</span>
         · <a class="uk-text-muted" href="https://svelte.dev" target="_blank">Svelte</a>
         · <a class="uk-text-muted" href="https://firebase.google.com" target="_blank">Firebase</a>
@@ -136,13 +139,9 @@
         · <a class="uk-text-muted" href="https://webtorrent.io" target="_blank">WebTorrent</a>
         · <a class="uk-text-muted" href="https://getuikit.com" target="_blank">UIkit</a>
     </div>
-    <div>
+    <div class="uk-margin-top">
+        <div>v.{ version }</div>
         <a class="uk-text-muted" href="https://asriyan.me" target="_blank">Ed Asriyan</a>
-    </div>
-    <div class="uk-margin-top uk-text-small">
-        <a href="/terms-and-conditions.txt" class="uk-text-muted" target="_blank">{ $_('termsAndConditions') }</a>
-        |
-        <a href="/privacy-policy.txt" class="uk-text-muted" target="_blank">{ $_('privacyPolicy') }</a>
     </div>
 </div>
 
