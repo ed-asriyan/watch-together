@@ -50,12 +50,30 @@ Now you can run the dev server locally:
 make dev_serve
 ```
 
-## Generate prod bundle
+Or generate production bundle:
 ```console
 make prod_build_bundle
 ```
 
-## GitHub Actions
-* Each push to `master` triggers deployment to production
-* Every 1 day of a month, teams last updated more than 31 days ago are deleted
-* Make sure that `ENV_FILE_CONTENT` repository variable is filled
+## Deployment
+### CD
+Each push to `master` triggers [CD.yml](./.github/workflows/CD.yml) pipeline that builds production bundle and published it on
+Cloudflare Pages. To make it work you must have
+
+GitHub repository environment variables:
+* `ENV_FILE_CONTENT` with content of filled [.env](./.env)
+
+GitHub repository secrets:
+* `CLOUDFLARE_PROJECT_NAME` - name of Cloudflare Pages project
+* `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account id that owns the project
+* `CLOUDFLARE_API_TOKEN` - Cloudflare API token that have edit rights in the project
+
+### Auto clean up
+Every 1 day of a month, teams last updated more than 31 days ago are deleted by
+[clean-db.yml](./.github/workflows//clean-db.yml) workflow. To make it work you must have:
+
+GitHub repository environment variables:
+* `ENV_FILE_CONTENT`
+
+GitHub repository secrets:
+* `FIREBASE_SERVICE_ACCOUNT_KEY`
