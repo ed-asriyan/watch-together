@@ -58,9 +58,8 @@
         clearInterval(watchMinuteAnalyticsTimeInterval);
     });
 
-    const getRandomDefaultVideo = function (): string {
-        return defaultVideos[Math.floor(Math.random() * defaultVideos.length)];
-    };
+    let urlUpdatedAt = $derived(room?.url?.updatedAt);
+    let defaultVideo = $derived(defaultVideos[Math.round($urlUpdatedAt % defaultVideos.length)]);
 
     let currentVideoTime = 0;
     let saveCurrentTime = true;
@@ -141,8 +140,18 @@
                     {/if}
                 {/await}
             {:else}
-                {#if defaultVideos}
-                    <VideoPlayerVidstack source={normalizeSource(getRandomDefaultVideo())} muted={true}/>
+                {#if defaultVideo}
+                    <VideoPlayerVidstack
+                        source={normalizeSource(defaultVideo)}
+                        bind:paused={$paused}
+                        bind:currentTime={$currentTime}
+                        bind:muted={muted}
+                        on:seeked={onSeeked}
+                        on:seeking={onSeeking}
+                        on:pause={onPause}
+                        on:play={onPlay}
+                        on:timeupdate={onTimeUpdate}
+                    />
                 {/if}
             {/if}
         {/if}
