@@ -32,12 +32,12 @@ export const iceServers = JSON.parse(atob(import.meta.env['VITE_ICE_SERVERS_JSON
 
 export const webTorrentTrackers: string[] = import.meta.env['VITE_WEB_TORRENT_TRACKERS']?.split(',').map((x: string) => x.trim());
 
-export const urlExamples: string[] = import.meta.env['VITE_URL_EXAMPLES']?.split(',').map((x: string) => x.trim());
-
 export const userNames: string[] = import.meta.env['VITE_USERNAMES']?.split(',').map((x: string) => x.trim());
 
 export const reactions: string = import.meta.env['VITE_REACTIONS']?.split(',').map((x: string) => x.trim());
 
 export const defaultVideos: string[] = import.meta.env['VITE_DEFAULT_VIDEOS'].split(',').map((x: string) => x.trim());
+
+export const urlExamples: string[] = defaultVideos;
 
 export const version: string = import.meta.env['VITE_VERSION']?.trim() || null;
