@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { run, preventDefault } from 'svelte/legacy';
-
     import { fade } from 'svelte/transition';
     import { _ } from 'svelte-i18n';
     import prettierBytes from 'prettier-bytes';
@@ -22,13 +20,14 @@
 
     let url = $derived(room?.url);
     let source = $derived(normalizeSource($url));
-    run(() => {
+    $effect(() => {
         if ($url) {
             $blob = null;
         }
     });
 
-    const selectExample = function () {
+    const selectExample = function (e: Event) {
+        e.preventDefault();
         $url = getExampleVideo();
         track(new ClickEvent(room, { target: 'example' }));
     };
@@ -54,7 +53,7 @@
                 <u>{ data.text }</u>
             {/if}
         {/snippet}
-        </Interpolator>
+    </Interpolator>
 </div>
 <div class="uk-margin-bottom">
     <div class="uk-inline uk-width-1-1">
@@ -69,7 +68,7 @@
             {#if !$url && haveExamples}
                 <a
                     class="uk-form-icon uk-form-icon-flip uk-text-small uk-padding-small uk-width-auto example pointer"
-                    onclick={preventDefault(selectExample)}
+                    onclick={selectExample}
                     href="/#"
                     transition:fade
                 >
@@ -83,7 +82,7 @@
     {#if source?.type == SourceType.magnet && !$isSeeding && isFinite($progress)}
         <progress class="uk-progress progress uk-margin-remove" value={$progress} max="1"></progress>
     {/if}
-    </div>
+</div>
 
 <div class="hint uk-text-center uk-text-small">
     {#if $url}
@@ -91,29 +90,29 @@
             {#if source.type == SourceType.direct}
                 <Interpolator text={$_('selectVideo.link.hintNotWorking')} >
                     {#snippet children({ data: data })}
-                                        {#if data.name === 'u'}
+                        {#if data.name === 'u'}
                             <u>{ data.text }</u>
                         {/if}
-                                                        {/snippet}
-                                </Interpolator>
+                    {/snippet}
+                </Interpolator>
                 <Interpolator text={$_('selectVideo.link.help')} >
                     {#snippet children({ data: data })}
-                                        {#if data.name === 'link'}
+                        {#if data.name === 'link'}
                             <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" onclick={clickUrlTutorial}>{ data.text }</a>
                         {/if}
-                                                        {/snippet}
-                                </Interpolator>
+                    {/snippet}
+                </Interpolator>
             {:else if source && (source.type === SourceType.magnet)}
-                    <div class="uk-flex uk-text-small uk-relative uk-padding-top">
-                            <div class="uk-flex-1">{ $_('downloadSpeed', { values: { speed: `${prettierBytes($downloadSpeed || 0)}/s` }}) }</div>
-                            <div class="uk-flex-1">{ $_('uploadSpeed', { values: { speed: `${prettierBytes($uploadSpeed || 0)}/s` }}) }</div>
-                            <div class="uk-flex-1">{ $_('peers', { values: { peers: $peers }}) }</div>
+                <div class="uk-flex uk-text-small uk-relative uk-padding-top">
+                    <div class="uk-flex-1">{ $_('downloadSpeed', { values: { speed: `${prettierBytes($downloadSpeed || 0)}/s` }}) }</div>
+                    <div class="uk-flex-1">{ $_('uploadSpeed', { values: { speed: `${prettierBytes($uploadSpeed || 0)}/s` }}) }</div>
+                    <div class="uk-flex-1">{ $_('peers', { values: { peers: $peers }}) }</div>
+                </div>
+                {#if $isSeeding}
+                    <div class="uk-margin-small-top">
+                        { $_('dontRefresh') }
                     </div>
-                    {#if $isSeeding}
-                        <div class="uk-margin-small-top">
-                            { $_('dontRefresh') }
-                        </div>
-                    {/if}
+                {/if}
             {/if}
         {:else}
             { $_('selectVideo.link.hintInvalid') }
@@ -122,7 +121,7 @@
         { $_('selectVideo.link.hintEmpty') }
         <Interpolator text={$_('selectVideo.link.help')} >
             {#snippet children({ data: data })}
-                        {#if data.name === 'link'}
+                {#if data.name === 'link'}
                     <u>
                         <a href="https://telegra.ph/How-to-watch-movies-from-websites-together-online-03-17" target="_blank" onclick={clickUrlTutorial}>{ data.text }</a>
                     </u>

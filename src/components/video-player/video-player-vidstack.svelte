@@ -25,10 +25,10 @@
 
     let player: MediaPlayerElement = $state();
 
-    let isMounted = $state(false);
+    let isMounted: boolean = $state(false);
 
     $effect(() => {
-        if (isMounted) {
+        if (isMounted > 0) {
             player.currentTime = currentTime;
             player.paused = paused;
             player.muted = muted;
@@ -42,12 +42,16 @@
             const optionsTime = options.currentTime;
             const optionsPaused = options.paused;
             const optionsMuted = options.muted;
-            if (isMounted) {
-                paused = optionsPaused;
-                currentTime = optionsTime;
-                muted = optionsMuted;
+
+            if (optionsTime > 0) {
+                isMounted = true;
             }
-            isMounted = true;
+            if (isMounted) {
+                currentTime = optionsTime;
+            }
+
+            muted = optionsMuted;
+            paused = optionsPaused;
         });
         player.currentTime = currentTime;
         player.paused = paused;

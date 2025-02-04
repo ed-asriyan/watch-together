@@ -58,5 +58,6 @@ export class BoundTimedStore<T> implements Writable<T> {
 
     async init () {
         await this.remote.init();
+        this.store.set(get(this.remote));
     }
 }

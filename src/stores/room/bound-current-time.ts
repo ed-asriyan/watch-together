@@ -61,5 +61,6 @@ export class BoundCurrentTime implements Writable<number> {
 
     async init () {
         await this.remote.init();
+        this.currentTime.set(get(this.remote));
     }
 }
