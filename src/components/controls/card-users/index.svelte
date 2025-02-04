@@ -5,6 +5,7 @@
     import type { Room } from '../../../stores/room';
     import Loader from '../../loader.svelte';
     import Users from './users/index.svelte';
+    import { readable } from 'svelte/store';
 
     interface Props {
         room: Room;
@@ -13,7 +14,7 @@
 
     let { room, highlight }: Props = $props();
 
-    let users = $derived(room?.users || []);
+    let users = $derived(room?.users || readable([]));
     let copyTumbler: boolean = $state(false);
 
     const copyToClipboard = function () {
