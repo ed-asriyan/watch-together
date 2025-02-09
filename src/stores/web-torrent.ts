@@ -62,7 +62,8 @@ export const createWebTorrentClient = async function () {
             sdpSemantics: 'unified-plan',
             bundlePolicy: 'max-bundle',
             iceCandidatePoolsize: 1
-        }
+        },
+        torrentPort: 12318, // WTF?? https://github.com/webtorrent/webtorrent/issues/1071#issuecomment-374161952
     });
     client.createServer({ controller: serviceWorkerRegistration });
     __client = client;
