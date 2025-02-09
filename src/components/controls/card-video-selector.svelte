@@ -41,7 +41,10 @@
     };
 
     const onInput = function () {
-        source && track(new UrlPasteEvent(room, { url: $url }));
+        if (source) {
+            room?.currentTime.set(0);
+            track(new UrlPasteEvent(room, { url: $url }));
+        }
     };
 </script>
 

@@ -33,6 +33,7 @@
         } else {
             $blob = file;
         }
+        room?.currentTime.set(0);
         track(new ClickEvent(room, { target: 'file_select' }));
     };
 </script>
