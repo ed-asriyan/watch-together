@@ -12,6 +12,29 @@
     cursor: pointer;
 }
 
+@keyframes rainbow-border {
+    0% {
+        border-color: red;
+        background-color: rgba(255, 0, 0, 0.05);
+    }
+    25% {
+        border-color: blue;
+        background-color: rgba(0, 0, 255, 0.05);
+    }
+    50% {
+        border-color: green;
+        background-color: rgba(0, 255, 0, 0.05);
+    }
+    75% {
+        border-color: cyan;
+        background-color: rgba(0, 255, 255, 0.05);
+    }
+    100% {
+        border-color: red;
+        background-color: rgba(255, 0, 0, 0.05);
+    }
+}
+
 html {
     overflow-x: hidden;
     background-color: #000;
@@ -22,6 +45,26 @@ html {
     background-color: rgba(255, 255, 255, 0.01);
     box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(30px) brightness(70%);
+    border-width: 1.5px;
+
+    &.focus {
+        animation: rainbow-border 5s infinite linear;
+    }
+
+    &.clickable {
+        cursor: pointer;
+
+        &:hover {
+            @extend .focus;
+        }
+    }
+
+    &.muted {
+        & * {
+            color: gray !important;
+        }
+        color: gray !important;
+    }
 }
 
 .tile {

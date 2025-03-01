@@ -92,24 +92,24 @@
 
 <div bind:this={container} class="uk-container uk-grid-collapse uk-grid-match" uk-grid>
     <div class="uk-width-1-2@m uk-padding-small">
-        <div class="tile uk-width-1-1">
+        <div class="tile uk-width-1-1" class:focus={highlightVideoSelector}>
             <h2 class="uk-card-title uk-text-center" class:gradient-text={highlightVideoSelector}>🍿 { $_('selectVideo.title') }</h2>
             <CardVideoSelector room={room} />
         </div>
     </div>
     <div class="uk-width-1-2@m uk-padding-small">
-        <div class="tile uk-text-center uk-width-1-1">
+        <div class="tile uk-text-center uk-width-1-1" class:focus={highlightInvite}>
             <h2 class="uk-card-title" class:gradient-text={highlightInvite}>👥 { $_('invite.title') }</h2>
             <CardUsers room={room} highlight={highlightInvite} />
         </div>
-        <div class="button uk-flex uk-margin-top uk-flex-column">
-            <button class="uk-button uk-button-default glass" onclick={generateNewRoom}>
+        <div class="uk-flex uk-margin-top uk-flex-column">
+            <button class="uk-button glass tile uk-padding-remove" onclick={generateNewRoom}>
                 ↻
                 { $_('room.generateNewRoom.button') }
             </button>
         </div>
-        <div class="button uk-flex uk-margin-top uk-flex-column">
-            <button class="uk-button uk-button-default glass" onclick={joinAnotherRoom}>
+        <div class="uk-flex uk-margin-top uk-flex-column">
+            <button class="uk-button glass tile uk-padding-remove" onclick={joinAnotherRoom}>
                 { $_('room.joinAnotherRoom') }
                 →
             </button>
@@ -148,5 +148,9 @@
 <style lang="scss">
     .uk-card-title {
         font-weight: bold;
+    }
+
+    .tile.uk-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
     }
 </style>
