@@ -43,8 +43,13 @@ jobs:
           path-to-root: dist
           base-url-path: https://watchtogether.online
 
-      - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy dist --project-name=${{ secrets.CLOUDFLARE_PROJECT_NAME }} --branch main
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Change owner of all files in dist to current user
+        run: sudo chown -R $(id -u):$(id -g) dist
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

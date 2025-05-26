@@ -58,15 +58,10 @@ make prod_build_bundle
 ## Deployment
 ### CD
 Each push to `master` triggers [CD.yml](./.github/workflows/CD.yml) pipeline that builds production bundle and published it on
-Cloudflare Pages. To make it work you must have
+GitHub Pages. To make it work you must have
 
 GitHub repository environment variables:
 * `ENV_FILE_CONTENT` with content of filled [.env](./.env)
-
-GitHub repository secrets:
-* `CLOUDFLARE_PROJECT_NAME` - name of Cloudflare Pages project
-* `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account id that owns the project
-* `CLOUDFLARE_API_TOKEN` - Cloudflare API token that have edit rights in the project
 
 ### Auto clean up
 Every 1 day of a month, teams last updated more than 31 days ago are deleted by
