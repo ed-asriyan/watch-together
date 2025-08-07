@@ -7,6 +7,7 @@
     import VideoPlayerMagnet from './player-magnet.svelte';
     import Loader from '../loader.svelte';
     import Inplayer from './inplayer.svelte';
+    import { getStreamUrl } from '../../stores/web-torrent';
     import { blob } from '../../stores/blob';
     import type { Room } from '../../stores/room';
     import { cursorActive } from '../../stores/cursor';
@@ -24,6 +25,7 @@
     let currentTime = $derived(room?.currentTime);
     let paused = $derived(room?.paused);
     let source = $derived(normalizeSource($url));
+    let captionsMagnet = $derived(room?.captions);
 
     let innerWidth: number = $state();
 
@@ -105,7 +107,14 @@
                 on:pause={onPause}
                 on:play={onPlay}
                 on:timeupdate={onTimeUpdate}
-            />
+            >
+                {#if captionsMagnet}
+                    {#await getStreamUrl(captionsMagnet)}
+                    {:then captionsUrl}
+                        <track kind="subtitles" src={captionsUrl} label="Captions" default />
+                    {/await}
+                {/if}
+            </VideoPlayerVidstack>
         {:else}
             {#if source}
                 {#await exploreUrl(source)}
@@ -123,7 +132,14 @@
                             on:pause={onPause}
                             on:play={onPlay}
                             on:timeupdate={onTimeUpdate}
-                        />
+                        >
+                            {#if captionsMagnet}
+                                {#await getStreamUrl(captionsMagnet)}
+                                {:then captionsUrl}
+                                    <track kind="subtitles" src={captionsUrl} label="Captions" default />
+                                {/await}
+                            {/if}
+                        </VideoPlayerVidstack>
                     {:else if playerType === 'magnet'}
                         <VideoPlayerMagnet
                             source={normalizedSource}
@@ -136,7 +152,14 @@
                             on:pause={onPause}
                             on:play={onPlay}
                             on:timeupdate={onTimeUpdate}
-                        />
+                        >
+                            {#if captionsMagnet}
+                                {#await getStreamUrl(captionsMagnet)}
+                                {:then captionsUrl}
+                                    <track kind="subtitles" src={captionsUrl} label="Captions" default />
+                                {/await}
+                            {/if}
+                        </VideoPlayerMagnet>
                     {/if}
                 {/await}
             {:else}
@@ -151,7 +174,14 @@
                         on:pause={onPause}
                         on:play={onPlay}
                         on:timeupdate={onTimeUpdate}
-                    />
+                    >
+                        {#if captionsMagnet}
+                            {#await getStreamUrl(captionsMagnet)}
+                            {:then captionsUrl}
+                                <track kind="subtitles" src={captionsUrl} label="Captions" default />
+                            {/await}
+                        {/if}
+                    </VideoPlayerVidstack>
                 {/if}
             {/if}
         {/if}

@@ -11,6 +11,7 @@
     import { randomStr } from '../../utils';
     import normalizeSource, { type Source } from '../../normalize-source';
     import { version } from '../../settings';
+    import { sendFile } from '../../stores/web-torrent';
 
     interface Props {
         room: Room;
@@ -24,6 +25,7 @@
     let highlightInvite = $derived(room && !highlightVideoSelector && $users?.length < 1);
 
     let source = $derived(url && $url && normalizeSource($url));
+    let captionsMagnet = $derived(room?.captions);
 
     const updateRoom = function (newRoomId: string) {
         document.location.hash = `#${newRoomId}`;
@@ -88,6 +90,15 @@
         }
         shouldScroll && tick().then(() => scroll(source && $users.length ? 'top' : 'bottom'));
     });
+
+    // Handler for selecting captions file
+    const onCaptionsSelected = async (event: Event) => {
+        const input = event.target as HTMLInputElement;
+        if (!input.files?.length) return;
+        const file = input.files[0];
+        const magnet = await sendFile(file);
+        room.captions.set(magnet);
+    };
 </script>
 
 <div bind:this={container} class="uk-container uk-grid-collapse uk-grid-match" uk-grid>
@@ -95,6 +106,12 @@
         <div class="tile uk-width-1-1" class:focus={highlightVideoSelector}>
             <h2 class="uk-card-title uk-text-center" class:gradient-text={highlightVideoSelector}>🍿 { $_('selectVideo.title') }</h2>
             <CardVideoSelector room={room} />
+            <div class="uk-margin-top">
+                <label class="uk-button glass tile uk-width-1-1">
+                    🎫 { $_('selectCaptions.title', { default: 'Select captions file' }) }
+                    <input type="file" accept=".vtt,.srt" on:change={onCaptionsSelected} hidden />
+                </label>
+            </div>
         </div>
     </div>
     <div class="uk-width-1-2@m uk-padding-small">

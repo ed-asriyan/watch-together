@@ -73,7 +73,7 @@
     });
 </script>
 
-<media-player
+    <media-player
     class="uk-width-1-1 uk-height-1-1"
     bind:this={player}
     src={{ src: source.src }}
@@ -87,8 +87,10 @@
     on:pause={() => dispatch('pause')}
     on:play={() => dispatch('play')}
     on:time-update={() => dispatch('timeupdate')}
->
-    <media-provider></media-provider>
+    >
+    <media-provider>
+        <slot />
+    </media-provider>
     <media-audio-layout></media-audio-layout>
     <media-video-layout></media-video-layout>
 </media-player>

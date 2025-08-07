@@ -19,6 +19,8 @@ export class Room extends Destructable {
     readonly fileName: Writable<string> = writable<string>('');
 
     readonly url: BoundTimedStore<string>;
+    /** Magnet URI for captions file shared via WebTorrent */
+    readonly captions: BoundTimedStore<string>;
     readonly paused: BoundTimedStore<boolean>;
     readonly minutesWatched: BoundMinutesWatched;
     readonly currentTime: BoundCurrentTime;
@@ -33,6 +35,7 @@ export class Room extends Destructable {
 
         const roomRef = child(ref(database), `room/${roomId}`);
         this.url = new BoundTimedStore<string>(child(roomRef, 'url'), '');
+        this.captions = new BoundTimedStore<string>(child(roomRef, 'captions'), '');
         this.currentTime = new BoundCurrentTime(child(roomRef, 'currentTime'));
         this.paused = new BoundTimedStore<boolean>(child(roomRef, 'paused'), true, 0.5);
         this.createdAt = new BoundStore<number>(child(roomRef, 'createdAt'), now());
@@ -43,11 +46,13 @@ export class Room extends Destructable {
         this.registerDependency(this.messages);
         this.registerDependency(this.users);
         this.registerDependency(this.minutesWatched);
+        this.registerDependency(this.captions);
     }
 
     async init (): Promise<void> {
         await Promise.all([
             this.url.init(),
+            this.captions.init(),
             this.currentTime.init(),
             this.paused.init(),
             this.minutesWatched.init(),

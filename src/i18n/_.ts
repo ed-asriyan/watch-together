@@ -64,6 +64,9 @@ const def = {
     },
     poweredBy: 'Powered by',
     or: 'or',
+    selectCaptions: {
+        title: 'Select captions file'
+    },
     you: 'you',
     users: {
         nameEdit: 'Click to change nickname',
