@@ -1,12 +1,13 @@
 <script lang="ts" module>
+    import * as amplitude from "@amplitude/analytics-browser";
+    import { get } from 'svelte/store';
     import { analytics, isProduction } from './settings';
     import normalizeSource, { SourceType } from './normalize-source';
     import { blob } from './stores/blob';
     import type { MessageType } from './stores/room/bound-messages';
     import type { Room } from './stores/room';
-    import { get } from 'svelte/store';
 
-    const trackRaw = function (...args: any[]) {
+    const googleTrackRaw = function (...args: any[]) {
         if (isProduction) {
             // @ts-ignore
             analytics.measurementId && window.dataLayer.push(arguments);
@@ -30,7 +31,7 @@
         isExample: boolean | undefined;
     }
 
-    abstract class Event<T> {
+    abstract class Event<T extends Record<string, any>> {
         abstract readonly name: string;
         readonly params: T;
 
@@ -123,8 +124,14 @@
         readonly name: string = 'reaction_sent';
     }
 
-    export const track = function<T> (event: Event<T>) {
-        trackRaw('event', event.name, event.params);
+    export const track = function<T extends Record<string, any>> (event: Event<T>) {
+        googleTrackRaw('event', event.name, event.params);
+
+        if (isProduction) {
+            amplitude.track(event.name, event.params);
+        } else {
+            console.log('Amplitude:', event.name, event.params);
+        }
     };
 </script>
 
@@ -135,8 +142,12 @@
         // @ts-ignore
         window.dataLayer = window.dataLayer || [];
 
-        trackRaw('js', new Date());
-        trackRaw('config', analytics.measurementId);
+        googleTrackRaw('js', new Date());
+        googleTrackRaw('config', analytics.measurementId);
+
+        if (isProduction) {
+            amplitude.init(analytics.amplitudeApiKey, { autocapture: true });
+        }
     });
 </script>
 

@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "vite dev --host",
 		"build": "vite build",
 		"copy-static": "cp -r static/* dist/",
 		"preview": "vite preview",
@@ -30,5 +30,8 @@
 		"vite": "^6.3.5",
 		"vite-plugin-pwa": "^1.0.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"@amplitude/analytics-browser": "^2.22.1"
+	}
 }

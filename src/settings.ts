@@ -17,7 +17,8 @@ export const environment = import.meta.env['MODE'];
 export const isProduction = import.meta.env['PROD'] && environment === 'production';
 
 export const analytics = {
-    measurementId: import.meta.env['VITE_ANALYTICS_MEASHUREMENT_ID']?.trim(),
+    measurementId: import.meta.env['VITE_ANALYTICS_MEASUREMENT_ID']?.trim(),
+    amplitudeApiKey: import.meta.env['VITE_AMPLITUDE_API_KEY']?.trim(),
 };
 
 export const url = import.meta.env['VITE_URL'];
