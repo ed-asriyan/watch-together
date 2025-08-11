@@ -1,0 +1,23 @@
+{
+  "name": "Svelte App",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "svelte.svelte-vscode",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "postCreateCommand": "npm ci",
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Svelte Dev Server",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "runArgs": ["--env-file", ".env"],
+  "remoteUser": "node"
+}
