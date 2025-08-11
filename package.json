@@ -16,7 +16,7 @@
 		"@sentry/svelte": "^9.1.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
 		"@tsconfig/svelte": "^5.0.2",
-		"firebase": "^11.9.1",
+		"firebase": "^12.1.0",
 		"firebase-admin": "^13.4.0",
 		"prettier-bytes": "^1.0.4",
 		"sass": "^1.89.1",
