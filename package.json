@@ -13,8 +13,9 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
 	"devDependencies": {
+		"@amplitude/analytics-browser": "^2.22.2",
 		"@sentry/svelte": "^9.1.0",
-		"@sveltejs/vite-plugin-svelte": "^5.0.3",
+		"@sveltejs/vite-plugin-svelte": "^6.1.2",
 		"@tsconfig/svelte": "^5.0.2",
 		"firebase": "^12.1.0",
 		"firebase-admin": "^13.4.0",
@@ -27,11 +28,8 @@
 		"typescript": "^5.5.0",
 		"uikit": "^3.21.13",
 		"vidstack": "^1.11.30",
-		"vite": "^6.3.5",
+		"vite": "^7.1.2",
 		"vite-plugin-pwa": "^1.0.0"
 	},
-	"type": "module",
-	"dependencies": {
-		"@amplitude/analytics-browser": "^2.22.1"
-	}
+	"type": "module"
 }
