@@ -27,7 +27,7 @@
 		"typescript": "^5.5.0",
 		"uikit": "^3.21.13",
 		"vidstack": "^1.11.30",
-		"vite": "^6.3.5",
+		"vite": "^7.1.2",
 		"vite-plugin-pwa": "^1.0.0"
 	},
 	"type": "module",
