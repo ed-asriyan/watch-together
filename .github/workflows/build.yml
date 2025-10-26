@@ -1,0 +1,46 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      env_file_content:
+        description: 'Content of the .env file'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Save .env file
+        env:
+          ENV_FILE_CONTENT: ${{ inputs.env_file_content }}
+        shell: bash
+        run: |
+          echo "$ENV_FILE_CONTENT" > .env
+
+      - name: Add git commit hash to .env file
+        run: |
+          GIT_HASH=$(git rev-parse --short HEAD)
+          GIT_DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d')
+          echo -e "\nVITE_VERSION=${GIT_DATE}-${GIT_HASH}" >> .env
+
+      - name: Build the app
+        run: make prod_build_bundle
+
+      - name: Generate the sitemap
+        uses: cicirello/generate-sitemap@v1
+        with:
+          path-to-root: dist
+          base-url-path: https://watchtogether.online
+
+      - name: Change owner of all files in dist to current user
+        run: sudo chown -R $(id -u):$(id -g) dist
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
