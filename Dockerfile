@@ -1,4 +1,4 @@
-FROM node:24 as dev
+FROM node:25 as dev
 
 FROM dev as base
 
