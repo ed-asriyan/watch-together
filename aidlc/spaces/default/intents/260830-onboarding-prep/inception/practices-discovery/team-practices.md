@@ -1,9 +1,8 @@
-# Team-Level Rules
+# Team Practices
 
-> This team's affirmed practices and corrections. Loaded after `org.md` as
-> strict-additive guidance; contradictions with broader policy are rejected.
-> Populated by the practices-discovery affirmation gate. Edit at the gate,
-> not directly.
+> Affirmed for the `onboarding` scope on this brownfield project. Values are
+> either evidenced in the repository or set by the team at the practices
+> interview. This is the team's way of working going forward.
 
 ## Way of Working
 
@@ -96,14 +95,3 @@ already consistent across the tree:
 
 The `svelte-kit sync` step in the `check` script is vestigial (no
 `@sveltejs/kit` dependency) and should be dropped.
-## Forbidden
-
-<!-- Team-specific forbidden patterns -->
-
-## Mandated
-
-<!-- Team-specific mandates -->
-
-## Corrections
-
-<!-- Self-learning loop appends here. -->

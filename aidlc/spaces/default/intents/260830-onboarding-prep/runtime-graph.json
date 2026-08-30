@@ -1,0 +1,248 @@
+{
+  "workflow_id": "2026-08-30T20:04:23Z",
+  "scope": "onboarding",
+  "started_at": "2026-08-30T20:04:23Z",
+  "stages": [
+    {
+      "stage_slug": "workspace-scaffold",
+      "started_at": "2026-08-30T20:04:23Z",
+      "completed_at": "2026-08-30T20:04:23Z",
+      "agent": "orchestrator",
+      "memory_path": "aidlc/spaces/default/intents/260830-onboarding-prep/initialization/workspace-scaffold/memory.md",
+      "memory_entries": null,
+      "memory_breakdown": null,
+      "sensor_firings": [],
+      "outcome": "approved",
+      "learnings_captured": {
+        "from_orchestrator": 0,
+        "from_user_addition": 0
+      }
+    },
+    {
+      "stage_slug": "workspace-detection",
+      "started_at": "2026-08-30T20:04:23Z",
+      "completed_at": "2026-08-30T20:04:23Z",
+      "agent": "orchestrator",
+      "memory_path": "aidlc/spaces/default/intents/260830-onboarding-prep/initialization/workspace-detection/memory.md",
+      "memory_entries": null,
+      "memory_breakdown": null,
+      "sensor_firings": [],
+      "outcome": "approved",
+      "learnings_captured": {
+        "from_orchestrator": 0,
+        "from_user_addition": 0
+      }
+    },
+    {
+      "stage_slug": "state-init",
+      "started_at": "2026-08-30T20:04:23Z",
+      "completed_at": "2026-08-30T20:04:23Z",
+      "agent": "orchestrator",
+      "memory_path": "aidlc/spaces/default/intents/260830-onboarding-prep/initialization/state-init/memory.md",
+      "memory_entries": null,
+      "memory_breakdown": null,
+      "sensor_firings": [],
+      "outcome": "approved",
+      "learnings_captured": {
+        "from_orchestrator": 0,
+        "from_user_addition": 0
+      }
+    },
+    {
+      "stage_slug": "reverse-engineering",
+      "started_at": "2026-08-30T20:04:23Z",
+      "completed_at": "2026-08-30T21:09:33Z",
+      "agent": "aidlc-developer-agent",
+      "memory_path": "aidlc/spaces/default/intents/260830-onboarding-prep/inception/reverse-engineering/memory.md",
+      "memory_entries": 4,
+      "memory_breakdown": {
+        "interpretations": 0,
+        "deviations": 0,
+        "tradeoffs": 0,
+        "open_questions": 4
+      },
+      "sensor_firings": [],
+      "outcome": "approved",
+      "learnings_captured": {
+        "from_orchestrator": 0,
+        "from_user_addition": 0
+      }
+    },
+    {
+      "stage_slug": "practices-discovery",
+      "started_at": "2026-08-30T21:09:33Z",
+      "completed_at": "2026-08-30T21:37:02Z",
+      "agent": "aidlc-pipeline-deploy-agent",
+      "memory_path": "aidlc/spaces/default/intents/260830-onboarding-prep/inception/practices-discovery/memory.md",
+      "memory_entries": 3,
+      "memory_breakdown": {
+        "interpretations": 0,
+        "deviations": 0,
+        "tradeoffs": 0,
+        "open_questions": 3
+      },
+      "sensor_firings": [
+        {
+          "id": "required-sections",
+          "fire_id": "c0ea70c8",
+          "result": "passed",
+          "ts": "2026-08-30T21:32:40Z"
+        },
+        {
+          "id": "required-sections",
+          "fire_id": "2f34b909",
+          "result": "passed",
+          "ts": "2026-08-30T21:32:40Z"
+        },
+        {
+          "id": "required-sections",
+          "fire_id": "9f1fbf69",
+          "result": "passed",
+          "ts": "2026-08-30T21:32:41Z"
+        },
+        {
+          "id": "required-sections",
+          "fire_id": "85f4f51c",
+          "result": "failed",
+          "ts": "2026-08-30T21:32:41Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/practices-discovery/required-sections-85f4f51c.md"
+        },
+        {
+          "id": "upstream-coverage",
+          "fire_id": "c75a0080",
+          "result": "failed",
+          "ts": "2026-08-30T21:32:41Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/practices-discovery/upstream-coverage-c75a0080.md"
+        },
+        {
+          "id": "upstream-coverage",
+          "fire_id": "dcd9abd2",
+          "result": "failed",
+          "ts": "2026-08-30T21:32:41Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/practices-discovery/upstream-coverage-dcd9abd2.md"
+        },
+        {
+          "id": "upstream-coverage",
+          "fire_id": "b4518160",
+          "result": "failed",
+          "ts": "2026-08-30T21:32:41Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/practices-discovery/upstream-coverage-b4518160.md"
+        },
+        {
+          "id": "upstream-coverage",
+          "fire_id": "a07cd1a6",
+          "result": "failed",
+          "ts": "2026-08-30T21:32:41Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/practices-discovery/upstream-coverage-a07cd1a6.md"
+        }
+      ],
+      "outcome": "approved",
+      "learnings_captured": {
+        "from_orchestrator": 0,
+        "from_user_addition": 0
+      }
+    },
+    {
+      "stage_slug": "requirements-analysis",
+      "started_at": "2026-08-30T21:37:02Z",
+      "completed_at": "2026-08-30T22:20:23Z",
+      "agent": "aidlc-product-agent",
+      "memory_path": "aidlc/spaces/default/intents/260830-onboarding-prep/inception/requirements-analysis/memory.md",
+      "memory_entries": 2,
+      "memory_breakdown": {
+        "interpretations": 0,
+        "deviations": 0,
+        "tradeoffs": 0,
+        "open_questions": 2
+      },
+      "sensor_firings": [
+        {
+          "id": "required-sections",
+          "fire_id": "3ac793e8",
+          "result": "passed",
+          "ts": "2026-08-30T22:04:51Z"
+        },
+        {
+          "id": "required-sections",
+          "fire_id": "c2848238",
+          "result": "failed",
+          "ts": "2026-08-30T22:04:51Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/requirements-analysis/required-sections-c2848238.md"
+        },
+        {
+          "id": "upstream-coverage",
+          "fire_id": "be5c9ec3",
+          "result": "failed",
+          "ts": "2026-08-30T22:04:51Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/requirements-analysis/upstream-coverage-be5c9ec3.md"
+        },
+        {
+          "id": "upstream-coverage",
+          "fire_id": "d5195876",
+          "result": "failed",
+          "ts": "2026-08-30T22:04:51Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/requirements-analysis/upstream-coverage-d5195876.md"
+        },
+        {
+          "id": "required-sections",
+          "fire_id": "a0148666",
+          "result": "passed",
+          "ts": "2026-08-30T22:16:22Z"
+        },
+        {
+          "id": "required-sections",
+          "fire_id": "1c208f0f",
+          "result": "failed",
+          "ts": "2026-08-30T22:16:22Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/requirements-analysis/required-sections-1c208f0f.md"
+        },
+        {
+          "id": "upstream-coverage",
+          "fire_id": "fab231fd",
+          "result": "failed",
+          "ts": "2026-08-30T22:16:22Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/requirements-analysis/upstream-coverage-fab231fd.md"
+        },
+        {
+          "id": "upstream-coverage",
+          "fire_id": "1b962c97",
+          "result": "failed",
+          "ts": "2026-08-30T22:16:22Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/requirements-analysis/upstream-coverage-1b962c97.md"
+        },
+        {
+          "id": "required-sections",
+          "fire_id": "58f873d1",
+          "result": "passed",
+          "ts": "2026-08-30T22:19:44Z"
+        },
+        {
+          "id": "required-sections",
+          "fire_id": "c5c46376",
+          "result": "failed",
+          "ts": "2026-08-30T22:19:44Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/requirements-analysis/required-sections-c5c46376.md"
+        },
+        {
+          "id": "upstream-coverage",
+          "fire_id": "800d7ee9",
+          "result": "failed",
+          "ts": "2026-08-30T22:19:44Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/requirements-analysis/upstream-coverage-800d7ee9.md"
+        },
+        {
+          "id": "upstream-coverage",
+          "fire_id": "3c49d11e",
+          "result": "failed",
+          "ts": "2026-08-30T22:19:44Z",
+          "detail_path": "aidlc/spaces/default/intents/260830-onboarding-prep/.aidlc-sensors/requirements-analysis/upstream-coverage-3c49d11e.md"
+        }
+      ],
+      "outcome": "approved",
+      "learnings_captured": {
+        "from_orchestrator": 0,
+        "from_user_addition": 0
+      }
+    }
+  ]
+}

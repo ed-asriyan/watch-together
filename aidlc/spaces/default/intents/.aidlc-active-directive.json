@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "revision": 6,
+  "project_sha256": "3cec1afbcfdb088ce6d6c5b27b8142eaea10df6a414ff90059788ac940a690ff",
+  "intent_uuid": null,
+  "state_present": false,
+  "state_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "cursor_harness": "copilot",
+  "owner_session": "55c9119d-b696-43a7-aeed-15be8e7e04b9",
+  "owner_epoch": 1,
+  "context_epoch": 0,
+  "kind": "error",
+  "stage": "coordination",
+  "delivery": "superseded",
+  "needs_rehydrate": true,
+  "active_attempt": {
+    "id": "toolu_01TcT2vf5DbWfqLfoZYyJwS3__vscode-1788117198346",
+    "command_kind": "next",
+    "command_sha256": "eb2cba6b506b173433cd3e18ba1a8aec89aa9250e175ea089eff0affa0fc1b7c",
+    "issued_state_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "session_id": "55c9119d-b696-43a7-aeed-15be8e7e04b9",
+    "owner_epoch": 1,
+    "context_epoch": 0,
+    "claim_revision": 5,
+    "status": "failed"
+  },
+  "event_sequence": 3,
+  "human_sequence": 0,
+  "engine_sequence": 3,
+  "conversation_sequence": 0,
+  "stop_count": 0
+}

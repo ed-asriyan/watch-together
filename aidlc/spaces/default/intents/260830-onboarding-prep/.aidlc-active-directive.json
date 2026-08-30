@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "revision": 83,
+  "project_sha256": "3cec1afbcfdb088ce6d6c5b27b8142eaea10df6a414ff90059788ac940a690ff",
+  "intent_uuid": "01a05445-ea11-7d58-8d58-62c836b572af",
+  "state_present": true,
+  "state_sha256": "9eafb1e4bddd95f5dd2da0e59c10555d305672afe6356359f2c862321350aa7d",
+  "cursor_harness": "copilot",
+  "owner_session": "55c9119d-b696-43a7-aeed-15be8e7e04b9",
+  "owner_epoch": 1,
+  "context_epoch": 0,
+  "kind": "error",
+  "stage": "requirements-analysis",
+  "delivery": "superseded",
+  "needs_rehydrate": true,
+  "active_attempt": {
+    "id": "toolu_01RpogHK9hcUPk4Cr4dEyiJK__vscode-1788117198728",
+    "command_kind": "next",
+    "command_sha256": "ca5f0a3d6ed927a4abe0e5bb225fb763bd85b44755c8cc3fd239801e3fdf5559",
+    "issued_state_sha256": "9eafb1e4bddd95f5dd2da0e59c10555d305672afe6356359f2c862321350aa7d",
+    "session_id": "55c9119d-b696-43a7-aeed-15be8e7e04b9",
+    "owner_epoch": 1,
+    "context_epoch": 0,
+    "claim_revision": 81,
+    "status": "failed"
+  },
+  "event_sequence": 48,
+  "human_sequence": 45,
+  "engine_sequence": 48,
+  "conversation_sequence": 0,
+  "stop_count": 2,
+  "stop_fingerprint": "rehydrate|requirements-analysis|||||9eafb1e4bddd95f5dd2da0e59c10555d305672afe6356359f2c862321350aa7d|none|none|55c9119d-b696-43a7-aeed-15be8e7e04b9|1"
+}

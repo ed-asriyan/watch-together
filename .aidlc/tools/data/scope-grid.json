@@ -405,5 +405,42 @@
       "performance-validation": "EXECUTE",
       "feedback-optimization": "EXECUTE"
     }
+  },
+  "onboarding": {
+    "stages": {
+      "workspace-scaffold": "EXECUTE",
+      "workspace-detection": "EXECUTE",
+      "state-init": "EXECUTE",
+      "intent-capture": "SKIP",
+      "market-research": "SKIP",
+      "feasibility": "SKIP",
+      "scope-definition": "SKIP",
+      "team-formation": "SKIP",
+      "rough-mockups": "SKIP",
+      "approval-handoff": "SKIP",
+      "reverse-engineering": "EXECUTE",
+      "practices-discovery": "EXECUTE",
+      "requirements-analysis": "EXECUTE",
+      "user-stories": "SKIP",
+      "refined-mockups": "SKIP",
+      "domain-design": "SKIP",
+      "units-generation": "SKIP",
+      "contract-design": "SKIP",
+      "delivery-planning": "SKIP",
+      "functional-design": "SKIP",
+      "nfr-requirements": "SKIP",
+      "nfr-design": "SKIP",
+      "infrastructure-design": "SKIP",
+      "code-generation": "SKIP",
+      "build-and-test": "SKIP",
+      "ci-pipeline": "SKIP",
+      "deployment-pipeline": "SKIP",
+      "environment-provisioning": "SKIP",
+      "deployment-execution": "SKIP",
+      "observability-setup": "SKIP",
+      "incident-response": "SKIP",
+      "performance-validation": "SKIP",
+      "feedback-optimization": "SKIP"
+    }
   }
 }
