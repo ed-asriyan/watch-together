@@ -1,6 +1,6 @@
 {
   "name": "Svelte App",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:24",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:25",
   "customizations": {
     "vscode": {
       "extensions": [
