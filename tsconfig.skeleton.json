@@ -1,0 +1,18 @@
+{
+  "//": "Typechecks the new DDD skeleton (src/domain, src/application) in isolation. The legacy tree and .svelte files are excluded on purpose: the skeleton must compile with no framework, no Firebase and no DOM framework types.",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": []
+  },
+  "include": ["src/domain/**/*.ts", "src/application/**/*.ts"]
+}

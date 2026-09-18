@@ -10,7 +10,8 @@
 		"clean-db": "node --experimental-json-modules clean-db.js",
 		"stats": "node --experimental-json-modules stats.js",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"check:skeleton": "tsc --noEmit -p tsconfig.skeleton.json"
 	},
 	"devDependencies": {
 		"@amplitude/analytics-browser": "^2.29.0",
