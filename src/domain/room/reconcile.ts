@@ -29,6 +29,15 @@ export type Correction =
  * Replaces `shouldUpdateCurrentTime` (`bound-current-time.ts:9`) plus the
  * tolerance band in `bound-timed-store.ts:21` plus the ad-hoc guards in
  * `video-player/index.svelte:64-66`.
+ *
+ * @param observed What the local media element is actually doing right now.
+ * @param intent   The room's agreed playback intent, after LWW merge.
+ * @param now      Synchronized clock reading. The intent is projected forward
+ *                 to this instant before drift is measured — passing a stale
+ *                 `now` produces a correction toward the past.
+ * @param policy   Thresholds deciding seek vs nudge vs nothing.
+ * @returns        What to do about the divergence, as data. `none` is the
+ *                 common case and must stay cheap.
  */
 export declare function reconcile(
     observed: ObservedPlayback,
@@ -37,7 +46,15 @@ export declare function reconcile(
     policy: SyncPolicy,
 ): Correction;
 
-/** Signed: positive = the player is ahead of where it should be. */
+/**
+ * Measured divergence, for the debug overlay and the `DriftCorrected` event.
+ *
+ * @param observed Actual element state.
+ * @param intent   Agreed intent.
+ * @param now      Synchronized clock reading.
+ * @returns        Signed: positive means the player is AHEAD of where it
+ *                 should be, negative means it is lagging.
+ */
 export declare function driftOf(
     observed: ObservedPlayback,
     intent: PlayheadIntent,

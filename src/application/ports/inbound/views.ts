@@ -1,7 +1,7 @@
-import type { Seconds } from '../../domain/shared/time';
-import type { MediaSourceKind } from '../../domain/room/media-source';
-import type { ClockConfidence } from '../../domain/shared/clock-confidence';
-import type { ConnectionState } from '../../domain/room/connection';
+import type { Seconds } from '../../../domain/shared/time';
+import type { MediaSourceKind } from '../../../domain/room/media-source';
+import type { ClockConfidence } from '../../../domain/shared/clock-confidence';
+import type { ConnectionState } from '../../../domain/room/connection';
 
 /**
  * READ MODELS.

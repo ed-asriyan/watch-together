@@ -27,10 +27,23 @@ export type PlayheadIntent = Stamped<Playhead>;
  * guard and the publish cadence are all consequences of this one function.
  *
  * See docs/architecture/001-ddd-hexagonal-design.md §5.2.
+ *
+ * @param intent The agreed playback intent, carrying the position, the paused
+ *               flag, the rate, and the instant it was declared.
+ * @param now    Synchronized clock reading to project forward to.
+ * @returns      The position a perfectly synchronized player would be at.
+ *               Equal to `intent.value.position` while paused.
  */
 export declare function projectedPositionAt(intent: PlayheadIntent, now: EpochMs): Seconds;
 
-/** How long the intent has gone without being restated. */
+/**
+ * How long the intent has gone without being restated. Feeds the
+ * stale-playback guard: running but silent for too long means the participant
+ * who started it is gone, so playback is forced to pause.
+ *
+ * @param intent The agreed intent.
+ * @param now    Synchronized clock reading.
+ */
 export declare function silentFor(intent: PlayheadIntent, now: EpochMs): Seconds;
 
 export declare function isAdvancing(intent: PlayheadIntent): boolean;
