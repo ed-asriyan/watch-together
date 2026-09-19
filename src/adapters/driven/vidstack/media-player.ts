@@ -26,6 +26,7 @@ export class VidstackMediaPlayer implements MediaPlayerPort, PlayerSurface {
     private listener: MediaPlayerListener | null = null;
     private readonly detachers: Unsubscribe[] = [];
     private lastProgressAt = 0;
+    private muted = true;
     private pendingMedia: ResolvedMedia | null = null;
     private state: ObservedPlayback = {
         position: 0 as Seconds, paused: true, ready: false, stalled: false,
@@ -80,6 +81,12 @@ export class VidstackMediaPlayer implements MediaPlayerPort, PlayerSurface {
             this.listener?.onProgress(this.state.position);
         });
 
+        // Muted to start, exactly as before this refactor. Browsers refuse to
+        // start audible playback without a gesture, and the room can tell this
+        // client to resume at any moment; vidstack's own control unmutes.
+        player.muted = true;
+        this.muted = true;
+
         if (this.pendingMedia) void this.load(this.pendingMedia);
     }
 
@@ -102,11 +109,31 @@ export class VidstackMediaPlayer implements MediaPlayerPort, PlayerSurface {
         this.pendingMedia = media;
         if (!this.element) return;
         this.state = { ...this.state, ready: false, stalled: false };
+        // Re-asserted here as well as on mount: the custom element upgrades
+        // asynchronously and resets its own properties on the way, so a value
+        // set before it was live does not survive.
+        this.element.muted = this.muted;
         this.element.src = media.playbackUrl;
     }
 
+    /**
+     * Start playback, falling back to muted when the browser refuses.
+     *
+     * A resume is usually triggered by somebody ELSE pressing play, so this
+     * client has no user gesture to spend and autoplay policy rejects it.
+     * Failing there would leave one viewer silently paused while the room
+     * watches on — a muted picture is better than no picture.
+     */
     async play(): Promise<void> {
-        await this.element?.play();
+        const player = this.element;
+        if (!player) return;
+        try {
+            await player.play();
+        } catch {
+            player.muted = true;
+            this.muted = true;
+            await player.play();
+        }
     }
 
     pause(): void {
@@ -122,6 +149,7 @@ export class VidstackMediaPlayer implements MediaPlayerPort, PlayerSurface {
     }
 
     setMuted(muted: boolean): void {
+        this.muted = muted;
         if (this.element) this.element.muted = muted;
     }
 

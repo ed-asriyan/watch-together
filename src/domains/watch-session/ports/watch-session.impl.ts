@@ -271,16 +271,40 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
         }
     };
 
-    /** The single place a decision turns into I/O: writes, then the player, then events. */
+    /**
+     * The single place a decision turns into I/O: writes, then the player, then
+     * events.
+     *
+     * Serialized, because it re-enters itself. Correcting the player makes the
+     * element emit — a `pause()` produces `paused` — which the coordinator
+     * feeds straight back to the replica, producing another decision while this
+     * one is still being applied. A real media element defers its events, so
+     * the recursion is invisible in a browser and unbounded anywhere the events
+     * are synchronous. Queueing turns it into a loop that drains.
+     */
+    let applying = false;
+    const pendingDecisions: { decision: Decision; session: RoomSession | null }[] = [];
+
     const apply = (decision: Decision, session: RoomSession | null = room): void => {
-        if (session) {
-            for (const intent of decision.publish) void write(session, intent);
-        }
-        correct(decision);
-        const context = telemetryContext();
-        for (const event of decision.events) {
-            events.emit(event);
-            telemetry.record(event, context);
+        pendingDecisions.push({ decision, session });
+        if (applying) return;
+
+        applying = true;
+        try {
+            while (pendingDecisions.length) {
+                const next = pendingDecisions.shift()!;
+                if (next.session) {
+                    for (const intent of next.decision.publish) void write(next.session, intent);
+                }
+                correct(next.decision);
+                const context = telemetryContext();
+                for (const event of next.decision.events) {
+                    events.emit(event);
+                    telemetry.record(event, context);
+                }
+            }
+        } finally {
+            applying = false;
         }
         refresh();
     };
@@ -364,6 +388,12 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
         confidence = level;
         apply(created.applyClockConfidence(level, clock.now()), null);
 
+        // Attached BEFORE the room is opened. Opening delivers a snapshot,
+        // which can start a load, which reports readiness — and a listener
+        // attached after that has already missed the only event that would have
+        // positioned a client joining mid-film.
+        detachPlayer = player.attach(playerListener);
+
         const opened = await gateway.open({
             roomId: target,
             self: me.participantId,
@@ -382,9 +412,12 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
 
         apply(created.applyRemoteSnapshot(emptyRemote(), clock.now()), opened);
 
-        detachPlayer = player.attach(playerListener);
         stopTick = scheduler.every(TICK_PERIOD, (now) => {
-            if (replica === created) apply(created.tick(now));
+            if (replica !== created) return;
+            // The drift check belongs on the tick, not only on player events:
+            // a client that has fallen behind emits nothing while it does so.
+            apply(created.observePlayer(safeObserve(), now));
+            apply(created.tick(now));
         });
 
         profile = { ...me, lastRoomId: target };
@@ -420,7 +453,12 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
      */
     const listenerFor = (mine: RoomReplica) => ({
         onSnapshot(state: RemoteRoomState) {
-            if (replica === mine) apply(mine.applyRemoteSnapshot(state, clock.now()));
+            if (replica !== mine) return;
+            apply(mine.applyRemoteSnapshot(state, clock.now()));
+            // A joining client has to load what the room is already watching.
+            // Waiting for the next `onSourceChanged` means waiting for somebody
+            // else to write something, which may never happen.
+            if (state.source?.value) void load(state.source.value);
         },
         onPlayheadChanged(intent: PlayheadIntent) {
             if (replica === mine) apply(mine.applyRemotePlayhead(intent, clock.now()));

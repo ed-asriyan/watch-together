@@ -178,8 +178,16 @@ class Replica implements RoomReplica {
         this.policy = policy;
         this.bornAt = now;
         this.lastWatchMark = now;
-        this.playhead = { value: { position: 0 as Seconds, paused: true, rate: 1 }, at: now, by: self };
-        this.src = { value: null, at: now, by: self };
+        // Stamped at the epoch, NOT at `now`.
+        //
+        // A replica that has heard nothing has no claim about what the room is
+        // watching, and a default stamped "now" is the newest write in the room
+        // — so it would beat the real playhead on join and leave anyone
+        // entering a film in progress sitting at zero, paused. These are
+        // placeholders that must lose to everything.
+        const nothingKnown = 0 as EpochMs;
+        this.playhead = { value: { position: 0 as Seconds, paused: true, rate: 1 }, at: nothingKnown, by: self };
+        this.src = { value: null, at: nothingKnown, by: self };
     }
 
     // ---- local commands ----------------------------------------------------
@@ -403,6 +411,17 @@ class Replica implements RoomReplica {
     tick(now: EpochMs): Decision {
         const events: DomainEvent[] = [];
         const publish: PublishIntent[] = [];
+
+        // Someone who stops heartbeating sends nothing, so nothing arrives to
+        // re-evaluate them against. Presence has to expire on the clock, or a
+        // closed laptop stays in the room until somebody else happens to write.
+        const stillHere = onlineOnly(this.presences, now, this.policy)
+            .filter((presence) => presence.participantId !== this.self)
+            .map((presence) => presence.participantId);
+        for (const id of this.onlineIds) {
+            if (!stillHere.includes(id)) events.push({ type: 'ParticipantLeft', participantId: id });
+        }
+        this.onlineIds = stillHere;
 
         if (heartbeatDue(this.lastPresencePublish, now, this.policy)) {
             this.lastPresencePublish = now;

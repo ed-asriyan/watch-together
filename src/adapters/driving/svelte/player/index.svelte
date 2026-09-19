@@ -54,9 +54,17 @@
                 <FileButton forceLocal={true} />
             </div>
         {/if}
+        <!--
+            `muted` is set as an attribute, not only as a property from the
+            adapter: the custom element upgrades asynchronously and a property
+            written before that does not survive. Starting muted is what makes
+            a remote resume playable at all — the browser refuses audible
+            playback without a gesture this client never made.
+        -->
         <media-player
             bind:this={element}
             class="uk-width-1-1 uk-height-1-1"
+            muted={$playback.muted}
             playsInline
             preload="metadata"
             crossOrigin
