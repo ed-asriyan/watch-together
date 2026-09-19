@@ -128,6 +128,78 @@ describe('RoomReplica', () => {
             expect(published(real, 'playhead').length).toBeGreaterThan(0);
         });
 
+        /**
+         * A correction that changes WHERE and WHETHER we are playing produces
+         * two events from the element, not one: the coordinator seeks and then
+         * plays (or pauses), so `seeked` arrives before `played`/`paused`.
+         *
+         * Absorbing only the second one is what made pressing play look like
+         * it "starts for a split second and stops". The `seeked` half read as
+         * a user scrubbing, and it was declared with the element's paused flag
+         * as it stood — which, before `play()` had taken effect, was still
+         * `true`. That published a pause over the room, at a fresher stamp
+         * than the play that caused it.
+         */
+        it('does not publish the seek its own resume caused', () => {
+            replica.observePlayer(observed({ position: sec(0), paused: true }), at(900));
+            const remote = replica.applyRemotePlayhead(
+                intent({ position: sec(300), paused: false }, at(1_000), BOB),
+                at(1_000),
+            );
+            expect(remote.correct.kind).toBe('resume');
+
+            // seekTo(300) lands first; the element has not started yet.
+            const jump = replica.observePlayer(
+                observed({ position: sec(300), paused: true }),
+                at(1_050),
+            );
+            expect(published(jump, 'playhead')).toHaveLength(0);
+
+            // ...and then it starts.
+            const start = replica.observePlayer(
+                observed({ position: sec(300), paused: false }),
+                at(1_100),
+            );
+            expect(published(start, 'playhead')).toHaveLength(0);
+        });
+
+        it('does not publish the seek its own halt caused', () => {
+            replica.observePlayer(observed({ position: sec(300), paused: false }), at(900));
+            const remote = replica.applyRemotePlayhead(
+                intent({ position: sec(100), paused: true }, at(1_000), BOB),
+                at(1_000),
+            );
+            expect(remote.correct.kind).toBe('halt');
+
+            // seekTo(100) lands first; the element is still running.
+            const jump = replica.observePlayer(
+                observed({ position: sec(100), paused: false }),
+                at(1_050),
+            );
+            expect(published(jump, 'playhead')).toHaveLength(0);
+
+            const stop = replica.observePlayer(
+                observed({ position: sec(100), paused: true }),
+                at(1_100),
+            );
+            expect(published(stop, 'playhead')).toHaveLength(0);
+        });
+
+        it('still publishes a user scrub that lands somewhere else entirely', () => {
+            replica.observePlayer(observed({ position: sec(0), paused: true }), at(900));
+            replica.applyRemotePlayhead(
+                intent({ position: sec(300), paused: false }, at(1_000), BOB),
+                at(1_000),
+            );
+            // Not where the correction was aiming: this is the user.
+            const scrub = replica.observePlayer(
+                observed({ position: sec(42), paused: true }),
+                at(1_050),
+            );
+            expect(published(scrub, 'playhead')).toHaveLength(1);
+            expect(published(scrub, 'playhead')[0]!.intent.value.position).toBe(42);
+        });
+
         it('issues at most one correction per decision (I4)', () => {
             replica.observePlayer(observed({ position: sec(0), paused: false }), at(900));
             const decision = replica.applyRemotePlayhead(

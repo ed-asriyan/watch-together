@@ -1886,3 +1886,84 @@ promises it against `FirebaseRoomGateway` on the emulator too, and that is
 worth doing — it would have caught this without a browser. It needs the
 contract's propagation assertions to become `eventually`-style waits first;
 they are written synchronously, which only a same-tick backend satisfies.
+
+---
+
+## 21. QA: the client that went deaf
+
+Reported as "I press Play, it runs for a split second and stops; I move the
+slider and it moves, but pressing Play jumps back to where it was; the other
+browser doesn't change at all; and then playing on the browser I changed jumps
+back to the other one's old state and stops."
+
+Four symptoms, one cause, plus a second defect found while reproducing it.
+
+### The buffering latch
+
+`ObservedPlayback.stalled` means "currently buffering; drift readings are
+meaningless while true", and `reconcile` and `observePlayer` both discard
+everything from a stalled element. The adapter set it from the player's
+`waiting` event and cleared it from `playing`.
+
+`playing` only fires when playback actually starts. Worse, the player clears
+its own `waiting` flag only when the position next **advances**. A PAUSED
+element's position never advances — so any client that buffered while paused,
+which is every client that joins a room and waits for the others, latched
+`stalled` on and never cleared it.
+
+That client was then deaf, in both directions:
+
+- it ignored every remote intent, so it followed nothing — *"the other browser
+  doesn't change"*, seen from the client that was still working;
+- it published nothing of its own, so its scrub moved its own element and
+  reached nobody — *"I move the slider, it moves"*, and nothing else happens;
+- and the moment somebody finally pressed play, `playing` released the latch,
+  the readings started counting again, and the room's stale intent — the one
+  from before all the ignored local activity — corrected it straight back and
+  stopped it. *"It runs for a split second and stops", "it jumps back to the
+  previous state."*
+
+Measured against the emulator with a client whose media was held back 15
+seconds: it sat at `0`, paused, for ever, while the other played on past 150.
+
+The fix is in `sample()`: `stalled` is `waiting && !paused`. Conflating the two
+was the error — buffering is a statement about **playback**. An element that is
+not playing is not behind, its position is exact, and there is nothing to
+distrust. The flag still does its real job, suppressing the frozen readings of
+an element rebuffering *mid-playback*, which would otherwise be published as
+the user scrubbing backwards.
+
+Same scenario after the fix: the late client joins the film at 153.87 against
+153.90, the instant its media is ready.
+
+### The other half of a correction
+
+Found while reproducing the above, and fixed with it: `halt` and `resume` carry
+a position, so applying one seeks AND toggles — the element emits `seeked`
+first and `paused`/`played` after. `isEcho` absorbed only the toggle.
+
+The `seeked` half therefore read as a user scrubbing, and was declared with the
+paused flag as it stood mid-correction — `true`, while `play()` had not taken
+effect yet. That published a pause over the very play that caused it, at a
+fresher stamp. Two changes: `isEcho` matches the seek a `halt` or `resume`
+caused, against that correction's own target so a real scrub elsewhere still
+counts; and `observePlayer` no longer forgets the outstanding correction on the
+first match, since one correction now has two echoes to absorb. `hasSettled`
+retires it instead, so the suppression window governs how long a correction can
+be blamed for what the element does.
+
+This one never bit on a local network, where clients are close enough that a
+`resume` seeks to within the hard threshold of where the element already is and
+the jump is never classified as a scrub. It bites exactly when a client is far
+behind — which is the case the section above creates.
+
+### Tests
+
+Each verified to fail without its fix:
+
+- `media-player.spec.ts` — a paused element whose `waiting` flag has latched on
+  is not stalled, and the same element is stalled again the moment it plays;
+- `room-replica.spec.ts` — the seek a `resume` caused is not published, nor the
+  play that follows it, while a scrub that lands somewhere else still is;
+- `echo.spec.ts` — the new `isEcho` clauses, and the negative cases that keep
+  them from swallowing a real user seek.

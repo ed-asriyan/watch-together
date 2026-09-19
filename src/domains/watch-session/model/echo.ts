@@ -51,14 +51,25 @@ export function isEcho(
     if (!issued) return false;
     if (now - issued.issuedAt > policy.echoSuppressionWindow) return false;
 
+    const landedOn = (target: Seconds): boolean =>
+        observation.type === 'seeked'
+        && Math.abs(observation.position - target) <= policy.echoPositionTolerance;
+
     switch (issued.correction.kind) {
         case 'seek':
-            return observation.type === 'seeked'
-                && Math.abs(observation.position - issued.correction.to) <= policy.echoPositionTolerance;
+            return landedOn(issued.correction.to);
+        // `halt` and `resume` carry a position, so applying one seeks AND
+        // toggles: the element emits `seeked` first and `paused`/`played`
+        // after. Both are ours. Absorbing only the toggle left the jump
+        // looking like a user scrubbing, and it was declared with the paused
+        // flag as it stood mid-correction — `true` while `play()` had not
+        // taken effect yet — publishing a pause over the very play that
+        // caused it, at a fresher stamp. Pressing play started the room for a
+        // split second and stopped it.
         case 'halt':
-            return observation.type === 'paused';
+            return observation.type === 'paused' || landedOn(issued.correction.at);
         case 'resume':
-            return observation.type === 'played';
+            return observation.type === 'played' || landedOn(issued.correction.from);
         default:
             // A nudge changes the rate, which produces no event to absorb, and
             // `none` was never sent to the player at all.

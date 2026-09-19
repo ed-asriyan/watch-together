@@ -61,13 +61,13 @@ export class VidstackMediaPlayer implements MediaPlayerPort, PlayerSurface {
             this.sample();
             this.listener?.onSeeked(this.state.position);
         });
+        // Neither handler touches `stalled` any more — `sample()` reads it off
+        // the element. See the note there for what latching it cost.
         on('waiting', () => {
-            this.state = { ...this.state, stalled: true };
+            this.sample();
             this.listener?.onStalled();
         });
-        on('playing', () => {
-            this.state = { ...this.state, stalled: false };
-        });
+        on('playing', () => this.sample());
         on('end', () => this.listener?.onEnded());
         on('error', () => this.listener?.onError({ kind: 'unknown', message: 'playback failed' }));
 
@@ -162,11 +162,32 @@ export class VidstackMediaPlayer implements MediaPlayerPort, PlayerSurface {
     private sample(): void {
         const player = this.element;
         if (!player) return;
+        const paused = Boolean(player.paused);
         this.state = {
             position: (Number(player.currentTime) || 0) as Seconds,
-            paused: Boolean(player.paused),
+            paused,
             ready: this.state.ready || Number(player.state?.duration) > 0,
-            stalled: this.state.stalled,
+            // `waiting` is "playback has temporarily stopped for lack of
+            // data", and the player only clears it when the position next
+            // ADVANCES. A paused element's position never advances, so on a
+            // paused element the flag latches on and stays on.
+            //
+            // That is why this reads `!paused` too. The domain discards every
+            // reading from a stalled element, so a client that buffered while
+            // paused — which is any client that joins a room and waits for the
+            // others — went deaf: it followed nothing the room did, published
+            // nothing it did itself, and the moment somebody pressed play the
+            // flag finally cleared and the room's stale intent yanked it back
+            // and stopped it. "It plays for a split second and stops", and
+            // "the other browser doesn't change".
+            //
+            // Conflating the two was the error: buffering is a statement about
+            // playback. An element that is not playing is not behind, its
+            // position is exact, and there is nothing to distrust. The flag
+            // still does its real job — suppressing the frozen readings of an
+            // element that rebuffers mid-playback, which would otherwise be
+            // published as a user scrubbing backwards.
+            stalled: !paused && Boolean(player.state?.waiting),
         };
     }
 }

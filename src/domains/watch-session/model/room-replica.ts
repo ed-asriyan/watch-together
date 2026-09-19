@@ -376,10 +376,12 @@ class Replica implements RoomReplica {
 
         if (this.pending && !hasSettled(this.pending, now, this.policy)) {
             const observation = this.classify(previous, observed, now);
-            if (observation && isEcho(observation, this.pending, now, this.policy)) {
-                this.pending = null;
-                return NOTHING;
-            }
+            // NOT cleared on the first match: one `halt` or `resume` produces
+            // two events, the seek and the toggle, and forgetting it after the
+            // first would leave the second to be declared as a user action.
+            // `hasSettled` retires it instead, so the window governs how long
+            // a correction can be blamed for what the element does.
+            if (observation && isEcho(observation, this.pending, now, this.policy)) return NOTHING;
         }
 
         // A user action is a DISCONTINUITY against the player's own previous

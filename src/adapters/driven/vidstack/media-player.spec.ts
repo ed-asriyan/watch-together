@@ -15,7 +15,7 @@ const fakeElement = (play: () => Promise<void>) => {
         currentTime: number;
         playbackRate: number;
         src: string;
-        state: { duration: number };
+        state: { duration: number; waiting?: boolean };
         play: () => Promise<void>;
         pause: () => Promise<void>;
     };
@@ -23,7 +23,7 @@ const fakeElement = (play: () => Promise<void>) => {
     element.paused = true;
     element.currentTime = 0;
     element.playbackRate = 1;
-    element.state = { duration: 0 };
+    element.state = { duration: 0, waiting: false };
     element.play = play;
     element.pause = async () => undefined;
     return element;
@@ -80,6 +80,70 @@ describe('VidstackMediaPlayer', () => {
         player.mount(element);
         player.seekTo(30 as Seconds);
         expect(element.currentTime).toBe(30);
+    });
+
+    /**
+     * The player's `waiting` flag is only cleared when the position next
+     * ADVANCES, so on a paused element it latches on for good. The domain
+     * discards every reading from a stalled element, so a client that buffered
+     * while paused — any client that joins a room and waits — followed nothing
+     * and published nothing, until somebody pressed play and the room's stale
+     * intent pulled it back and stopped it.
+     */
+    describe('buffering', () => {
+        it('reports a stall while playback is waiting for data', async () => {
+            const player = new VidstackMediaPlayer();
+            const element = fakeElement(async () => undefined);
+            player.mount(element);
+            await player.load(media);
+            element.state = { duration: 600, waiting: true };
+            element.paused = false;
+            element.dispatchEvent(new Event('waiting'));
+
+            expect(player.observe().stalled).toBe(true);
+        });
+
+        it('does not call a PAUSED element stalled, however long the flag has been set', async () => {
+            const player = new VidstackMediaPlayer();
+            const element = fakeElement(async () => undefined);
+            player.mount(element);
+            await player.load(media);
+
+            // It buffered while paused, and nothing ever cleared the flag: the
+            // position it would have to advance past never moves.
+            element.state = { duration: 600, waiting: true };
+            element.paused = true;
+            element.dispatchEvent(new Event('waiting'));
+            element.dispatchEvent(new Event('can-play'));
+
+            expect(player.observe()).toMatchObject({ stalled: false, paused: true, ready: true });
+        });
+
+        it('reports the stall again the moment that element is playing', async () => {
+            const player = new VidstackMediaPlayer();
+            const element = fakeElement(async () => undefined);
+            player.mount(element);
+            await player.load(media);
+            element.state = { duration: 600, waiting: true };
+            element.paused = true;
+            element.dispatchEvent(new Event('waiting'));
+            expect(player.observe().stalled).toBe(false);
+
+            element.paused = false;
+            expect(player.observe().stalled).toBe(true);
+        });
+
+        it('tells the listener about the stall, for the spinner', async () => {
+            const onStalled = vi.fn();
+            const player = new VidstackMediaPlayer();
+            const element = fakeElement(async () => undefined);
+            player.attach({ onStalled, onReady: vi.fn() } as never);
+            player.mount(element);
+            element.state = { duration: 600, waiting: true };
+            element.dispatchEvent(new Event('waiting'));
+
+            expect(onStalled).toHaveBeenCalled();
+        });
     });
 
     it('stops reporting once unmounted', () => {

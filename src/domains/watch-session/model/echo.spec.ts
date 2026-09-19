@@ -43,6 +43,24 @@ describe('isEcho', () => {
         expect(isEcho(observation, issued({ kind: 'resume', from: sec(100) }), at(50), P)).toBe(true);
     });
 
+    // Applying a `halt` or a `resume` seeks first and toggles second, so the
+    // element emits `seeked` and then `paused`/`played`. Both are ours.
+    it('matches the seek a halt caused, not just the pause', () => {
+        expect(isEcho(seeked(100), issued({ kind: 'halt', at: sec(100) }), at(50), P)).toBe(true);
+    });
+
+    it('matches the seek a resume caused, not just the play', () => {
+        expect(isEcho(seeked(100), issued({ kind: 'resume', from: sec(100) }), at(50), P)).toBe(true);
+    });
+
+    it('does not absorb a seek somewhere a halt was not aiming', () => {
+        expect(isEcho(seeked(400), issued({ kind: 'halt', at: sec(100) }), at(50), P)).toBe(false);
+    });
+
+    it('does not absorb a seek somewhere a resume was not aiming', () => {
+        expect(isEcho(seeked(400), issued({ kind: 'resume', from: sec(100) }), at(50), P)).toBe(false);
+    });
+
     it('does not cross-match a pause against a resume', () => {
         const observation: PlayerObservation = { type: 'paused', position: sec(100) };
         expect(isEcho(observation, issued({ kind: 'resume', from: sec(100) }), at(50), P)).toBe(false);
