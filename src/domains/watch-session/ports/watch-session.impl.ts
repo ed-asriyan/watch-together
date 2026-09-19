@@ -356,6 +356,14 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
         replica = created;
         roomId = target;
 
+        // Tell the replica what the clock is worth straight away. Without this
+        // a client whose clock never synchronized shows "online" while its
+        // writes are silently withheld — the worst of both.
+        let level: ClockConfidence = 'synced';
+        clock.confidence.subscribe((value) => { level = value; })();
+        confidence = level;
+        apply(created.applyClockConfidence(level, clock.now()), null);
+
         const opened = await gateway.open({
             roomId: target,
             self: me.participantId,

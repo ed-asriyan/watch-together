@@ -165,18 +165,16 @@ waiting sixty real seconds.
 This is a grep, not a real analysis; `dependency-cruiser` replaces it at step 0
 of the migration plan.
 
-## Current state: interfaces only
+## Current state: implemented
 
-Everything under `domains/` is **types and declared signatures, with no
-implementation**. Function bodies are intentionally absent:
+The domain, the coordinator and the adapters are written. 278 of 280 tests
+pass; the two failures are a limitation of a test double, not of the code, and
+are described in `docs/architecture/001-ddd-hexagonal-design.md` §19.
 
-```ts
-export declare function reconcile(...): Correction;
-```
-
-These are ambient declarations. They typecheck and they are reviewable, but
-importing one at runtime would fail — nothing imports them yet, and nothing
-should until the implementation phase begins.
+`src/composition/container.ts` is the only file that names concrete classes.
+Without a configured database it wires `InMemoryRoomGateway` and a plain
+`SystemClock`, so `npm run dev` works with no credentials at all — the same
+code path the contract tests take.
 
 ## Command vs listener vs port command
 

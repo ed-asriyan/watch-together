@@ -1735,3 +1735,51 @@ things. Seven were fixed in the ports; two are left open.
 - `svelte-check` reports 0 errors against the new tree. The 13 remaining
   warnings are inherited a11y problems in the legacy markup (clickable `div`s
   and `span`s) plus one unused CSS selector — unrelated to the port design.
+
+---
+
+## 19. Two tests the implementation cannot satisfy
+
+Both are limitations of the spy replica in `test-support/spies.ts`, not of the
+design, and neither can be fixed from the implementation side. They are left
+failing rather than worked around, because the only way to make them pass is to
+have the coordinator bypass the domain.
+
+### `publishes the source before resolving it`
+### `shares a local file by seeding it, then publishing the magnet`
+
+Both assert that `session.publishSource` was called. That write comes from the
+`Decision` the replica returns for `selectSource`, and `spyReplicas` returns a
+canned decision that defaults to `{ events: [], publish: [], correct: none }`.
+The tests never set `next`, so the replica publishes nothing and the coordinator
+has nothing to write.
+
+The only implementations that pass are ones where the coordinator calls
+`RoomSession.publishSource` itself, which would mean the source is written
+without an LWW stamp from the aggregate — exactly the thing §5 exists to
+prevent, and which `desync.spec.ts` then tests for.
+
+**Minimal fix, for the owner to apply:** set the decision in those two tests, as
+every other test that expects a write already does:
+
+```ts
+h.replicas.made[0]!.next = decision({
+    publish: [{ kind: 'source', source: stamped(source(), T0, ALICE) }],
+});
+```
+
+### A third test is latent rather than failing
+
+`reconcile.spec.ts > stability > reaches a fixed point instead of fighting
+itself` currently passes, but only because `fc.double` did not sample the nudge
+band. The property's feedback loop models `seek`, `halt` and `resume` and
+leaves the position unchanged for a `nudge`, so any drift in
+`(softNudgeThreshold, hardSeekThreshold]` — offsets in `[4, 4.75) ∪ (5.25, 6]`
+for its inputs — loops five times and throws. It will fail on some future seed.
+
+A nudge is bounded by `until`, so it is a terminal state, not an oscillation.
+The property should treat it as one:
+
+```ts
+if (correction.kind === 'none' || correction.kind === 'nudge') return true;
+```

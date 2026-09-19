@@ -169,6 +169,7 @@ class Replica implements RoomReplica {
     private readonly knownActivityIds = new Set<string>();
     private readonly retractedIds = new Set<string>();
     private onlineIds: readonly ParticipantId[] = [];
+    private joined = false;
 
     constructor({ roomId, self, nickname, policy, now }: RoomReplicaParams) {
         this.roomId = roomId;
@@ -258,7 +259,14 @@ class Replica implements RoomReplica {
         this.onlineIds = onlineOnly(snapshot.presences, now, this.policy).map((p) => p.participantId);
         this.watched = snapshot.watchedMinutes;
         this.connection = { status: 'online' };
-        return this.emit([{ type: 'RoomJoined', roomId: this.roomId, self: this.self }], [], this.correctNow(now));
+        // Announced once per replica: a gateway may deliver a snapshot more
+        // than once (a reconnect re-reads the room), and joining is not
+        // something that happens twice.
+        const events: DomainEvent[] = this.joined
+            ? []
+            : [{ type: 'RoomJoined', roomId: this.roomId, self: this.self }];
+        this.joined = true;
+        return this.emit(events, [], this.correctNow(now));
     }
 
     applyRemotePlayhead(intent: PlayheadIntent, now: EpochMs): Decision {

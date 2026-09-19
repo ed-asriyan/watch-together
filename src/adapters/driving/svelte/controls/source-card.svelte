@@ -5,7 +5,7 @@
     import Interpolator from '../interpolator.svelte';
     import FileButton from './file-button.svelte';
     import { useSession } from '../session-context';
-    import { ui } from '../../../../composition/config';
+    import { pickExample, ui } from '../../../../composition/config';
 
     const { commands, view } = useSession();
     const source = view.source;
@@ -29,13 +29,21 @@
         }
     });
 
-    const onInput = function () {
-        commands.setSourceFromUserInput(draft);
+    // Read the value off the event rather than off `draft`: Svelte's binding
+    // and this handler both fire on `input`, and taking `draft` here makes the
+    // command lag one keystroke behind what the user typed.
+    const onInput = function (event: Event) {
+        commands.setSourceFromUserInput((event.currentTarget as HTMLInputElement).value);
     };
 
     const onExample = function (event: Event) {
         event.preventDefault();
-        commands.pickExampleSource();
+        // The demo list is configuration, so it enters the domain the same way
+        // anything else does: as ordinary user input.
+        const example = pickExample();
+        if (!example) return;
+        draft = example;
+        commands.setSourceFromUserInput(example);
     };
 </script>
 
