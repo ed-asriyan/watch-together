@@ -1,4 +1,3 @@
-import { notImplemented } from './shared/not-implemented';
 import type { EpochMs, Seconds } from './shared/time';
 import type { PlayheadIntent } from './playhead';
 import { projectedPositionAt } from './playhead';

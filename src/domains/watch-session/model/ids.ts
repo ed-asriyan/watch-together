@@ -1,4 +1,3 @@
-import { notImplemented } from './shared/not-implemented';
 import type { Brand } from './shared/brand';
 
 /** Human-shareable room key, carried in the URL hash. Legacy: `randomStr(6)`. */

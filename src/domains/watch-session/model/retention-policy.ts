@@ -1,4 +1,3 @@
-import { notImplemented } from './shared/not-implemented';
 import type { EpochMs } from './shared/time';
 import type { Activity } from './activity';
 import type { ActivityId } from './ids';

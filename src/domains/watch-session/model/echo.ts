@@ -1,4 +1,3 @@
-import { notImplemented } from './shared/not-implemented';
 import type { EpochMs, Seconds } from './shared/time';
 import type { Correction } from './reconcile';
 import type { SyncPolicy } from './sync-policy';
