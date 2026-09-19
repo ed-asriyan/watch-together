@@ -11,7 +11,8 @@
 		"stats": "node --experimental-json-modules stats.js",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"check:skeleton": "tsc --noEmit -p tsconfig.skeleton.json"
+		"check:skeleton": "tsc --noEmit -p tsconfig.skeleton.json && node scripts/check-boundaries.mjs",
+		"check:boundaries": "node scripts/check-boundaries.mjs"
 	},
 	"devDependencies": {
 		"@amplitude/analytics-browser": "^2.29.0",

@@ -14,5 +14,5 @@
     "noEmit": true,
     "types": []
   },
-  "include": ["src/domain/**/*.ts", "src/application/**/*.ts"]
+  "include": ["src/domains/**/*.ts"]
 }

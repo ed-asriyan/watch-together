@@ -1148,108 +1148,117 @@ to the adapter on mount, hand it back on destroy. No `bind:paused`, no
 `bind:currentTime`, no `saveCurrentTime`, no `firstSeek`.
 
 ---
-
 ## 9. Directory layout
+
+Grouped by **bounded context first, layer second** — the normal DDD /
+modular-monolith shape. Everything one context owns sits in one folder, a change
+lands in one place, and a second context is a sibling rather than four edits
+spread across four layer folders.
 
 ```
 src/
-├── domain/                                   # pure TS. no svelte/firebase/vidstack/Date/Math.random
-│   ├── shared/
-│   │   ├── time.ts                           # EpochMs, Seconds, Millis (branded)
-│   │   ├── stamped.ts                        # Stamped<T>, mergeLww
-│   │   ├── observable.ts                     # Observable<T>, Unsubscribe
-│   │   └── result.ts
-│   └── room/
-│       ├── ids.ts                            # RoomId, ParticipantId, ActivityId
-│       ├── media-source.ts                   # MediaSourceRef, MediaSourceKind
-│       ├── playhead.ts                       # Playhead, PlayheadIntent, projectedPositionAt
-│       ├── participant.ts                    # Participant, Presence, Nickname, colour
-│       ├── activity.ts                       # Activity, Notice, ActivityBody
-│       ├── sync-policy.ts                    # SyncPolicy + DEFAULT_SYNC_POLICY
-│       ├── reconcile.ts                      # Correction, reconcile()
-│       ├── echo.ts                           # isEcho()
-│       ├── presence-policy.ts                # isOnline(), pruneStale()
-│       ├── retention-policy.ts               # activity TTL
-│       ├── room-replica.ts                   # the aggregate root
-│       ├── room-state.ts                     # internal state shape + RoomSnapshot
-│       ├── decision.ts                       # Decision, PublishIntent
-│       └── events.ts                         # DomainEvent union
-│
-├── application/
-│   ├── ports/
-│   │   ├── inbound/                          # implemented BY the application
-│   │   │   ├── watch-session-commands.ts
-│   │   │   ├── remote-room-listener.ts
-│   │   │   ├── media-player-listener.ts
-│   │   │   └── session-ticks.ts
-│   │   └── outbound/                         # implemented BY adapters
-│   │       ├── room-gateway.ts
-│   │       ├── media-player.ts
-│   │       ├── media-resolver.ts
-│   │       ├── clock.ts
-│   │       ├── scheduler.ts
-│   │       ├── profile-store.ts
-│   │       ├── id-generator.ts
-│   │       ├── telemetry.ts
-│   │       ├── error-reporter.ts
-│   │       └── location.ts
-│   ├── use-cases/
-│   │   ├── join-room.ts
-│   │   ├── set-source.ts
-│   │   └── share-local-file.ts
-│   ├── projections/
-│   │   ├── feed-notices.ts
-│   │   ├── telemetry.ts
-│   │   └── watch-time.ts
-│   ├── read-models/
-│   │   └── *.ts                              # ConnectionView, PlaybackView, FeedView, ...
-│   ├── event-bus.ts
-│   └── watch-session.ts                      # the coordinator
+├── domains/
+│   └── watch-session/                    # the bounded context
+│       ├── model/                        # THE DOMAIN LAYER — pure, imports nothing outward
+│       │   ├── shared/
+│       │   │   ├── brand.ts              # nominal typing helper
+│       │   │   ├── time.ts               # EpochMs, Seconds, Millis (branded)
+│       │   │   ├── observable.ts         # Observable<T>, Unsubscribe
+│       │   │   ├── stamped.ts            # Stamped<T>, mergeLww
+│       │   │   └── clock-confidence.ts
+│       │   ├── ids.ts                    # RoomId, ParticipantId, ActivityId, Nickname
+│       │   ├── media-source.ts           # MediaSourceRef, MediaSourceKind
+│       │   ├── playhead.ts               # Playhead, PlayheadIntent, projectedPositionAt
+│       │   ├── participant.ts            # Participant, Presence
+│       │   ├── activity.ts               # Activity, Notice
+│       │   ├── connection.ts             # ConnectionState
+│       │   ├── sync-policy.ts            # SyncPolicy + DEFAULT / LEGACY
+│       │   ├── reconcile.ts              # Correction, reconcile()
+│       │   ├── echo.ts                   # isEcho()
+│       │   ├── presence-policy.ts
+│       │   ├── retention-policy.ts
+│       │   ├── room-state.ts             # RoomState, RoomSnapshot
+│       │   ├── decision.ts               # Decision, PublishIntent
+│       │   ├── events.ts                 # DomainEvent union
+│       │   └── room-replica.ts           # the aggregate root
+│       │
+│       ├── ports/
+│       │   ├── index.ts                  # THE IMPLEMENTATION: WatchSession + deps + factory
+│       │   ├── event-bus.ts              # internal synchronous fan-out
+│       │   ├── inbound/                  # implemented BY the context, called BY adapters
+│       │   │   ├── index.ts
+│       │   │   ├── watch-session-commands.ts
+│       │   │   ├── watch-session-view.ts
+│       │   │   ├── views.ts
+│       │   │   ├── remote-room-listener.ts
+│       │   │   ├── media-player-listener.ts
+│       │   │   └── session-ticks.ts
+│       │   └── outbound/                 # implemented BY adapters, called BY the context
+│       │       ├── index.ts
+│       │       ├── room-gateway.ts
+│       │       ├── media-player.ts
+│       │       ├── media-resolver.ts
+│       │       ├── clock.ts
+│       │       ├── scheduler.ts
+│       │       ├── profile-store.ts
+│       │       ├── id-generator.ts
+│       │       ├── telemetry.ts
+│       │       ├── error-reporter.ts
+│       │       └── location.ts
+│       │
+│       ├── use-cases/                    # only the multi-port flows
+│       │   ├── join-room.ts
+│       │   ├── set-source.ts
+│       │   └── share-local-file.ts
+│       └── projections/
+│           ├── feed-notices.ts
+│           ├── telemetry.ts
+│           └── watch-time.ts
 │
 ├── adapters/
 │   ├── driving/
-│   │   └── svelte/                           # everything currently in components/
-│   │       ├── session-context.ts            # setContext/getContext for commands + view
-│   │       └── ...                           # the existing component tree, made dumb
+│   │   └── svelte/                       # the component tree, made dumb
 │   └── driven/
-│       ├── firebase/
-│       │   ├── firebase-room-gateway.ts
-│       │   ├── mappers.ts                    # the anti-corruption layer
-│       │   ├── schema.ts                     # wire DTOs
-│       │   └── firebase-clock.ts
-│       ├── memory/
-│       │   └── in-memory-room-gateway.ts
+│       ├── firebase/                     # gateway + mappers (ACL) + server-offset clock
+│       ├── memory/                       # in-memory gateway
 │       ├── vidstack/
-│       │   └── vidstack-media-player.ts
-│       ├── media/
-│       │   ├── composite-resolver.ts
-│       │   ├── classify.ts                   # ex normalize-source.ts
-│       │   ├── proxy-resolver.ts             # ex explore-url.ts
-│       │   └── webtorrent-resolver.ts        # ex web-torrent.ts
-│       ├── browser/
-│       │   ├── browser-scheduler.ts
-│       │   ├── local-storage-profile-store.ts
-│       │   ├── crypto-id-generator.ts
-│       │   └── hash-location.ts
+│       ├── media/                        # classify, proxy, extractor, webtorrent
+│       ├── browser/                      # scheduler, profile store, ids, location
 │       ├── telemetry/
-│       │   └── amplitude-ga-telemetry.ts
 │       └── sentry/
-│           └── sentry-error-reporter.ts
 │
 ├── composition/
-│   ├── container.ts                          # the ONLY file that wires concrete classes
-│   ├── config.ts                             # ex settings.ts — read import.meta.env here, nowhere else
-│   └── bootstrap.ts                           # ex main.ts
+│   ├── container.ts                      # the ONLY file that wires concrete classes
+│   ├── config.ts                         # ex settings.ts — reads import.meta.env, nowhere else
+│   └── bootstrap.ts                      # ex main.ts
 │
-├── i18n/                                     # unchanged
-└── app.scss, main.ts, App.svelte
+├── i18n/
+└── legacy/                               # frozen; deleted at migration step 6
 ```
 
-Test files sit next to their subject (`reconcile.spec.ts` beside `reconcile.ts`),
-except the port contract suites, which live in
-`src/application/ports/outbound/__contracts__/`.
+**`model/` is separate from `ports/` for exactly one reason.** "Domain" names
+two different things: `watch-session/` is the *bounded context* (the whole
+module, ports included), `model/` is the *domain layer*. The domain layer must
+not know that `RoomGatewayPort` or `ClockPort` exist. If they shared a folder,
+nothing would stop `playhead.ts` from importing `ports/outbound/clock.ts`, and
+the moment the model can read a clock, every synchronization rule stops being a
+pure function of its arguments — which is the entire point of the refactor.
 
----
+Where port *interfaces* live (domain layer vs application layer) is genuinely
+contested in the literature; what is not contested is that the model must not
+depend on infrastructure. Putting the ports in the context but outside the model
+satisfies that without inventing an `application/` layer this codebase has no
+other use for.
+
+Test files sit next to their subject (`reconcile.spec.ts` beside
+`reconcile.ts`), except the port contract suites, which live in
+`ports/outbound/__contracts__/`.
+
+Enforced by `npm run check:skeleton`: a `types: []` typecheck of
+`src/domains/**` plus `scripts/check-boundaries.mjs`, which fails on a framework
+import anywhere in the context, a `model/ -> ports/` import, or any use of
+`Date.now`, `Math.random`, `setTimeout`, `setInterval`, `localStorage` or
+`fetch` inside `model/`. `dependency-cruiser` replaces the grep at step 0.
 
 ## 10. Data flows
 

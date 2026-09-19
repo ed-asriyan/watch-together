@@ -1,53 +1,115 @@
 # `src/` layout
 
-This tree is mid-refactor. Two things live here at once:
+Mid-refactor. Two things live here at once:
 
 | Directory | What it is |
 |---|---|
-| `domain/` | **New.** Pure TypeScript. Value objects, policies, the aggregate. Zero imports outside `domain/`. |
-| `application/` | **New.** Ports (inbound + outbound), read models, the coordinator. May import `domain/`. May *declare* ports; may not import adapters. |
+| `domains/` | **New.** One folder per bounded context. Currently one: `watch-session`. |
 | `legacy/` | **Frozen.** The application as it is today. Still the only thing that runs. Deleted at the end of the refactor. |
 
 ## Layout
 
 ```
 src/
-├── domain/                     pure model: value objects, policies, aggregate
-│   ├── shared/
-│   └── room/
-├── application/
-│   ├── event-bus.ts            internal: synchronous domain-event fan-out
-│   └── ports/
-│       ├── index.ts            ← THE IMPLEMENTATION SIDE (`WatchSession`)
-│       ├── inbound/            ports the application IMPLEMENTS, adapters CALL
-│       │   ├── index.ts
-│       │   ├── watch-session-commands.ts   site controls outside the player
-│       │   ├── watch-session-view.ts       what the UI may observe
-│       │   ├── views.ts                    the view-model shapes
-│       │   ├── remote-room-listener.ts     signals from the remote store
-│       │   ├── media-player-listener.ts    facts from the media element
-│       │   └── session-ticks.ts            the scheduler
-│       └── outbound/           ports adapters IMPLEMENT, the application CALLS
-│           ├── index.ts
-│           ├── room-gateway.ts    media-resolver.ts   telemetry.ts
-│           ├── media-player.ts    profile-store.ts    error-reporter.ts
-│           ├── clock.ts           id-generator.ts     location.ts
-│           └── scheduler.ts
-└── legacy/                     frozen; still the code that runs
+├── domains/
+│   └── watch-session/              the bounded context — everything it owns
+│       ├── model/                  THE DOMAIN LAYER: pure, imports nothing outward
+│       │   ├── shared/             Brand, EpochMs/Seconds, Observable, Stamped
+│       │   ├── ids.ts              media-source.ts   playhead.ts   participant.ts
+│       │   ├── activity.ts         connection.ts     events.ts     decision.ts
+│       │   ├── sync-policy.ts      reconcile.ts      echo.ts
+│       │   ├── presence-policy.ts  retention-policy.ts
+│       │   └── room-state.ts       room-replica.ts
+│       └── ports/
+│           ├── index.ts            THE IMPLEMENTATION (`WatchSession`)
+│           ├── event-bus.ts        internal: synchronous domain-event fan-out
+│           ├── inbound/            ports the context IMPLEMENTS, adapters CALL
+│           │   ├── index.ts
+│           │   ├── watch-session-commands.ts   site controls outside the player
+│           │   ├── watch-session-view.ts       what the UI may observe
+│           │   ├── views.ts                    the view-model shapes
+│           │   ├── remote-room-listener.ts     signals from the remote store
+│           │   ├── media-player-listener.ts    facts from the media element
+│           │   └── session-ticks.ts            the scheduler
+│           └── outbound/           ports adapters IMPLEMENT, the context CALLS
+│               ├── index.ts
+│               ├── room-gateway.ts    media-resolver.ts   telemetry.ts
+│               ├── media-player.ts    profile-store.ts    error-reporter.ts
+│               ├── clock.ts           id-generator.ts     location.ts
+│               └── scheduler.ts
+└── legacy/
 ```
+
+Grouping by context first and by layer second is the normal DDD / modular-monolith
+shape: everything one context owns sits in one folder, so a change lands in one
+place and a future second context (`media-delivery`, say) is a sibling rather
+than four edits spread across four layer folders.
 
 `ports/index.ts` sits beside `inbound/` and `outbound/` on purpose: it is the
 thing in the middle of the hexagon. It exports `WatchSession`, one object that
 satisfies all four inbound ports, so each driving adapter needs a single
-reference — the Svelte tree takes `commands` + `view`, the gateway adapter
-takes it as a `RemoteRoomListener`, the player adapter as a
-`MediaPlayerListener`, the scheduler as `SessionTicks`. Today it exports only
-the contract and a declared factory; the class lands with the implementation.
+reference — the Svelte tree takes `commands` + `view`, the gateway adapter takes
+it as a `RemoteRoomListener`, the player adapter as a `MediaPlayerListener`, the
+scheduler as `SessionTicks`. Today it exports the contract and a declared
+factory; the class lands with the implementation.
 
 Adapters (`adapters/driving`, `adapters/driven`) and the composition root
 (`composition/`) do not exist yet — they arrive with the implementation.
 
 Design: [`docs/architecture/001-ddd-hexagonal-design.md`](../docs/architecture/001-ddd-hexagonal-design.md).
+
+## Why `model/` is separate from `ports/`
+
+Because "domain" names two different things and only one of them may see a port.
+
+`watch-session/` is the **bounded context** — the whole module, ports included.
+`model/` is the **domain layer** — entities, value objects, policies, the
+aggregate — and it must not know that `RoomGatewayPort` or `ClockPort` exist at
+all. If the two shared a folder, nothing would stop `playhead.ts` from importing
+`ports/outbound/clock.ts`, and the moment the model can read a clock, every
+synchronization rule stops being a pure function of its arguments and the whole
+reason for this refactor evaporates.
+
+That is the only structural constraint here. Everything else is navigation.
+
+## Boundaries
+
+```console
+npm run check:skeleton     # typecheck in isolation + boundary guard
+```
+
+The typecheck compiles `src/domains/**` with `types: []` — no Svelte, no
+Firebase, no Vidstack in scope. If the skeleton ever needs one of those to
+compile, a boundary has been crossed.
+
+`scripts/check-boundaries.mjs` additionally fails the build when:
+
+1. anything under `domains/` imports a framework or vendor SDK
+   (`svelte`, `firebase`, `vidstack`, `webtorrent`, `@sentry`, `@amplitude`);
+2. anything under `model/` imports from `ports/`;
+3. anything under `model/` reads ambient state — `Date.now`, `Math.random`,
+   `setTimeout`, `setInterval`, `localStorage`, `sessionStorage`, `fetch`.
+
+Rule 3 is the load-bearing one. A model that cannot read a clock must be *given*
+every timestamp, which is what makes drift, echo suppression, presence expiry
+and the stale-playback guard testable by advancing a fake clock instead of
+waiting sixty real seconds.
+
+This is a grep, not a real analysis; `dependency-cruiser` replaces it at step 0
+of the migration plan.
+
+## Current state: interfaces only
+
+Everything under `domains/` is **types and declared signatures, with no
+implementation**. Function bodies are intentionally absent:
+
+```ts
+export declare function reconcile(...): Correction;
+```
+
+These are ambient declarations. They typecheck and they are reviewable, but
+importing one at runtime would fail — nothing imports them yet, and nothing
+should until the implementation phase begins.
 
 ## Command vs listener vs port command
 
@@ -55,9 +117,9 @@ Three things read as "play" and only two of them exist:
 
 | | Direction | Caller | Implementer | Meaning |
 |---|---|---|---|---|
-| `MediaPlayerListener.onPlayed(at)` | inbound | Vidstack adapter | application | fact: the element *did* start |
-| `MediaPlayerPort.play()` | outbound | application | Vidstack adapter | command: make the element play |
-| ~~`WatchSessionCommands.requestPlay()`~~ | inbound | nobody | application | intent: "user asked to play" |
+| `MediaPlayerListener.onPlayed(at)` | inbound | Vidstack adapter | the context | fact: the element *did* start |
+| `MediaPlayerPort.play()` | outbound | the context | Vidstack adapter | command: make the element play |
+| ~~`WatchSessionCommands.requestPlay()`~~ | inbound | nobody | the context | intent: "user asked to play" |
 
 The app renders no transport controls of its own — `<media-video-layout>` owns
 play, pause, scrub and volume and acts on the element directly. So every
@@ -68,45 +130,4 @@ transport controls or keyboard shortcuts appear, since a custom button must not
 poke `MediaPlayerPort` behind the domain's back.
 
 "Did the user press play, or did we call `play()` ourselves?" is answered by
-echo detection in `domain/room/echo.ts`, not by having two entry points.
-
-## Current state: interfaces only
-
-Everything under `domain/` and `application/` is **types and declared
-signatures, with no implementation**. Function bodies are intentionally absent:
-
-```ts
-export declare function reconcile(...): Correction;
-```
-
-These are ambient declarations. They typecheck and they are reviewable, but
-importing one at runtime would fail — nothing imports them yet, and nothing
-should until the implementation phase begins.
-
-Typecheck the skeleton on its own (no Svelte, no Firebase, no DOM framework
-types — that is the point):
-
-```console
-npm run check:skeleton
-```
-
-It must stay at zero errors. If the skeleton ever needs a `svelte`, `firebase`
-or `vidstack` import to compile, the boundary has been crossed and the design
-is wrong.
-
-## The dependency rule
-
-1. `domain/**` imports only from `domain/**`. No `svelte`, `firebase`,
-   `vidstack`, `import.meta.env`, `Date`, `Math.random`, `setTimeout`,
-   `localStorage`, `fetch`.
-2. `application/**` imports from `domain/**` and `application/**`.
-3. `adapters/**` imports from `application/ports/**`, `domain/**`, and the
-   library it adapts. Adapters never import each other.
-4. Only `composition/**` imports everything.
-
-Rule 1's ban on reading a clock is the load-bearing one: if the domain cannot
-call `Date.now()`, every timestamp must be passed in, which is what makes the
-synchronization logic testable at all.
-
-These rules are not yet mechanically enforced — `dependency-cruiser` lands with
-step 0 of the migration plan (§14 of the design doc).
+echo detection in `model/echo.ts`, not by having two entry points.
