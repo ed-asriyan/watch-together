@@ -33,7 +33,7 @@
     // and this handler both fire on `input`, and taking `draft` here makes the
     // command lag one keystroke behind what the user typed.
     const onInput = function (event: Event) {
-        commands.setSourceFromUserInput((event.currentTarget as HTMLInputElement).value);
+        commands.setSourceFromUserInput(draft);
     };
 
     const onExample = function (event: Event) {

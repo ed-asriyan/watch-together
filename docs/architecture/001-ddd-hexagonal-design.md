@@ -1738,48 +1738,62 @@ things. Seven were fixed in the ports; two are left open.
 
 ---
 
-## 19. Two tests the implementation cannot satisfy
+## 19. What the implementation changed about the tests
 
-Both are limitations of the spy replica in `test-support/spies.ts`, not of the
-design, and neither can be fixed from the implementation side. They are left
-failing rather than worked around, because the only way to make them pass is to
-have the coordinator bypass the domain.
+Three test problems surfaced while implementing. All are fixed; the design and
+the port interfaces are unchanged.
 
-### `publishes the source before resolving it`
-### `shares a local file by seeding it, then publishing the magnet`
+### Two coordinator tests were right, and arranged wrong
 
-Both assert that `session.publishSource` was called. That write comes from the
-`Decision` the replica returns for `selectSource`, and `spyReplicas` returns a
-canned decision that defaults to `{ events: [], publish: [], correct: none }`.
-The tests never set `next`, so the replica publishes nothing and the coordinator
-has nothing to write.
+`publishes the source before resolving it` and `shares a local file by seeding
+it, then publishing the magnet` both assert that `session.publishSource` was
+called. That write comes from the `Decision` the replica returns, and
+`spyReplicas` returns a canned decision defaulting to no publishes. These were
+the only two write-expecting tests that never stubbed one, so the assertion
+could not hold for any implementation that keeps the LWW stamp in the
+aggregate — and the only implementation that would have passed is one where the
+coordinator writes the source itself, which §5 exists to prevent and
+`desync.spec.ts` then tests against.
 
-The only implementations that pass are ones where the coordinator calls
-`RoomSession.publishSource` itself, which would mean the source is written
-without an LWW stamp from the aggregate — exactly the thing §5 exists to
-prevent, and which `desync.spec.ts` then tests for.
+Fixed by stubbing the decision, exactly as every other write test does. The
+assertions are untouched.
 
-**Minimal fix, for the owner to apply:** set the decision in those two tests, as
-every other test that expects a write already does:
+### A property test was passing vacuously
 
-```ts
-h.replicas.made[0]!.next = decision({
-    publish: [{ kind: 'source', source: stamped(source(), T0, ALICE) }],
-});
-```
+`reconcile.spec.ts > stability` modelled the feedback of a correction but
+treated a `nudge` as leaving the position unchanged, so any drift inside the
+nudge band would loop and throw — and it stayed green only because `fc.double`
+never sampled that band. Confirmed by hand: offsets 4, 4.5, 5.5 and 6 all nudge.
 
-### A third test is latent rather than failing
+Rewritten into three properties that say what was actually meant — every
+correction aims at the projected position, a nudge is bounded and points the
+right way, and any discrete correction settles in one step — plus explicit
+cases on both sides of the band so its coverage is not a matter of which seed
+was drawn. The nudge property now generates drift *inside* the band and asserts
+the kind, so it cannot pass vacuously again. Flipping the nudge direction in the
+implementation fails seven tests where it used to fail two.
 
-`reconcile.spec.ts > stability > reaches a fixed point instead of fighting
-itself` currently passes, but only because `fc.double` did not sample the nudge
-band. The property's feedback loop models `seek`, `halt` and `resume` and
-leaves the position unchanged for a `nudge`, so any drift in
-`(softNudgeThreshold, hardSeekThreshold]` — offsets in `[4, 4.75) ∪ (5.25, 6]`
-for its inputs — loops five times and throws. It will fail on some future seed.
+### One reported bug was not a bug
 
-A nudge is bounded by `until`, so it is a terminal state, not an oscillation.
-The property should treat it as one:
+An earlier note in this file claimed the source field reported the previous
+keystroke. It does not. The symptom came from a browser probe whose selector
+(`input.uk-input`) matched the chat field first, so the source field was never
+being typed into at all. Verified both ways: a jsdom component spec and a real
+browser agree that reading the bound variable in the handler is correct, and the
+change made on the strength of that diagnosis has been reverted.
 
-```ts
-if (correction.kind === 'none' || correction.kind === 'nudge') return true;
-```
+The other two findings were real, and each has a regression test verified to
+fail without its fix:
+
+- a client whose clock never synchronized read as `online` while the
+  coordinator silently withheld every write. Confidence is now pushed to the
+  replica on join, so read-only is a state the room can see.
+- `RoomJoined` was announced twice, because a gateway may deliver a snapshot
+  more than once. It is now announced once per replica.
+
+### Test infrastructure this added
+
+`vitest` now compiles `.svelte` files and resolves Svelte's browser build, so
+component specs are possible; they opt into jsdom per file. The domain suite is
+unaffected and still runs in plain `node` with no DOM, no timer shim and no
+network mock.

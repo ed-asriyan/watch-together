@@ -167,9 +167,10 @@ of the migration plan.
 
 ## Current state: implemented
 
-The domain, the coordinator and the adapters are written. 278 of 280 tests
-pass; the two failures are a limitation of a test double, not of the code, and
-are described in `docs/architecture/001-ddd-hexagonal-design.md` §19.
+The domain, the coordinator and the adapters are written, and all 296 tests
+pass. What the implementation changed about the tests — and which of the
+reported bugs turned out not to be one — is in
+`docs/architecture/001-ddd-hexagonal-design.md` §19.
 
 `src/composition/container.ts` is the only file that names concrete classes.
 Without a configured database it wires `InMemoryRoomGateway` and a plain

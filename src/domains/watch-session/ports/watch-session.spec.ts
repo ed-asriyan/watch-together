@@ -129,6 +129,17 @@ describe('WatchSession: joining', () => {
         expect(h.player.attached).toBe(true);
     });
 
+    it('tells the replica what the clock is worth, on join', async () => {
+        // Regression. Without this a client whose clock never synchronized
+        // showed "online" while the coordinator silently withheld every write:
+        // read-only is a state the room has to be able to see.
+        const unsynced = harness();
+        unsynced.clock.setConfidence('unsynced');
+        unsynced.log.clear();
+        await unsynced.session.resume();
+        expect(unsynced.log.names).toContain('replica.applyClockConfidence');
+    });
+
     it('identifies the viewer to telemetry once the profile is loaded', async () => {
         await h.session.resume();
         expect(h.log.before('profiles.load', 'telemetry.identify')).toBe(true);
@@ -283,6 +294,13 @@ describe('WatchSession: a command becomes outbound calls', () => {
     it('publishes the source before resolving it', async () => {
         // Peers should learn what to watch immediately; resolution is this
         // client working out how to fetch the bytes.
+        //
+        // The write comes from the replica's decision — the coordinator must
+        // never stamp a source itself, or LWW ordering has no authority — so
+        // the decision has to be stubbed, as in every other write test here.
+        h.replicas.made[0]!.next = decision({
+            publish: [{ kind: 'source', source: stamped(source(), T0, ALICE) }],
+        });
         await h.session.setSourceFromUserInput('https://example.com/v.mp4');
         expect(h.log.before('session.publishSource', 'resolver.resolve')).toBe(true);
     });
@@ -308,6 +326,9 @@ describe('WatchSession: a command becomes outbound calls', () => {
     });
 
     it('shares a local file by seeding it, then publishing the magnet', async () => {
+        h.replicas.made[0]!.next = decision({
+            publish: [{ kind: 'source', source: stamped(source({ kind: 'magnet' }), T0, ALICE) }],
+        });
         await h.session.shareLocalFile(new File(['x'], 'movie.mkv'));
         expect(h.log.before('resolver.share', 'session.publishSource')).toBe(true);
     });

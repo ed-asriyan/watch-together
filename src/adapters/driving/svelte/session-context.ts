@@ -26,10 +26,11 @@ export interface Session {
     readonly player: PlayerSurface;
 }
 
-const SESSION = Symbol('watch-session');
+/** Exported so a component spec can mount a subtree with a session in scope. */
+export const SESSION_KEY = Symbol('watch-session');
 
 export const provideSession = (session: Session): void => {
-    setContext(SESSION, session);
+    setContext(SESSION_KEY, session);
 };
 
-export const useSession = (): Session => getContext<Session>(SESSION);
+export const useSession = (): Session => getContext<Session>(SESSION_KEY);

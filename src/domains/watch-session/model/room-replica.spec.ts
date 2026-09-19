@@ -195,6 +195,21 @@ describe('RoomReplica', () => {
         });
     });
 
+    describe('joining', () => {
+        it('announces the join once, however many snapshots arrive', () => {
+            // Regression. A gateway may deliver a snapshot more than once — a
+            // reconnect re-reads the room — and joining does not happen twice.
+            const empty = {
+                createdAt: null, playhead: null, source: null,
+                presences: [], activities: [], watchedMinutes: 0,
+            };
+            const first = replica.applyRemoteSnapshot(empty, at(1_000));
+            const second = replica.applyRemoteSnapshot(empty, at(2_000));
+            expect(eventTypes(first)).toContain('RoomJoined');
+            expect(eventTypes(second)).not.toContain('RoomJoined');
+        });
+    });
+
     describe('the feed', () => {
         it('posts a system notice as a notice, not as chat text', () => {
             const decision = replica.postNotice('n1' as never, { type: 'pickedLocalFile' }, at(1_000));
