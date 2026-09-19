@@ -402,3 +402,170 @@ describe('desync: the correction loop terminates', () => {
         expect(settled.correct).toEqual({ kind: 'none' });
     });
 });
+
+describe('desync: start and stop racing each other', () => {
+    let replica: RoomReplica;
+    beforeEach(() => {
+        replica = make();
+    });
+
+    it('a local play beats a pause stamped before it', () => {
+        replica.requestPlay(sec(50), at(5_000));
+        const decision = replica.applyRemotePlayhead(
+            intent({ position: sec(50), paused: true }, at(4_000), BOB),
+            at(5_100),
+        );
+        expect(decision.correct).toEqual({ kind: 'none' });
+        expect(replica.snapshot(at(5_100)).playhead.value.paused).toBe(false);
+    });
+
+    it('a pause stamped after my play wins, and I stop', () => {
+        replica.observePlayer(observed({ position: sec(50), paused: false }), at(4_900));
+        replica.requestPlay(sec(50), at(5_000));
+        const decision = replica.applyRemotePlayhead(
+            intent({ position: sec(50), paused: true }, at(6_000), BOB),
+            at(6_100),
+        );
+        expect(decision.correct.kind).toBe('halt');
+    });
+
+    it('two peers pausing and playing in the same millisecond converge', () => {
+        const one = make();
+        one.applyRemotePlayhead(intent({ position: sec(10), paused: true }, at(7_000), BOB), at(7_100));
+        one.applyRemotePlayhead(intent({ position: sec(10), paused: false }, at(7_000), CAROL), at(7_100));
+
+        const other = make();
+        other.applyRemotePlayhead(intent({ position: sec(10), paused: false }, at(7_000), CAROL), at(7_100));
+        other.applyRemotePlayhead(intent({ position: sec(10), paused: true }, at(7_000), BOB), at(7_100));
+
+        expect(one.snapshot(at(7_100)).playhead).toEqual(other.snapshot(at(7_100)).playhead);
+    });
+
+    it('a pause freezes the projection for everyone at the same number', () => {
+        replica.applyRemotePlayhead(intent({ position: sec(200), paused: true }, at(1_000), BOB), at(1_100));
+        expect(replica.snapshot(at(1_100)).projectedPosition).toBe(200);
+        expect(replica.snapshot(at(60_000)).projectedPosition).toBe(200);
+    });
+
+    it('resuming does not lose the time spent paused', () => {
+        // The resume carries the position the room paused at, not the position
+        // extrapolated across the pause.
+        replica.applyRemotePlayhead(intent({ position: sec(200), paused: true }, at(1_000), BOB), at(1_100));
+        replica.observePlayer(observed({ position: sec(200), paused: true }), at(59_000));
+        const decision = replica.applyRemotePlayhead(
+            intent({ position: sec(200), paused: false }, at(60_000), BOB),
+            at(60_000),
+        );
+        expect(decision.correct).toEqual({ kind: 'resume', from: 200 });
+    });
+});
+
+describe('desync: someone scrubs while I am still loading', () => {
+    let replica: RoomReplica;
+    beforeEach(() => {
+        replica = make();
+        replica.observePlayer(observed({ position: sec(0), paused: true, ready: false }), at(100));
+    });
+
+    it('only the newest of several seeks survives the wait', () => {
+        replica.applyRemotePlayhead(intent({ position: sec(100), paused: false }, at(1_000), BOB), at(1_000));
+        replica.applyRemotePlayhead(intent({ position: sec(400), paused: false }, at(2_000), BOB), at(2_000));
+        replica.applyRemotePlayhead(intent({ position: sec(250), paused: false }, at(3_000), CAROL), at(3_000));
+
+        const ready = replica.observePlayer(observed({ position: sec(0), paused: false, ready: true }), at(4_000));
+        expect(seekTarget(ready.correct)).toBeCloseTo(251, 6);
+    });
+
+    it('lands where the room IS by the time loading finishes, not where it was', () => {
+        replica.applyRemotePlayhead(intent({ position: sec(100), paused: false }, at(1_000), BOB), at(1_000));
+        const ready = replica.observePlayer(observed({ position: sec(0), paused: false, ready: true }), at(31_000));
+        expect(seekTarget(ready.correct)).toBeCloseTo(130, 6);
+    });
+
+    it('lands exactly on a paused room\'s position, with no extrapolation', () => {
+        replica.applyRemotePlayhead(intent({ position: sec(100), paused: true }, at(1_000), BOB), at(1_000));
+        const ready = replica.observePlayer(observed({ position: sec(0), paused: true, ready: true }), at(31_000));
+        expect(seekTarget(ready.correct)).toBeCloseTo(100, 6);
+    });
+
+    it('publishes nothing while waiting to become ready', () => {
+        replica.applyRemotePlayhead(intent({ position: sec(100), paused: false }, at(1_000), BOB), at(1_000));
+        const waiting = replica.observePlayer(observed({ position: sec(0), paused: true, ready: false }), at(2_000));
+        expect(waiting.publish).toHaveLength(0);
+    });
+});
+
+describe('desync: the video changes', () => {
+    let replica: RoomReplica;
+    beforeEach(() => {
+        replica = make();
+    });
+
+    it('zeroes the playhead and says so, in one decision', () => {
+        replica.applyRemotePlayhead(intent({ position: sec(900), paused: false }, at(1_000), BOB), at(1_100));
+        const decision = replica.selectSource(source({ locator: 'https://example.com/new.mp4' }), at(2_000));
+
+        expect(writes(decision, 'source')).toHaveLength(1);
+        expect(writes(decision, 'playhead')[0]!.intent.value.position).toBe(0);
+        expect(decision.events.map((e) => e.type)).toContain('SourceChanged');
+    });
+
+    it('starts the new video paused rather than mid-play', () => {
+        replica.applyRemotePlayhead(intent({ position: sec(900), paused: false }, at(1_000), BOB), at(1_100));
+        const decision = replica.selectSource(source({ locator: 'https://example.com/new.mp4' }), at(2_000));
+        expect(writes(decision, 'playhead')[0]!.intent.value.paused).toBe(true);
+    });
+
+    it('stamps the reset with the same reading as the source change', () => {
+        // Two writes, one moment. A different stamp on each lets a peer apply
+        // the new source against the old position or vice versa.
+        const decision = replica.selectSource(source(), at(4_321));
+        expect(writes(decision, 'source')[0]!.source.at).toBe(at(4_321));
+        expect(writes(decision, 'playhead')[0]!.intent.at).toBe(at(4_321));
+    });
+
+    it('a remote change resets the playhead for everyone else too', () => {
+        replica.applyRemotePlayhead(intent({ position: sec(900), paused: false }, at(1_000), BOB), at(1_100));
+        replica.applyRemoteSource(
+            stamped(source({ locator: 'https://example.com/new.mp4' }), at(2_000), BOB),
+            at(2_100),
+        );
+        expect(replica.snapshot(at(2_100)).projectedPosition).toBe(0);
+    });
+
+    it('discards a correction that was pending against the old video', () => {
+        replica.observePlayer(observed({ position: sec(0), paused: false }), at(900));
+        replica.applyRemotePlayhead(intent({ position: sec(900), paused: false }, at(1_000), BOB), at(1_000));
+        replica.applyRemoteSource(stamped(source({ locator: 'https://example.com/new.mp4' }), at(2_000), BOB), at(2_100));
+
+        const decision = replica.observePlayer(observed({ position: sec(0), paused: true, ready: true }), at(2_200));
+        if (decision.correct.kind === 'seek') {
+            expect(decision.correct.to).toBeLessThan(10);
+        }
+    });
+
+    it('a source change and a playhead update in the same millisecond converge', () => {
+        const one = make();
+        one.applyRemoteSource(stamped(source({ locator: 'https://a/x.mp4' }), at(5_000), BOB), at(5_100));
+        one.applyRemotePlayhead(intent({ position: sec(30), paused: false }, at(5_000), CAROL), at(5_100));
+
+        const other = make();
+        other.applyRemotePlayhead(intent({ position: sec(30), paused: false }, at(5_000), CAROL), at(5_100));
+        other.applyRemoteSource(stamped(source({ locator: 'https://a/x.mp4' }), at(5_000), BOB), at(5_100));
+
+        expect(one.snapshot(at(5_100)).source).toEqual(other.snapshot(at(5_100)).source);
+        expect(one.snapshot(at(5_100)).playhead).toEqual(other.snapshot(at(5_100)).playhead);
+    });
+
+    it('two peers picking a different video in the same millisecond converge', () => {
+        const one = make();
+        one.applyRemoteSource(stamped(source({ locator: 'https://a/x.mp4' }), at(6_000), BOB), at(6_100));
+        one.applyRemoteSource(stamped(source({ locator: 'https://b/y.mp4' }), at(6_000), CAROL), at(6_100));
+
+        const other = make();
+        other.applyRemoteSource(stamped(source({ locator: 'https://b/y.mp4' }), at(6_000), CAROL), at(6_100));
+        other.applyRemoteSource(stamped(source({ locator: 'https://a/x.mp4' }), at(6_000), BOB), at(6_100));
+
+        expect(one.snapshot(at(6_100)).source).toEqual(other.snapshot(at(6_100)).source);
+    });
+});

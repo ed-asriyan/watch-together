@@ -59,6 +59,10 @@ Two files carry most of the weight:
   "synchronized the clock before publishing", "closed the old room before
   opening the new one".
 
+The rest: `model/feed.spec.ts` (chat and reactions — publish, arrive, notify,
+expire), `model/shared-clock.spec.ts` ("earlier" always means the shared
+reading, never a device clock), and one file per rule.
+
 `model/desync.spec.ts` is the one to read first. The other files pin down each
 rule on its own; that one is about the rules meeting each other — a local
 playhead disagreeing with an incoming one, a player still buffering, updates

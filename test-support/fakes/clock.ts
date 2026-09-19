@@ -12,10 +12,16 @@ export class FakeClock implements ClockPort {
     private current: EpochMs;
     private level: ClockConfidence;
     private readonly listeners = new Set<(value: ClockConfidence) => void>();
+    private readonly log?: { record(name: string, ...args: readonly unknown[]): void };
 
-    constructor(start: EpochMs, confidence: ClockConfidence = 'synced') {
+    constructor(
+        start: EpochMs,
+        confidence: ClockConfidence = 'synced',
+        log?: { record(name: string, ...args: readonly unknown[]): void },
+    ) {
         this.current = start;
         this.level = confidence;
+        this.log = log;
     }
 
     now(): EpochMs {
@@ -31,6 +37,7 @@ export class FakeClock implements ClockPort {
     };
 
     async sync(): Promise<void> {
+        this.log?.record('clock.sync');
         this.setConfidence('synced');
     }
 

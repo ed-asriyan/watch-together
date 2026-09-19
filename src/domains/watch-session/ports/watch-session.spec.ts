@@ -11,7 +11,7 @@ import {
 } from '../../../../test-support/spies';
 import { FakeClock } from '../../../../test-support/fakes/clock';
 import { FakeScheduler } from '../../../../test-support/fakes/scheduler';
-import { ALICE, BOB, ROOM, T0, at, dur, intent, presence, sec, source, stamped } from '../../../../test-support/builders';
+import { ALICE, BOB, ROOM, T0, activity, at, dur, intent, presence, sec, source, stamped } from '../../../../test-support/builders';
 
 /**
  * COORDINATOR ORCHESTRATION.
@@ -45,7 +45,7 @@ const decision = (over: Partial<Decision> = {}): Decision =>
 
 const harness = (over: Partial<WatchSessionDependencies> = {}): Harness => {
     const log = new CallLog();
-    const clock = new FakeClock(T0);
+    const clock = new FakeClock(T0, 'synced', log);
     const scheduler = new FakeScheduler(clock);
     const gateway = spyGateway(log);
     const player = spyPlayer(log);
@@ -456,5 +456,120 @@ describe('WatchSession: the tick loop', () => {
         h.scheduler.advance(dur(1_000));
         expect(h.log.only('session.')).toEqual([]);
         expect(h.log.only('player.')).toEqual([]);
+    });
+});
+
+describe('WatchSession: the feed reaches the ports and the UI', () => {
+    let h: Harness;
+    beforeEach(async () => {
+        h = harness();
+        await h.session.resume();
+        h.log.clear();
+    });
+
+    it('a sent message reaches the gateway as an activity', async () => {
+        h.replicas.made[0]!.next = decision({
+            publish: [{ kind: 'activity', activity: activity('m1', T0, { kind: 'chat', text: 'hello' }, ALICE) }],
+        });
+        h.session.postChatMessage('hello');
+        await Promise.resolve();
+
+        const call = h.log.first('session.appendActivity');
+        expect(call?.args[0]).toBe(ROOM);
+        expect(call?.args[1]).toMatchObject({ id: 'm1', body: { kind: 'chat', text: 'hello' } });
+    });
+
+    it('a sent message raises a domain event the UI can subscribe to', async () => {
+        // This is the path into Svelte: the read models and the telemetry
+        // projection both hang off this bus, and nothing else.
+        const seen: string[] = [];
+        h.session.events.subscribe((event) => seen.push(event.type));
+
+        h.replicas.made[0]!.next = decision({
+            events: [{ type: 'ChatPosted', activity: activity('m1', T0, { kind: 'chat', text: 'hi' }, ALICE) }],
+        });
+        h.session.postChatMessage('hi');
+        await Promise.resolve();
+
+        expect(seen).toContain('ChatPosted');
+    });
+
+    it('an incoming message raises the same event', async () => {
+        const seen: string[] = [];
+        h.session.events.subscribe((event) => seen.push(event.type));
+
+        h.replicas.made[0]!.next = decision({
+            events: [{ type: 'ChatPosted', activity: activity('m1', T0, { kind: 'chat', text: 'hi' }, BOB) }],
+        });
+        h.gateway.listenerFor(ROOM)?.onActivityChanged([activity('m1', T0, { kind: 'chat', text: 'hi' }, BOB)]);
+        await Promise.resolve();
+
+        expect(h.log.names).toContain('replica.applyRemoteActivity');
+        expect(seen).toContain('ChatPosted');
+    });
+
+    it('a reaction goes out the same way but raises its own event', async () => {
+        const seen: string[] = [];
+        h.session.events.subscribe((event) => seen.push(event.type));
+
+        h.replicas.made[0]!.next = decision({
+            publish: [{ kind: 'activity', activity: activity('r1', T0, { kind: 'reaction', emoji: '🔥' }, ALICE) }],
+            events: [{ type: 'ReactionThrown', activity: activity('r1', T0, { kind: 'reaction', emoji: '🔥' }, ALICE) }],
+        });
+        h.session.throwReaction('🔥');
+        await Promise.resolve();
+
+        expect(h.log.first('session.appendActivity')?.args[1]).toMatchObject({ body: { kind: 'reaction', emoji: '🔥' } });
+        expect(seen).toEqual(['ReactionThrown']);
+    });
+
+    it('expired items are retracted through the gateway, not just hidden', async () => {
+        h.replicas.made[0]!.next = decision({ publish: [{ kind: 'retract', ids: ['m1' as never] }] });
+        h.scheduler.advance(dur(DEFAULT_SYNC_POLICY.activityTtl * 1000 + 5_000));
+        expect(h.log.first('session.retractActivities')?.args[1]).toEqual(['m1']);
+    });
+
+    it('every domain event also reaches telemetry, and only from there', async () => {
+        h.replicas.made[0]!.next = decision({
+            events: [{ type: 'ChatPosted', activity: activity('m1', T0, { kind: 'chat', text: 'hi' }, ALICE) }],
+        });
+        h.session.postChatMessage('hi');
+        await Promise.resolve();
+        expect(h.log.all('telemetry.record').map((c) => c.args[0])).toContain('ChatPosted');
+    });
+});
+
+describe('WatchSession: timestamps come from the clock port', () => {
+    let h: Harness;
+    beforeEach(async () => {
+        h = harness();
+        await h.session.resume();
+        h.log.clear();
+    });
+
+    it('hands the replica the synchronized reading, not the device clock', async () => {
+        // FakeClock sits at T0 while the real wall clock is years away. If any
+        // stamp matches Date.now(), something read a clock it should not have.
+        h.replicas.made[0]!.next = decision({
+            publish: [{ kind: 'playhead', intent: intent({ position: sec(1) }, T0, ALICE) }],
+        });
+        h.player.listener?.onPaused(sec(1));
+        await Promise.resolve();
+        expect(h.log.first('session.publishPlayhead')?.args[1]).toMatchObject({ at: T0 });
+    });
+
+    it('follows the clock forward', async () => {
+        h.clock.advance(dur(120_000));
+        h.replicas.made[0]!.next = decision({ publish: [{ kind: 'presence', presence: presence(ALICE, at(120_000)) }] });
+        h.scheduler.advance(dur(DEFAULT_SYNC_POLICY.presenceHeartbeat * 1000));
+        expect(h.log.first('session.publishPresence')?.args[1]).toMatchObject({ lastSeen: expect.any(Number) });
+    });
+
+    it('re-synchronizes the clock after a reconnect', async () => {
+        h.gateway.listenerFor(ROOM)?.onConnectionChanged({ status: 'offline' });
+        h.log.clear();
+        h.gateway.listenerFor(ROOM)?.onConnectionChanged({ status: 'online' });
+        await Promise.resolve();
+        expect(h.log.names).toContain('clock.sync');
     });
 });
