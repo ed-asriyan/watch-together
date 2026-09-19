@@ -12,7 +12,7 @@ import type { Playhead, PlayheadIntent } from '../src/domains/watch-session/mode
 import type { ObservedPlayback } from '../src/domains/watch-session/model/reconcile';
 import type { Presence } from '../src/domains/watch-session/model/participant';
 import type { Activity, ActivityBody } from '../src/domains/watch-session/model/activity';
-import type { MediaSourceRef } from '../src/domains/watch-session/model/media-source';
+import type { MediaSourceKind, MediaSourceRef } from '../src/domains/watch-session/model/media-source';
 
 export const ms = (n: number) => n as EpochMs;
 export const dur = (n: number) => n as Millis;
@@ -56,5 +56,9 @@ export const activity = (
     author: ParticipantId = ALICE,
 ): Activity => ({ id: id as ActivityId, author, at: atMs, body });
 
-export const source = (over: Partial<MediaSourceRef> = {}): MediaSourceRef =>
-    ({ kind: 'direct', locator: 'https://example.com/v.mp4', ...over } as MediaSourceRef);
+export const source = (
+    over: { kind?: MediaSourceKind; locator?: string } = {},
+): MediaSourceRef => ({
+    kind: over.kind ?? 'direct',
+    locator: (over.locator ?? 'https://example.com/v.mp4') as MediaSourceRef['locator'],
+});

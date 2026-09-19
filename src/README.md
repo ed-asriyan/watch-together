@@ -49,6 +49,12 @@ every rule takes `now` as an argument, so `test-support/builders.ts` is plain
 object factories. `test-support/fakes/` holds a `FakeClock` and a
 `FakeScheduler` for the session-level tests that arrive with the coordinator.
 
+`model/desync.spec.ts` is the one to read first. The other files pin down each
+rule on its own; that one is about the rules meeting each other — a local
+playhead disagreeing with an incoming one, a player still buffering, updates
+arriving late, twice, out of order, or from a peer whose clock is wrong. It is
+the code the whole refactor exists to make testable.
+
 Port contract suites live in `ports/outbound/__contracts__/`. They are exported,
 parameterized functions with no runner yet, because no adapter exists — written
 first so adapters are built against a spec instead of the spec being
