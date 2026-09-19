@@ -64,6 +64,13 @@ export const spyGateway = (log: CallLog): SpyGateway => {
         async open({ roomId, self, listener }) {
             log.record('gateway.open', roomId, self);
             listeners.set(roomId, listener);
+            // The contract says a snapshot arrives before any incremental
+            // callback. The double has to honour that, or the coordinator gets
+            // written against a gateway that does not exist.
+            listener.onSnapshot({
+                createdAt: null, playhead: null, source: null,
+                presences: [], activities: [], watchedMinutes: 0,
+            });
             const session: SpyRoomSession = {
                 roomId,
                 closed: false,

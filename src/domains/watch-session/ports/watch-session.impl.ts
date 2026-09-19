@@ -475,8 +475,6 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
         await opened.armDisconnectCleanup();
         await write(opened, { kind: 'presence', presence: selfPresence() });
 
-        apply(created.applyRemoteSnapshot(emptyRemote(), clock.now()), opened);
-
         stopTick = scheduler.every(TICK_PERIOD, (now) => {
             if (replica !== created) return;
             // The drift check belongs on the tick, not only on player events:
@@ -489,9 +487,6 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
         profiles.save(profile);
         refresh();
     };
-
-    const emptyRemote = (): RemoteRoomState =>
-        ({ createdAt: null, playhead: null, source: null, presences: [], activities: [], watchedMinutes: 0 });
 
     /**
      * One second. Fast enough that the shortest rule in any policy — the feed
