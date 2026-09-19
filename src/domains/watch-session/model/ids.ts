@@ -24,21 +24,37 @@ export const NICKNAME_MAX_LENGTH = 10;
  * and has a sensible fallback.
  */
 export function roomId(raw: string): RoomId | null {
-    return notImplemented('roomId');
+    const normalised = raw.trim().toLowerCase();
+    return /^[a-z0-9_-]{1,64}$/.test(normalised) ? (normalised as RoomId) : null;
 }
 export function participantId(raw: string): ParticipantId | null {
-    return notImplemented('participantId');
+    const trimmed = raw.trim();
+    return /^[A-Za-z0-9_-]{1,64}$/.test(trimmed) ? (trimmed as ParticipantId) : null;
 }
 export function activityId(raw: string): ActivityId | null {
-    return notImplemented('activityId');
+    const trimmed = raw.trim();
+    return /^[A-Za-z0-9_-]{1,64}$/.test(trimmed) ? (trimmed as ActivityId) : null;
 }
 
 /** Trims, collapses whitespace and caps at {@link NICKNAME_MAX_LENGTH}. */
 export function nickname(raw: string): Nickname | null {
-    return notImplemented('nickname');
+    const collapsed = raw.trim().replace(/\s+/g, ' ');
+    if (!collapsed) return null;
+    return collapsed.slice(0, NICKNAME_MAX_LENGTH) as Nickname;
 }
 
 /** Deterministic and stable across clients. Legacy: `utils.stringToColor`. */
 export function colourFor(id: ParticipantId): HexColour {
-    return notImplemented('colourFor');
+    // Legacy `utils.stringToColor`, kept bit-for-bit so a participant does not
+    // change colour when this ships. Biased light so it reads on a black page.
+    let hash = 0;
+    for (const char of id) {
+        hash = char.charCodeAt(0) + ((hash << 5) - hash);
+    }
+    let colour = '#';
+    for (let i = 0; i < 3; i++) {
+        const value = (192 + (hash >> (i * 2))) & 0xff;
+        colour += value.toString(16).padStart(2, '0');
+    }
+    return colour as HexColour;
 }

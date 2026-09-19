@@ -13,7 +13,7 @@ import type { SyncPolicy } from './sync-policy';
  * a disconnected participant could stay "online" indefinitely.
  */
 export function isOnline(presence: Presence, now: EpochMs, policy: SyncPolicy): boolean {
-    return notImplemented('isOnline');
+    return presence.lastSeen + policy.presenceTimeout * 1000 > now;
 }
 
 export function onlineOnly(
@@ -21,7 +21,7 @@ export function onlineOnly(
     now: EpochMs,
     policy: SyncPolicy,
 ): readonly Presence[] {
-    return notImplemented('onlineOnly');
+    return all.filter((presence) => isOnline(presence, now, policy));
 }
 
 /** Ids safe to drop from the remote store. Same rule, not a second copy of it. */
@@ -30,7 +30,9 @@ export function staleIds(
     now: EpochMs,
     policy: SyncPolicy,
 ): readonly ParticipantId[] {
-    return notImplemented('staleIds');
+    return all
+        .filter((presence) => !isOnline(presence, now, policy))
+        .map((presence) => presence.participantId);
 }
 
 /** Whether it is time to restate our own presence. */
@@ -39,5 +41,6 @@ export function heartbeatDue(
     now: EpochMs,
     policy: SyncPolicy,
 ): boolean {
-    return notImplemented('heartbeatDue');
+    if (lastPublished === null) return true;
+    return now - lastPublished >= policy.presenceHeartbeat * 1000;
 }

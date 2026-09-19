@@ -22,6 +22,19 @@ export interface Stamped<T> {
 }
 
 /**
+ * The total order two assignments are compared by: time, then author, then a
+ * stable rendering of the value itself.
+ *
+ * The third key looks redundant — one author cannot normally write twice in the
+ * same millisecond — but without it the merge is not commutative when they do,
+ * and two replicas receiving the same pair in different orders keep different
+ * values forever. It is arbitrary, which is fine; it only has to be the SAME
+ * arbitrary choice everywhere.
+ */
+const rank = <T>(s: Stamped<T>): string =>
+    `${String(s.at).padStart(20, '0')}|${s.by}|${JSON.stringify(s.value) ?? ''}`;
+
+/**
  * LWW merge. Total, commutative, associative and idempotent, so replicas
  * converge regardless of delivery order or duplication.
  *
@@ -36,7 +49,7 @@ export interface Stamped<T> {
  *                 detect "nothing changed".
  */
 export function mergeLww<T>(local: Stamped<T>, incoming: Stamped<T>): Stamped<T> {
-    return notImplemented('mergeLww');
+    return rank(incoming) > rank(local) ? incoming : local;
 }
 
 /**
@@ -47,7 +60,7 @@ export function mergeLww<T>(local: Stamped<T>, incoming: Stamped<T>): Stamped<T>
  * @returns        True when `incoming` would win {@link mergeLww}.
  */
 export function supersedes<T>(incoming: Stamped<T>, local: Stamped<T>): boolean {
-    return notImplemented('supersedes');
+    return rank(incoming) > rank(local);
 }
 
 /**
@@ -58,5 +71,5 @@ export function supersedes<T>(incoming: Stamped<T>, local: Stamped<T>): boolean 
  * @param by    This client's participant id, used only for tie-breaking.
  */
 export function stamp<T>(value: T, at: EpochMs, by: ParticipantId): Stamped<T> {
-    return notImplemented('stamp');
+    return { value, at, by };
 }

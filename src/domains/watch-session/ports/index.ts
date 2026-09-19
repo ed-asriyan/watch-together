@@ -1,4 +1,3 @@
-import { notImplemented } from '../model/shared/not-implemented';
 import type { WatchSessionCommands } from './inbound/watch-session-commands';
 import type { WatchSessionView } from './inbound/watch-session-view';
 import type { RemoteRoomListener } from './inbound/remote-room-listener';
@@ -93,9 +92,7 @@ export interface WatchSessionDependencies {
  * @param deps Adapter instances, assembled by the composition root.
  * @returns An idle session; call `join(roomId)` to enter a room.
  */
-export function createWatchSession(deps: WatchSessionDependencies): WatchSession {
-    return notImplemented('createWatchSession');
-}
+export { createWatchSession } from './watch-session.impl';
 
 export type {
     WatchSessionCommands,

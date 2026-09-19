@@ -1,6 +1,7 @@
 import { notImplemented } from './shared/not-implemented';
 import type { EpochMs, Seconds } from './shared/time';
 import type { PlayheadIntent } from './playhead';
+import { projectedPositionAt } from './playhead';
 import type { SyncPolicy } from './sync-policy';
 
 /** A cheap synchronous read of the actual media element. */
@@ -46,7 +47,35 @@ export function reconcile(
     now: EpochMs,
     policy: SyncPolicy,
 ): Correction {
-    return notImplemented('reconcile');
+    // Nothing observed while loading or buffering means anything: the position
+    // is frozen or absent, so any drift reading is noise.
+    if (!observed.ready || observed.stalled) return { kind: 'none' };
+
+    const projected = projectedPositionAt(intent, now);
+
+    // Paused/playing disagreement is decided first and carries the projected
+    // position, so "pause" and "where we paused" can never arrive apart.
+    if (intent.value.paused && !observed.paused) return { kind: 'halt', at: projected };
+    if (!intent.value.paused && observed.paused) return { kind: 'resume', from: projected };
+
+    const drift = Math.abs(observed.position - projected);
+
+    if (intent.value.paused) {
+        return drift > policy.hardSeekThreshold ? { kind: 'seek', to: projected } : { kind: 'none' };
+    }
+
+    if (drift > policy.hardSeekThreshold) return { kind: 'seek', to: projected };
+
+    if (drift > policy.softNudgeThreshold && policy.nudgeRateDelta !== 0) {
+        const behind = observed.position < projected;
+        return {
+            kind: 'nudge',
+            rate: intent.value.rate + (behind ? policy.nudgeRateDelta : -policy.nudgeRateDelta),
+            until: (now + policy.maxNudgeDuration) as EpochMs,
+        };
+    }
+
+    return { kind: 'none' };
 }
 
 /**
@@ -63,5 +92,5 @@ export function driftOf(
     intent: PlayheadIntent,
     now: EpochMs,
 ): Seconds {
-    return notImplemented('driftOf');
+    return (observed.position - projectedPositionAt(intent, now)) as Seconds;
 }

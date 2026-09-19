@@ -32,10 +32,11 @@ export interface MediaSourceRef {
 
 /** True when both refs name the same media. */
 export function sameSource(a: MediaSourceRef | null, b: MediaSourceRef | null): boolean {
-    return notImplemented('sameSource');
+    if (a === null || b === null) return a === b;
+    return a.kind === b.kind && a.locator === b.locator;
 }
 
 /** Whether picking this source is something other participants can act on. */
 export function isShareable(ref: MediaSourceRef): boolean {
-    return notImplemented('isShareable');
+    return ref.kind !== 'localOnly';
 }

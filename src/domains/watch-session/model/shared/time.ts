@@ -20,36 +20,36 @@ export type Millis = Brand<number, 'Millis'>;
 export type Seconds = Brand<number, 'Seconds'>;
 
 export function epochMs(raw: number): EpochMs {
-    return notImplemented('epochMs');
+    return raw as EpochMs;
 }
 export function millis(raw: number): Millis {
-    return notImplemented('millis');
+    return raw as Millis;
 }
 export function seconds(raw: number): Seconds {
-    return notImplemented('seconds');
+    return raw as Seconds;
 }
 
 /** Elapsed media-time between two instants. */
 export function secondsBetween(from: EpochMs, to: EpochMs): Seconds {
-    return notImplemented('secondsBetween');
+    return ((to - from) / 1000) as Seconds;
 }
 
 /** Arithmetic helpers — branded numbers lose their brand under `+`/`-`. */
 export function advance(at: EpochMs, by: Millis): EpochMs {
-    return notImplemented('advance');
+    return (at + by) as EpochMs;
 }
 export function plus(position: Seconds, delta: Seconds): Seconds {
-    return notImplemented('plus');
+    return (position + delta) as Seconds;
 }
 export function minus(a: Seconds, b: Seconds): Seconds {
-    return notImplemented('minus');
+    return (a - b) as Seconds;
 }
 export function abs(value: Seconds): Seconds {
-    return notImplemented('abs');
+    return Math.abs(value) as Seconds;
 }
 export function toMillis(value: Seconds): Millis {
-    return notImplemented('toMillis');
+    return (value * 1000) as Millis;
 }
 export function toSeconds(value: Millis): Seconds {
-    return notImplemented('toSeconds');
+    return (value / 1000) as Seconds;
 }

@@ -1,6 +1,7 @@
 import { notImplemented } from './shared/not-implemented';
 import type { EpochMs } from './shared/time';
 import type { HexColour, Nickname, ParticipantId } from './ids';
+import { colourFor } from './ids';
 
 /**
  * What a participant publishes about itself. The wire shape of presence.
@@ -24,5 +25,11 @@ export interface Participant {
 }
 
 export function participantFrom(presence: Presence, self: ParticipantId): Participant {
-    return notImplemented('participantFrom');
+    return {
+        id: presence.participantId,
+        nickname: presence.nickname,
+        colour: colourFor(presence.participantId),
+        lastSeen: presence.lastSeen,
+        isSelf: presence.participantId === self,
+    };
 }

@@ -33,8 +33,8 @@ export interface Activity {
 }
 
 export function isChat(activity: Activity): boolean {
-    return notImplemented('isChat');
+    return activity.body.kind === 'chat';
 }
 export function isReaction(activity: Activity): boolean {
-    return notImplemented('isReaction');
+    return activity.body.kind === 'reaction';
 }

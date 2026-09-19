@@ -13,7 +13,7 @@ import type { SyncPolicy } from './sync-policy';
  * lost-update race whenever two clients swept at the same moment.
  */
 export function isExpired(activity: Activity, now: EpochMs, policy: SyncPolicy): boolean {
-    return notImplemented('isExpired');
+    return now - activity.at > policy.activityTtl * 1000;
 }
 
 export function liveOnly(
@@ -21,7 +21,7 @@ export function liveOnly(
     now: EpochMs,
     policy: SyncPolicy,
 ): readonly Activity[] {
-    return notImplemented('liveOnly');
+    return all.filter((activity) => !isExpired(activity, now, policy));
 }
 
 /** Ids to retract from the remote store. */
@@ -30,7 +30,9 @@ export function expiredIds(
     now: EpochMs,
     policy: SyncPolicy,
 ): readonly ActivityId[] {
-    return notImplemented('expiredIds');
+    return all
+        .filter((activity) => isExpired(activity, now, policy))
+        .map((activity) => activity.id);
 }
 
 export function sweepDue(
@@ -38,5 +40,6 @@ export function sweepDue(
     now: EpochMs,
     policy: SyncPolicy,
 ): boolean {
-    return notImplemented('sweepDue');
+    if (lastSweep === null) return true;
+    return now - lastSweep >= policy.activitySweepInterval * 1000;
 }

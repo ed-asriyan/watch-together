@@ -49,7 +49,22 @@ export function isEcho(
     now: EpochMs,
     policy: SyncPolicy,
 ): boolean {
-    return notImplemented('isEcho');
+    if (!issued) return false;
+    if (now - issued.issuedAt > policy.echoSuppressionWindow) return false;
+
+    switch (issued.correction.kind) {
+        case 'seek':
+            return observation.type === 'seeked'
+                && Math.abs(observation.position - issued.correction.to) <= policy.echoPositionTolerance;
+        case 'halt':
+            return observation.type === 'paused';
+        case 'resume':
+            return observation.type === 'played';
+        default:
+            // A nudge changes the rate, which produces no event to absorb, and
+            // `none` was never sent to the player at all.
+            return false;
+    }
 }
 
 /**
@@ -67,5 +82,5 @@ export function hasSettled(
     now: EpochMs,
     policy: SyncPolicy,
 ): boolean {
-    return notImplemented('hasSettled');
+    return now - issued.issuedAt > policy.echoSuppressionWindow;
 }

@@ -1,6 +1,18 @@
-import { notImplemented } from './shared/not-implemented';
 import type { EpochMs, Seconds } from './shared/time';
 import type { Stamped } from './shared/stamped';
+import { mergeLww, supersedes } from './shared/stamped';
+import type { ActivityBody } from './activity';
+import type { PublishIntent } from './decision';
+import type { DomainEvent } from './events';
+import type { Correction } from './reconcile';
+import type { Playhead } from './playhead';
+import type { IssuedCorrection, PlayerObservation } from './echo';
+import { hasSettled, isEcho } from './echo';
+import { isAdvancing, projectedPositionAt, silentFor } from './playhead';
+import { reconcile } from './reconcile';
+import { heartbeatDue, onlineOnly } from './presence-policy';
+import { expiredIds, isExpired, liveOnly, sweepDue } from './retention-policy';
+import { participantFrom } from './participant';
 import type { ClockConfidence } from './shared/clock-confidence';
 import type { ActivityId, Nickname, ParticipantId, RoomId } from './ids';
 import type { MediaSourceRef } from './media-source';
@@ -120,5 +132,400 @@ export interface RoomReplicaFactory {
  * @param params.now       Synchronized clock reading at creation.
  */
 export function createRoomReplica(params: RoomReplicaParams): RoomReplica {
-    return notImplemented('createRoomReplica');
+    return new Replica(params);
+}
+
+const NOTHING: Decision = { events: [], publish: [], correct: { kind: 'none' } };
+
+interface Seen {
+    readonly state: ObservedPlayback;
+    readonly at: EpochMs;
+}
+
+class Replica implements RoomReplica {
+    private readonly roomId: RoomId;
+    private readonly self: ParticipantId;
+    private readonly policy: SyncPolicy;
+    private readonly bornAt: EpochMs;
+
+    private nick: Nickname;
+    private playhead: PlayheadIntent;
+    private src: Stamped<MediaSourceRef | null>;
+    private presences: readonly Presence[] = [];
+    private activities: readonly Activity[] = [];
+
+    private pending: IssuedCorrection | null = null;
+    private seq = 0;
+    private seen: Seen | null = null;
+
+    private lastPresencePublish: EpochMs | null = null;
+    private lastSweep: EpochMs | null = null;
+    private lastWatchMark: EpochMs;
+    private watched = 0;
+
+    private connection: ConnectionState = { status: 'connecting' };
+    private confidence: ClockConfidence = 'synced';
+
+    private readonly knownActivityIds = new Set<string>();
+    private readonly retractedIds = new Set<string>();
+    private onlineIds: readonly ParticipantId[] = [];
+
+    constructor({ roomId, self, nickname, policy, now }: RoomReplicaParams) {
+        this.roomId = roomId;
+        this.self = self;
+        this.nick = nickname;
+        this.policy = policy;
+        this.bornAt = now;
+        this.lastWatchMark = now;
+        this.playhead = { value: { position: 0 as Seconds, paused: true, rate: 1 }, at: now, by: self };
+        this.src = { value: null, at: now, by: self };
+    }
+
+    // ---- local commands ----------------------------------------------------
+
+    requestPlay(at: Seconds, now: EpochMs): Decision {
+        return this.declare({ position: at, paused: false, rate: this.playhead.value.rate }, now,
+            [{ type: 'PlaybackStarted', at, by: this.self, local: true }]);
+    }
+
+    requestPause(at: Seconds, now: EpochMs): Decision {
+        return this.declare({ position: at, paused: true, rate: this.playhead.value.rate }, now,
+            [{ type: 'PlaybackPaused', at, by: this.self, local: true }]);
+    }
+
+    requestSeek(to: Seconds, now: EpochMs): Decision {
+        return this.declare({ position: to, paused: this.playhead.value.paused, rate: this.playhead.value.rate }, now,
+            [{ type: 'PlaybackSeeked', to, by: this.self, local: true }]);
+    }
+
+    selectSource(source: MediaSourceRef | null, now: EpochMs): Decision {
+        const stampedSource: Stamped<MediaSourceRef | null> = { value: source, at: now, by: this.self };
+        this.src = mergeLww(this.src, stampedSource);
+
+        // Same reading on both writes: a peer must never be able to apply the
+        // new source against the old position, or the other way round.
+        const reset: PlayheadIntent = {
+            value: { position: 0 as Seconds, paused: true, rate: 1 },
+            at: now,
+            by: this.self,
+        };
+        this.playhead = mergeLww(this.playhead, reset);
+        this.pending = null;
+
+        return this.emit(
+            [{ type: 'SourceChanged', source, by: this.self, local: true }],
+            [{ kind: 'source', source: stampedSource }, { kind: 'playhead', intent: reset }],
+            { kind: 'none' },
+        );
+    }
+
+    postChat(id: ActivityId, text: string, now: EpochMs): Decision {
+        const trimmed = text.trim();
+        if (!trimmed) return NOTHING;
+        const activity = this.authored(id, now, { kind: 'chat', text: trimmed });
+        return this.emit([{ type: 'ChatPosted', activity }], [{ kind: 'activity', activity }], { kind: 'none' });
+    }
+
+    throwReaction(id: ActivityId, emoji: string, now: EpochMs): Decision {
+        const activity = this.authored(id, now, { kind: 'reaction', emoji });
+        return this.emit([{ type: 'ReactionThrown', activity }], [{ kind: 'activity', activity }], { kind: 'none' });
+    }
+
+    postNotice(id: ActivityId, notice: Notice, now: EpochMs): Decision {
+        const activity = this.authored(id, now, { kind: 'notice', notice });
+        return this.emit([], [{ kind: 'activity', activity }], { kind: 'none' });
+    }
+
+    rename(nickname: Nickname, now: EpochMs): Decision {
+        this.nick = nickname;
+        const presence = this.selfPresence(now);
+        this.lastPresencePublish = now;
+        return this.emit(
+            [{ type: 'ParticipantRenamed', participant: participantFrom(presence, this.self) }],
+            [{ kind: 'presence', presence }],
+            { kind: 'none' },
+        );
+    }
+
+    // ---- remote updates ----------------------------------------------------
+
+    applyRemoteSnapshot(snapshot: RemoteRoomState, now: EpochMs): Decision {
+        if (snapshot.playhead) this.playhead = mergeLww(this.playhead, snapshot.playhead);
+        if (snapshot.source) this.src = mergeLww(this.src, snapshot.source);
+        this.presences = snapshot.presences;
+        this.activities = snapshot.activities;
+        snapshot.activities.forEach((a) => this.knownActivityIds.add(a.id));
+        this.onlineIds = onlineOnly(snapshot.presences, now, this.policy).map((p) => p.participantId);
+        this.watched = snapshot.watchedMinutes;
+        this.connection = { status: 'online' };
+        return this.emit([{ type: 'RoomJoined', roomId: this.roomId, self: this.self }], [], this.correctNow(now));
+    }
+
+    applyRemotePlayhead(intent: PlayheadIntent, now: EpochMs): Decision {
+        if (!supersedes(intent, this.playhead)) return NOTHING;
+        const previous = this.playhead;
+        this.playhead = intent;
+        return this.emit(this.transition(previous, intent, now), [], this.correctNow(now));
+    }
+
+    applyRemoteSource(source: Stamped<MediaSourceRef | null>, now: EpochMs): Decision {
+        if (!supersedes(source, this.src)) return NOTHING;
+        this.src = source;
+
+        // Resetting through the merge rather than overwriting: a playhead
+        // written in the same millisecond by a different peer must win or lose
+        // the same way on every replica.
+        this.playhead = mergeLww(this.playhead, {
+            value: { position: 0 as Seconds, paused: true, rate: 1 },
+            at: source.at,
+            by: source.by,
+        });
+        this.pending = null;
+
+        return this.emit(
+            [{ type: 'SourceChanged', source: source.value, by: source.by, local: source.by === this.self }],
+            [],
+            this.correctNow(now),
+        );
+    }
+
+    applyRemotePresence(all: readonly Presence[], now: EpochMs): Decision {
+        this.presences = all;
+        const online = onlineOnly(all, now, this.policy)
+            .filter((p) => p.participantId !== this.self);
+        const ids = online.map((p) => p.participantId);
+
+        const events: DomainEvent[] = [];
+        for (const presence of online) {
+            if (!this.onlineIds.includes(presence.participantId)) {
+                events.push({ type: 'ParticipantJoined', participant: participantFrom(presence, this.self) });
+            }
+        }
+        for (const id of this.onlineIds) {
+            if (!ids.includes(id)) events.push({ type: 'ParticipantLeft', participantId: id });
+        }
+        this.onlineIds = ids;
+        return this.emit(events, [], { kind: 'none' });
+    }
+
+    applyRemoteActivity(all: readonly Activity[], now: EpochMs): Decision {
+        const byId = new Map(this.activities.map((a) => [a.id, a] as const));
+        const events: DomainEvent[] = [];
+
+        for (const activity of all) {
+            byId.set(activity.id, activity);
+            if (this.knownActivityIds.has(activity.id)) continue;
+            this.knownActivityIds.add(activity.id);
+            // An item already past its lifetime is delivered but never announced:
+            // nothing should flash on screen only to vanish in the same frame.
+            if (isExpired(activity, now, this.policy)) continue;
+            if (activity.body.kind === 'chat') events.push({ type: 'ChatPosted', activity });
+            if (activity.body.kind === 'reaction') events.push({ type: 'ReactionThrown', activity });
+        }
+
+        this.activities = [...byId.values()];
+        return this.emit(events, [], { kind: 'none' });
+    }
+
+    applyConnectionChange(state: ConnectionState, now: EpochMs): Decision {
+        this.connection = state;
+        return this.emit([{ type: 'ConnectionChanged', state }], [], { kind: 'none' });
+    }
+
+    applyClockConfidence(confidence: ClockConfidence, now: EpochMs): Decision {
+        if (confidence === this.confidence) return NOTHING;
+        this.confidence = confidence;
+
+        const events: DomainEvent[] = [{ type: 'ClockConfidenceChanged', confidence }];
+        const blocked = this.policy.requireClockSync && confidence === 'unsynced';
+        const next: ConnectionState = blocked
+            ? { status: 'degraded', reason: 'clock-unsynced' }
+            : { status: 'online' };
+        if (next.status !== this.connection.status) {
+            this.connection = next;
+            events.push({ type: 'ConnectionChanged', state: next });
+        }
+        return this.emit(events, [], { kind: 'none' });
+    }
+
+    // ---- observation and time ----------------------------------------------
+
+    observePlayer(observed: ObservedPlayback, now: EpochMs): Decision {
+        const previous = this.seen;
+        this.seen = { state: observed, at: now };
+
+        // Nothing observed while loading or buffering means anything.
+        if (!observed.ready || observed.stalled) return NOTHING;
+
+        if (this.pending && !hasSettled(this.pending, now, this.policy)) {
+            const observation = this.classify(previous, observed, now);
+            if (observation && isEcho(observation, this.pending, now, this.policy)) {
+                this.pending = null;
+                return NOTHING;
+            }
+        }
+
+        // A user action is a DISCONTINUITY against the player's own previous
+        // reading. Falling behind the room is continuous, and publishing that
+        // would tell everyone else to rewind to wherever this client is stuck.
+        if (previous && previous.state.ready && !previous.state.stalled) {
+            const expected = previous.state.paused
+                ? previous.state.position
+                : previous.state.position + (now - previous.at) / 1000;
+            const jumped = Math.abs(observed.position - expected) > this.policy.hardSeekThreshold;
+            const toggled = observed.paused !== previous.state.paused;
+
+            if (jumped || toggled) {
+                this.pending = null;
+                return this.declare(
+                    { position: observed.position, paused: observed.paused, rate: this.playhead.value.rate },
+                    now,
+                    toggled
+                        ? observed.paused
+                            ? [{ type: 'PlaybackPaused', at: observed.position, by: this.self, local: true }]
+                            : [{ type: 'PlaybackStarted', at: observed.position, by: this.self, local: true }]
+                        : [{ type: 'PlaybackSeeked', to: observed.position, by: this.self, local: true }],
+                );
+            }
+        }
+
+        return this.emit([], [], this.correctNow(now));
+    }
+
+    tick(now: EpochMs): Decision {
+        const events: DomainEvent[] = [];
+        const publish: PublishIntent[] = [];
+
+        if (heartbeatDue(this.lastPresencePublish, now, this.policy)) {
+            this.lastPresencePublish = now;
+            publish.push({ kind: 'presence', presence: this.selfPresence(now) });
+        }
+
+        if (sweepDue(this.lastSweep, now, this.policy)) {
+            this.lastSweep = now;
+            const ids = expiredIds(this.activities, now, this.policy)
+                .filter((id) => !this.retractedIds.has(id));
+            if (ids.length) {
+                ids.forEach((id) => this.retractedIds.add(id));
+                publish.push({ kind: 'retract', ids });
+                events.push({ type: 'ActivitiesExpired', ids });
+            }
+        }
+
+        if (isAdvancing(this.playhead)) {
+            const silent = silentFor(this.playhead, now);
+            if (silent > this.policy.stalePlaybackTimeout) {
+                // Whoever was driving playback is gone. Freeze where the room
+                // would be now, not back where it was last heard from.
+                const at = projectedPositionAt(this.playhead, now);
+                const halted: PlayheadIntent = {
+                    value: { position: at, paused: true, rate: this.playhead.value.rate },
+                    at: now,
+                    by: this.self,
+                };
+                this.playhead = halted;
+                publish.push({ kind: 'playhead', intent: halted });
+                events.push({ type: 'PlaybackStalled', silentFor: silent });
+            } else if (now - this.lastWatchMark >= this.policy.watchTimeGranularity * 1000) {
+                this.lastWatchMark = now;
+                this.watched += 1;
+                publish.push({ kind: 'watchTime', deltaMinutes: 1 });
+                events.push({ type: 'MinuteWatched', total: this.watched });
+            }
+        } else {
+            this.lastWatchMark = now;
+        }
+
+        return this.emit(events, publish, this.correctNow(now));
+    }
+
+    // ---- projection ---------------------------------------------------------
+
+    snapshot(now: EpochMs): RoomSnapshot {
+        const others = onlineOnly(this.presences, now, this.policy)
+            .filter((presence) => presence.participantId !== this.self)
+            .map((presence) => participantFrom(presence, this.self));
+
+        return {
+            roomId: this.roomId,
+            self: participantFrom(this.selfPresence(this.lastPresencePublish ?? this.bornAt), this.self),
+            others,
+            source: this.src.value,
+            sourceChangedBy: this.src.by,
+            playhead: this.playhead,
+            projectedPosition: projectedPositionAt(this.playhead, now),
+            liveActivities: liveOnly(this.activities, now, this.policy)
+                .slice()
+                .sort((a, b) => a.at - b.at),
+            expiredActivityIds: expiredIds(this.activities, now, this.policy),
+            watchedMinutes: this.watched,
+            connection: this.connection,
+            clockConfidence: this.confidence,
+        };
+    }
+
+    // ---- internals ----------------------------------------------------------
+
+    /** Writes are withheld, not faked, while the clock cannot be trusted (I9). */
+    private get writable(): boolean {
+        return !(this.policy.requireClockSync && this.confidence === 'unsynced');
+    }
+
+    private emit(events: DomainEvent[], publish: PublishIntent[], correct: Correction): Decision {
+        return { events, publish: this.writable ? publish : [], correct };
+    }
+
+    private declare(value: Playhead, now: EpochMs, events: DomainEvent[]): Decision {
+        const intent: PlayheadIntent = { value, at: now, by: this.self };
+        this.playhead = intent;
+        return this.emit(events, [{ kind: 'playhead', intent }], { kind: 'none' });
+    }
+
+    private authored(id: ActivityId, at: EpochMs, body: ActivityBody): Activity {
+        const activity: Activity = { id, author: this.self, at, body };
+        this.knownActivityIds.add(id);
+        this.activities = [...this.activities, activity];
+        return activity;
+    }
+
+    private selfPresence(lastSeen: EpochMs): Presence {
+        return { participantId: this.self, nickname: this.nick, lastSeen };
+    }
+
+    private correctNow(now: EpochMs): Correction {
+        if (!this.seen) return { kind: 'none' };
+        const correction = reconcile(this.seen.state, this.playhead, now, this.policy);
+        if (correction.kind === 'seek' || correction.kind === 'halt' || correction.kind === 'resume') {
+            this.pending = { correction, issuedAt: now, seq: ++this.seq };
+        }
+        return correction;
+    }
+
+    private classify(previous: Seen | null, observed: ObservedPlayback, now: EpochMs): PlayerObservation | null {
+        if (!previous) return { type: 'seeked', position: observed.position };
+        if (observed.paused !== previous.state.paused) {
+            return observed.paused
+                ? { type: 'paused', position: observed.position }
+                : { type: 'played', position: observed.position };
+        }
+        const expected = previous.state.paused
+            ? previous.state.position
+            : previous.state.position + (now - previous.at) / 1000;
+        return Math.abs(observed.position - expected) > this.policy.hardSeekThreshold
+            ? { type: 'seeked', position: observed.position }
+            : { type: 'progress', position: observed.position };
+    }
+
+    private transition(previous: PlayheadIntent, next: PlayheadIntent, now: EpochMs): DomainEvent[] {
+        const local = next.by === this.self;
+        if (previous.value.paused !== next.value.paused) {
+            return next.value.paused
+                ? [{ type: 'PlaybackPaused', at: next.value.position, by: next.by, local }]
+                : [{ type: 'PlaybackStarted', at: next.value.position, by: next.by, local }];
+        }
+        const drift = Math.abs(next.value.position - projectedPositionAt(previous, next.at));
+        return drift > this.policy.hardSeekThreshold
+            ? [{ type: 'PlaybackSeeked', to: next.value.position, by: next.by, local }]
+            : [];
+    }
 }
