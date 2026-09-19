@@ -97,7 +97,10 @@ export declare function createWatchSession(deps: WatchSessionDependencies): Watc
 export type {
     WatchSessionCommands,
     SetSourceResult,
+    SourceRejection,
     ShareFileResult,
+    ShareFailure,
+    InteractionTarget,
 } from './inbound/watch-session-commands';
 export type { WatchSessionView } from './inbound/watch-session-view';
 export type { RemoteRoomListener, GatewayError } from './inbound/remote-room-listener';

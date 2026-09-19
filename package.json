@@ -12,7 +12,9 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"check:skeleton": "tsc --noEmit -p tsconfig.skeleton.json && node scripts/check-boundaries.mjs",
-		"check:boundaries": "node scripts/check-boundaries.mjs"
+		"check:boundaries": "node scripts/check-boundaries.mjs",
+		"check:ui": "svelte-check --tsconfig ./tsconfig.adapter.json --threshold error",
+		"check:all": "npm run check:skeleton && npm run check:ui && npm run build"
 	},
 	"devDependencies": {
 		"@amplitude/analytics-browser": "^2.29.0",

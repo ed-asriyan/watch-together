@@ -4,8 +4,27 @@ Mid-refactor. Two things live here at once:
 
 | Directory | What it is |
 |---|---|
-| `domains/` | **New.** One folder per bounded context. Currently one: `watch-session`. |
-| `legacy/` | **Frozen.** The application as it is today. Still the only thing that runs. Deleted at the end of the refactor. |
+| `domains/` | **New.** One folder per bounded context. Currently one: `watch-session`. Interfaces only — no implementation yet. |
+| `adapters/driving/svelte/` | **New.** The UI, rewritten against the ports. This is what runs. |
+| `composition/` | **New.** The composition root. Currently wires the UI to a stub. |
+| `i18n/` | **New.** Copied out of `legacy/`, plus the keys the new adapter needs. |
+| `legacy/` | **Frozen.** The old application, kept as the written record of rules that exist nowhere else. Deleted at migration step 6. |
+
+## Running it
+
+`index.html` points at `src/composition/bootstrap.ts`. The app builds, renders
+and navigates — and **nothing works**, on purpose: every command is a logged
+no-op from `composition/stub-session.ts` and every view is a constant. Open the
+console to watch the commands the UI actually issues.
+
+To run the old application instead, point `index.html` back at
+`/src/legacy/main.ts`.
+
+```console
+npm run check:skeleton   # domains/ typecheck in isolation + boundary guard
+npm run check:ui         # svelte-check over domains + adapters + composition
+npm run check:all        # both, then a production build
+```
 
 ## Layout
 

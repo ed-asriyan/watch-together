@@ -45,6 +45,20 @@ export interface WatchSessionCommands {
     join(roomId: RoomId): Promise<void>;
 
     /**
+     * Enter whatever room this visit implies: the one the address bar names,
+     * failing that the last one visited, failing that a freshly generated one.
+     * Navigates so the address bar always ends up naming the room actually
+     * joined, and keeps following it as the user edits the URL or presses back.
+     *
+     * Exists because the Svelte adapter had no way to start: `join` needs a
+     * room id, and deciding *which* room is policy — it reads `LocationPort`
+     * and `ProfileStorePort` and must not live in a component or in the
+     * composition root. Legacy did it in `App.svelte`, which also wrote to
+     * `localStorage` as a side effect of routing.
+     */
+    resume(): Promise<void>;
+
+    /**
      * Leave the current room: stop the tick loop, retract presence, release
      * any torrent, close the gateway. Safe to call when not joined.
      */
@@ -133,6 +147,33 @@ export interface WatchSessionCommands {
      */
     renameSelf(raw: string): void;
 
+    // ---- preferences -------------------------------------------------------
+
+    /**
+     * Change the UI language and persist it.
+     *
+     * Locale lives in `StoredProfile`, so the UI cannot own it alone, and
+     * changing it is a tracked product event. Added after the Svelte adapter
+     * found the language selector had no way to reach either.
+     *
+     * @param locale BCP-47 tag, one the app actually ships. Unknown tags are
+     *               ignored rather than rejected.
+     */
+    setLocale(locale: string): void;
+
+    /**
+     * Record a UI interaction that produces no domain event — a tutorial link,
+     * the share button, opening the join prompt.
+     *
+     * Telemetry is otherwise driven purely by domain events, which leaves
+     * these unreachable. Rather than handing the UI its own `TelemetryPort`
+     * (which would break "components see commands and views, nothing else"),
+     * they come through the same door as everything else.
+     *
+     * @param target Stable, enumerated name of what was interacted with.
+     */
+    recordInteraction(target: InteractionTarget): void;
+
     // ---- navigation --------------------------------------------------------
 
     /**
@@ -166,12 +207,31 @@ export type SetSourceResult =
     | { readonly status: 'unrecognized' }
     /** Input was empty; the room now has no source. */
     | { readonly status: 'cleared' }
-    /** Recognized, but the write was refused — e.g. clock unsynced (I9). */
-    | { readonly status: 'rejected'; readonly reason: string };
+    /** Recognized, but the write was refused. */
+    | { readonly status: 'rejected'; readonly reason: SourceRejection };
+
+/** Why a recognized source could not be published. A code, not a sentence. */
+export type SourceRejection = 'offline' | 'clock-unsynced' | 'write-rejected';
 
 /** The outcome of `shareLocalFile`. */
 export type ShareFileResult =
     | { readonly status: 'shared'; readonly source: MediaSourceRef }
     /** No Service Worker, so the P2P delivery path cannot run. */
     | { readonly status: 'unsupported' }
-    | { readonly status: 'failed'; readonly reason: string };
+    | { readonly status: 'failed'; readonly reason: ShareFailure };
+
+export type ShareFailure = 'seeding-failed' | 'write-rejected' | 'aborted';
+
+/**
+ * UI interactions worth measuring that produce no domain event. Enumerated so
+ * the set is reviewable and the adapter cannot invent strings.
+ */
+export type InteractionTarget =
+    | 'url_tutorial'
+    | 'download_tutorial'
+    | 'link_share'
+    | 'link_copy'
+    | 'join_another_room'
+    | 'generate_new_room'
+    | 'feedback_link'
+    | 'fullscreen';

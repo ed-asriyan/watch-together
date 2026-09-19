@@ -13,23 +13,27 @@
 export type {
     WatchSessionCommands,
     SetSourceResult,
+    SourceRejection,
     ShareFileResult,
+    ShareFailure,
+    InteractionTarget,
 } from './watch-session-commands';
 
 export type { WatchSessionView } from './watch-session-view';
 
 export type {
     ConnectionView,
+    ConnectionProblemView,
     SourceView,
     PlaybackView,
     ParticipantView,
     ParticipantListView,
     FeedItemView,
+    FeedNoticeView,
     FeedView,
     ReactionView,
     DeliveryView,
     InviteView,
-    SelfView,
 } from './views';
 
 export type { RemoteRoomListener, GatewayError } from './remote-room-listener';

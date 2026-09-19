@@ -1656,3 +1656,82 @@ backend.** Those two things are worth real architecture. Most of the rest is not
   `aidlc/spaces/default/codekb/watch-together/architecture.md`,
   `code-quality-assessment.md`, and
   `aidlc/spaces/default/intents/260830-onboarding-prep/inception/requirements-analysis/requirements.md`.
+
+---
+
+## 18. Findings from the Svelte driving-adapter probe
+
+The UI was rewritten against the ports before any implementation or test
+existed, specifically to see what the port design got wrong. It found nine
+things. Seven were fixed in the ports; two are left open.
+
+### Fixed
+
+1. **View models carried presentation.** `FeedItemView.notice` was
+   `{ key: string, values: ... }` — an i18n key chosen by the application.
+   `ConnectionView.message` was a human-readable sentence.
+   `DeliveryView.downloadLabel` was a pre-formatted byte count. All three put
+   wording inside the application. Replaced with a view-level `FeedNoticeView`
+   union, a `ConnectionProblemView` code, and raw `bytesPerSecond` numbers. Rule
+   2 in `views.ts` now states it explicitly.
+
+2. **Free-text failure reasons.** `SetSourceResult.rejected.reason: string` and
+   `ShareFileResult.failed.reason: string` had the same problem in the command
+   port. Now `SourceRejection` and `ShareFailure` code unions.
+
+3. **`SelfView` duplicated `ParticipantListView.self`.** Removed; the nickname
+   length cap comes from `NICKNAME_MAX_LENGTH` in the model, which the driving
+   adapter may import.
+
+4. **Nothing could start the app.** `join(roomId)` needs an id, but deciding
+   *which* room — address bar, then last visited, then a fresh one — is policy
+   that reads `LocationPort` and `ProfileStorePort`. It cannot live in a
+   component, and putting it in the composition root would be the same mistake
+   one layer out. Added `resume()`.
+
+5. **The language selector had no door.** Locale lives in `StoredProfile` and
+   changing it is a tracked event, and `WatchSessionCommands` had neither.
+   Added `setLocale(locale)`.
+
+6. **UI-only interactions were unreachable by telemetry.** Tutorial links, the
+   share button, the join prompt, fullscreen — legacy tracked all of them as
+   `ClickEvent`. With telemetry driven purely by domain events they had no path
+   at all. Rather than handing components a `TelemetryPort` (which would break
+   "a component sees commands and views, nothing else"), added
+   `recordInteraction(target)` with an enumerated `InteractionTarget`.
+
+7. **The source input cannot bind to the view.** The user's keystrokes and a
+   remote change are two writers of one string; echoing every keystroke through
+   the application moves the caret. `SourceView` gained `revision`, bumped only
+   on remote change, and the component keeps a local draft it adopts only when
+   the revision moves. This is the one place where the "commands in, views out"
+   model needed an explicit affordance rather than just discipline.
+
+### Left open
+
+8. **`MediaPlayerPort` has no way to receive the element.** The port is
+   deliberately DOM-free, but Svelte creates the `<media-player>` element, so
+   something must carry it to the adapter. Solved on the driving side with a
+   `PlayerSurface { mount, unmount }` handed through context by the composition
+   root. It works and it keeps the port clean, but it is an extra concept and
+   the alternative — letting the component import the concrete Vidstack adapter
+   — is not obviously worse. Revisit when the adapter is written.
+
+9. **Legacy auto-played a random demo video into an empty room.** That lived in
+   `video-player/index.svelte` reading `defaultVideos` keyed off
+   `url.updatedAt % length`. It is product behaviour with no home in the new
+   model — the room genuinely has no source. The probe renders the placeholder
+   instead. Decide whether to keep it, and if so, whether it is a real source
+   selection or a local-only preview.
+
+### What the probe confirmed
+
+- The player component is now four lines of wiring: render `<media-player>`,
+  hand the element over, unmount. It does not know the video URL, does not know
+  the position, and cannot start playback.
+- No component imports a store, a gateway, the aggregate or an outbound port.
+- `Observable` works with Svelte's `$` prefix exactly as intended, with no
+  `svelte` import below the driving adapter and no runtime shim.
+- `svelte-check` reports 0 errors against the new tree. The 13 remaining
+  warnings are inherited a11y problems in the legacy markup (clickable `div`s
+  and `span`s) plus one unused CSS selector — unrelated to the port design.

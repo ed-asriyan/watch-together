@@ -1,0 +1,24 @@
+{
+  "//": "Typechecks the new tree (domains + adapters + composition + i18n) including .svelte files. Excludes src/legacy, which is frozen and full of known problems.",
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["vite/client", "vidstack/svelte"]
+  },
+  "include": [
+    "src/app.d.ts",
+    "src/domains/**/*.ts",
+    "src/adapters/**/*.ts",
+    "src/adapters/**/*.svelte",
+    "src/composition/**/*.ts",
+    "src/i18n/**/*.ts"
+  ]
+}

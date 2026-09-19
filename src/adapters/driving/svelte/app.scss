@@ -1,0 +1,104 @@
+// 2. Import default variables and available mixins.
+@import "uikit/src/scss/variables-theme.scss";
+@import "uikit/src/scss/mixins-theme.scss";
+
+// 3. Your custom mixin overwrites.
+@mixin hook-card() { color: #000; }
+
+// 4. Import UIkit.
+@import "uikit/src/scss/uikit-theme.scss";
+
+.pointer {
+    cursor: pointer;
+}
+
+@keyframes rainbow-border {
+    0% {
+        border-color: red;
+        background-color: rgba(255, 0, 0, 0.05);
+    }
+    25% {
+        border-color: blue;
+        background-color: rgba(0, 0, 255, 0.05);
+    }
+    50% {
+        border-color: green;
+        background-color: rgba(0, 255, 0, 0.05);
+    }
+    75% {
+        border-color: cyan;
+        background-color: rgba(0, 255, 255, 0.05);
+    }
+    100% {
+        border-color: red;
+        background-color: rgba(255, 0, 0, 0.05);
+    }
+}
+
+html {
+    overflow-x: hidden;
+    background-color: #000;
+}
+
+.glass {
+    border: 1px solid rgba(255, 255, 255, .25);
+    background-color: rgba(255, 255, 255, 0.01);
+    box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(30px) brightness(70%);
+    border-width: 1.5px;
+
+    &.focus {
+        animation: rainbow-border 5s infinite linear;
+    }
+
+    &.clickable {
+        cursor: pointer;
+
+        &:hover {
+            @extend .focus;
+        }
+    }
+
+    &.muted {
+        & * {
+            color: gray !important;
+        }
+        color: gray !important;
+    }
+}
+
+.tile {
+    @extend .glass;
+    padding: 2rem 1rem;
+    color: white;
+    border-radius: 1rem;
+}
+
+@keyframes hue {
+    from {
+        filter: hue-rotate(0deg);
+    }
+    to {
+        filter: hue-rotate(-360deg);
+    }
+}
+
+.gradient-text {
+    color: transparent !important;
+    background-image: linear-gradient(92deg, #f35626, #feac3a);
+    background-clip: text;
+    animation: hue 5s infinite linear;
+}
+
+.video-text {
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently */
+}

@@ -6,7 +6,6 @@ import type {
     InviteView,
     ParticipantListView,
     PlaybackView,
-    SelfView,
     SourceView,
 } from './views';
 
@@ -64,6 +63,4 @@ export interface WatchSessionView {
     /** The shareable room URL and whether the platform can share natively. */
     readonly invite: Observable<InviteView>;
 
-    /** This viewer's own name and colour, for the rename affordance. */
-    readonly self: Observable<SelfView>;
 }
