@@ -95,6 +95,20 @@ describe('two clients in one room', () => {
             expect(bob.player.source?.playbackUrl).toBe('resolved:https://example.com/film.mp4');
         });
 
+        it('the other client\'s input box shows the link too', async () => {
+            // Playing the right video with an empty box reads as "it never
+            // arrived", which is how this was first reported from QA.
+            const alice = await join('alice');
+            const bob = await join('bob');
+
+            await alice.session.setSourceFromUserInput('https://example.com/film.mp4');
+            await wait(1);
+
+            let shown = '';
+            bob.session.view.source.subscribe((view) => { shown = view.raw; })();
+            expect(shown).toBe('https://example.com/film.mp4');
+        });
+
         it('a client joining later is told what is already playing', async () => {
             const alice = await join('alice');
             await alice.session.setSourceFromUserInput('https://example.com/film.mp4');
@@ -104,6 +118,10 @@ describe('two clients in one room', () => {
             await wait(1);
 
             expect(late.player.source?.playbackUrl).toBe('resolved:https://example.com/film.mp4');
+
+            let shown = '';
+            late.session.view.source.subscribe((view) => { shown = view.raw; })();
+            expect(shown).toBe('https://example.com/film.mp4');
         });
     });
 

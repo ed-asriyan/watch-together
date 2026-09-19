@@ -46,6 +46,15 @@
         {#if $source.resolving}
             <Loader/>
             <div class="uk-margin-top">{ $_('player.analyzing') }</div>
+        {:else if $source.resolveFailed}
+            <!--
+                A source that cannot be resolved used to leave a black
+                rectangle and nothing else. Whatever else is wrong, the viewer
+                should at least know the link is the problem.
+            -->
+            <div class="uk-margin-top uk-text-warning">
+                { $_('selectVideo.link.hintNotWorking').replace(/\{\/?u\}/g, '') }
+            </div>
         {/if}
         {#if stalledOnPeers}
             <div class="uk-margin-top uk-text-center">

@@ -217,9 +217,31 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
         }
     };
 
+    /**
+     * Adopt a source somebody else picked.
+     *
+     * The field is not bound to the view — the user's keystrokes and a remote
+     * change are two writers of one string — so a remote change has to be
+     * handed over explicitly, by bumping `revision`. Without this the receiving
+     * client plays the right video with an empty input box, which reads as
+     * "it never arrived".
+     */
+    let lastSeenLocator: string | null = null;
+
+    const adoptRemoteSource = (snapshot: RoomSnapshot): void => {
+        const locator = snapshot.source?.locator ?? null;
+        if (locator === lastSeenLocator) return;
+        lastSeenLocator = locator;
+        if ((locator ?? '') === sourceDraft) return;
+        sourceDraft = locator ?? '';
+        sourceRevision += 1;
+    };
+
     const refresh = (): void => {
         const snapshot = peek();
-        if (snapshot) render(snapshot, clock.now());
+        if (!snapshot) return;
+        adoptRemoteSource(snapshot);
+        render(snapshot, clock.now());
     };
 
     // ---- decision execution -------------------------------------------------

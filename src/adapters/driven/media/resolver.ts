@@ -3,7 +3,7 @@ import type {
 } from '../../../domains/watch-session/ports/outbound/media-resolver';
 import type { MediaSourceRef } from '../../../domains/watch-session/model/media-source';
 import type { Observable, Unsubscribe } from '../../../domains/watch-session/model/shared/observable';
-import { classify } from './classify';
+import { classify, providerPath } from './classify';
 import type { TorrentDelivery } from './webtorrent';
 
 export interface ProxyConfig {
@@ -49,8 +49,9 @@ export class CompositeMediaResolver implements MediaResolverPort {
         switch (ref.kind) {
             case 'youtube':
             case 'vimeo':
-                // Vidstack resolves provider ids itself.
-                return { ref, playbackUrl: ref.locator, via: 'direct' };
+                // Vidstack takes `youtube/<id>`; the store holds what the user
+                // pasted, and the two are converted here, at playback time.
+                return { ref, playbackUrl: providerPath(ref) ?? ref.locator, via: 'direct' };
             case 'magnet': {
                 const url = await this.torrents.stream(ref.locator, signal);
                 stop();

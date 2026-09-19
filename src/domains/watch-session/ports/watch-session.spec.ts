@@ -393,6 +393,38 @@ describe('WatchSession: remote signals become domain calls', () => {
         expect(h.log.first('player.seekTo')?.args[0]).toBe(300);
     });
 
+    it('puts the link somebody else picked into the field', async () => {
+        // Regression. The field is not bound to the view, so a remote change
+        // has to be handed over explicitly. Without it the receiving client
+        // plays the right video with an empty box, which reads as "it never
+        // arrived" — which is exactly how this was reported.
+        const seen: string[] = [];
+        h.replicas.made[0]!.snapshot = (() => ({
+            roomId: ROOM,
+            self: { id: ALICE, nickname: 'alice', colour: '#fff', lastSeen: T0, isSelf: true },
+            others: [],
+            source: source({ locator: 'https://example.com/theirs.mp4' }),
+            sourceChangedBy: BOB,
+            playhead: intent({}, T0, BOB),
+            projectedPosition: sec(0),
+            liveActivities: [],
+            expiredActivityIds: [],
+            watchedMinutes: 0,
+            connection: { status: 'online' },
+            clockConfidence: 'synced',
+        })) as never;
+
+        h.session.view.source.subscribe((view) => seen.push(`${view.revision}:${view.raw}`))();
+        h.gateway.listenerFor(ROOM)?.onSourceChanged(
+            stamped(source({ locator: 'https://example.com/theirs.mp4' }), T0, BOB),
+        );
+        await Promise.resolve();
+
+        let latest = '';
+        h.session.view.source.subscribe((view) => { latest = `${view.revision}:${view.raw}`; })();
+        expect(latest).toBe('1:https://example.com/theirs.mp4');
+    });
+
     it('loads new media when the room switches source', async () => {
         h.gateway.listenerFor(ROOM)?.onSourceChanged(stamped(source({ locator: 'https://example.com/new.mp4' }), T0, BOB));
         await Promise.resolve();
