@@ -55,7 +55,48 @@ export interface SyncPolicy {
     readonly watchTimeGranularity: Seconds;
 }
 
-export declare const DEFAULT_SYNC_POLICY: SyncPolicy;
+/**
+ * Production defaults. These are DATA, not logic — written out rather than
+ * stubbed, because the tests need concrete numbers to assert against and
+ * because every value here is a decision worth reading in one place.
+ */
+export const DEFAULT_SYNC_POLICY: SyncPolicy = {
+    hardSeekThreshold: 1 as Seconds,
+    softNudgeThreshold: 0.25 as Seconds,
+    nudgeRateDelta: 0.05,
+    maxNudgeDuration: 4_000 as Millis,
 
-/** The legacy constants exactly as they are today, for characterization tests. */
-export declare const LEGACY_SYNC_POLICY: SyncPolicy;
+    playheadHeartbeat: 10 as Seconds,
+    stalePlaybackTimeout: 60 as Seconds,
+
+    presenceHeartbeat: 5 as Seconds,
+    presenceTimeout: 30 as Seconds,
+
+    activityTtl: 10 as Seconds,
+    activitySweepInterval: 3 as Seconds,
+
+    echoSuppressionWindow: 1_500 as Millis,
+    echoPositionTolerance: 0.75 as Seconds,
+    requireClockSync: true,
+
+    watchTimeGranularity: 60 as Seconds,
+};
+
+/**
+ * The legacy constants exactly as they are today, for characterization tests
+ * (migration step 2). Where legacy held one rule twice with two numbers, the
+ * stricter one is used and the discrepancy is noted.
+ */
+export const LEGACY_SYNC_POLICY: SyncPolicy = {
+    ...DEFAULT_SYNC_POLICY,
+    hardSeekThreshold: 0.5 as Seconds,   // maximumDelta
+    softNudgeThreshold: 0.5 as Seconds,  // legacy had no soft correction
+    nudgeRateDelta: 0,
+    playheadHeartbeat: 10 as Seconds,    // syncInterval
+    stalePlaybackTimeout: 60 as Seconds, // CURRENT_TIME_SYNC_INTERVAL
+    presenceHeartbeat: 5 as Seconds,     // onlineRefreshInteval
+    presenceTimeout: 13 as Seconds,      // onlineTimeout — sweeper used 10
+    activityTtl: 10 as Seconds,          // messageTimeout
+    activitySweepInterval: 3 as Seconds, // invalidateInterval
+    requireClockSync: false,             // legacy published regardless
+};

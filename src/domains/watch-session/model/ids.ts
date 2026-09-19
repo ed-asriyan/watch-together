@@ -1,3 +1,4 @@
+import { notImplemented } from './shared/not-implemented';
 import type { Brand } from './shared/brand';
 
 /** Human-shareable room key, carried in the URL hash. Legacy: `randomStr(6)`. */
@@ -22,12 +23,22 @@ export const NICKNAME_MAX_LENGTH = 10;
  * caller is handling untrusted input (a URL hash, a prompt, a remote payload)
  * and has a sensible fallback.
  */
-export declare function roomId(raw: string): RoomId | null;
-export declare function participantId(raw: string): ParticipantId | null;
-export declare function activityId(raw: string): ActivityId | null;
+export function roomId(raw: string): RoomId | null {
+    return notImplemented('roomId');
+}
+export function participantId(raw: string): ParticipantId | null {
+    return notImplemented('participantId');
+}
+export function activityId(raw: string): ActivityId | null {
+    return notImplemented('activityId');
+}
 
 /** Trims, collapses whitespace and caps at {@link NICKNAME_MAX_LENGTH}. */
-export declare function nickname(raw: string): Nickname | null;
+export function nickname(raw: string): Nickname | null {
+    return notImplemented('nickname');
+}
 
 /** Deterministic and stable across clients. Legacy: `utils.stringToColor`. */
-export declare function colourFor(id: ParticipantId): HexColour;
+export function colourFor(id: ParticipantId): HexColour {
+    return notImplemented('colourFor');
+}

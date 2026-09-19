@@ -1,3 +1,4 @@
+import { notImplemented } from './shared/not-implemented';
 import type { EpochMs } from './shared/time';
 import type { ParticipantId } from './ids';
 import type { Presence } from './participant';
@@ -11,24 +12,32 @@ import type { SyncPolicy } from './sync-policy';
  * callback (`bound-users.ts:32`), freezing the cut-off at subscription time so
  * a disconnected participant could stay "online" indefinitely.
  */
-export declare function isOnline(presence: Presence, now: EpochMs, policy: SyncPolicy): boolean;
+export function isOnline(presence: Presence, now: EpochMs, policy: SyncPolicy): boolean {
+    return notImplemented('isOnline');
+}
 
-export declare function onlineOnly(
+export function onlineOnly(
     all: readonly Presence[],
     now: EpochMs,
     policy: SyncPolicy,
-): readonly Presence[];
+): readonly Presence[] {
+    return notImplemented('onlineOnly');
+}
 
 /** Ids safe to drop from the remote store. Same rule, not a second copy of it. */
-export declare function staleIds(
+export function staleIds(
     all: readonly Presence[],
     now: EpochMs,
     policy: SyncPolicy,
-): readonly ParticipantId[];
+): readonly ParticipantId[] {
+    return notImplemented('staleIds');
+}
 
 /** Whether it is time to restate our own presence. */
-export declare function heartbeatDue(
+export function heartbeatDue(
     lastPublished: EpochMs | null,
     now: EpochMs,
     policy: SyncPolicy,
-): boolean;
+): boolean {
+    return notImplemented('heartbeatDue');
+}

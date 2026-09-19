@@ -1,3 +1,4 @@
+import { notImplemented } from './shared/not-implemented';
 import type { EpochMs } from './shared/time';
 import type { HexColour, Nickname, ParticipantId } from './ids';
 
@@ -22,4 +23,6 @@ export interface Participant {
     readonly isSelf: boolean;
 }
 
-export declare function participantFrom(presence: Presence, self: ParticipantId): Participant;
+export function participantFrom(presence: Presence, self: ParticipantId): Participant {
+    return notImplemented('participantFrom');
+}

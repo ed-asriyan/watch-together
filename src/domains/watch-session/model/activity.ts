@@ -1,3 +1,4 @@
+import { notImplemented } from './shared/not-implemented';
 import type { EpochMs, Seconds } from './shared/time';
 import type { ActivityId, ParticipantId } from './ids';
 import type { MediaSourceKind } from './media-source';
@@ -31,5 +32,9 @@ export interface Activity {
     readonly body: ActivityBody;
 }
 
-export declare function isChat(activity: Activity): boolean;
-export declare function isReaction(activity: Activity): boolean;
+export function isChat(activity: Activity): boolean {
+    return notImplemented('isChat');
+}
+export function isReaction(activity: Activity): boolean {
+    return notImplemented('isReaction');
+}

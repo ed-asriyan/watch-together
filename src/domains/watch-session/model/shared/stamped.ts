@@ -1,3 +1,4 @@
+import { notImplemented } from './not-implemented';
 import type { EpochMs } from './time';
 import type { ParticipantId } from '../ids';
 
@@ -34,7 +35,9 @@ export interface Stamped<T> {
  *                 not supersede it, so callers can compare by reference to
  *                 detect "nothing changed".
  */
-export declare function mergeLww<T>(local: Stamped<T>, incoming: Stamped<T>): Stamped<T>;
+export function mergeLww<T>(local: Stamped<T>, incoming: Stamped<T>): Stamped<T> {
+    return notImplemented('mergeLww');
+}
 
 /**
  * Whether a value carries new information.
@@ -43,7 +46,9 @@ export declare function mergeLww<T>(local: Stamped<T>, incoming: Stamped<T>): St
  * @param local    What is currently held.
  * @returns        True when `incoming` would win {@link mergeLww}.
  */
-export declare function supersedes<T>(incoming: Stamped<T>, local: Stamped<T>): boolean;
+export function supersedes<T>(incoming: Stamped<T>, local: Stamped<T>): boolean {
+    return notImplemented('supersedes');
+}
 
 /**
  * Attach a total-order key to a value.
@@ -52,4 +57,6 @@ export declare function supersedes<T>(incoming: Stamped<T>, local: Stamped<T>): 
  * @param at    Synchronized clock reading — never `Date.now()` (invariant I1).
  * @param by    This client's participant id, used only for tie-breaking.
  */
-export declare function stamp<T>(value: T, at: EpochMs, by: ParticipantId): Stamped<T>;
+export function stamp<T>(value: T, at: EpochMs, by: ParticipantId): Stamped<T> {
+    return notImplemented('stamp');
+}

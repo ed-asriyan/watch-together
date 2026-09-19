@@ -1,3 +1,4 @@
+import { notImplemented } from './shared/not-implemented';
 import type { EpochMs, Seconds } from './shared/time';
 import type { PlayheadIntent } from './playhead';
 import type { SyncPolicy } from './sync-policy';
@@ -39,12 +40,14 @@ export type Correction =
  * @returns        What to do about the divergence, as data. `none` is the
  *                 common case and must stay cheap.
  */
-export declare function reconcile(
+export function reconcile(
     observed: ObservedPlayback,
     intent: PlayheadIntent,
     now: EpochMs,
     policy: SyncPolicy,
-): Correction;
+): Correction {
+    return notImplemented('reconcile');
+}
 
 /**
  * Measured divergence, for the debug overlay and the `DriftCorrected` event.
@@ -55,8 +58,10 @@ export declare function reconcile(
  * @returns        Signed: positive means the player is AHEAD of where it
  *                 should be, negative means it is lagging.
  */
-export declare function driftOf(
+export function driftOf(
     observed: ObservedPlayback,
     intent: PlayheadIntent,
     now: EpochMs,
-): Seconds;
+): Seconds {
+    return notImplemented('driftOf');
+}

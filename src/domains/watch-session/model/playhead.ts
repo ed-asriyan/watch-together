@@ -1,3 +1,4 @@
+import { notImplemented } from './shared/not-implemented';
 import type { EpochMs, Seconds } from './shared/time';
 import type { Stamped } from './shared/stamped';
 
@@ -34,7 +35,9 @@ export type PlayheadIntent = Stamped<Playhead>;
  * @returns      The position a perfectly synchronized player would be at.
  *               Equal to `intent.value.position` while paused.
  */
-export declare function projectedPositionAt(intent: PlayheadIntent, now: EpochMs): Seconds;
+export function projectedPositionAt(intent: PlayheadIntent, now: EpochMs): Seconds {
+    return notImplemented('projectedPositionAt');
+}
 
 /**
  * How long the intent has gone without being restated. Feeds the
@@ -44,6 +47,10 @@ export declare function projectedPositionAt(intent: PlayheadIntent, now: EpochMs
  * @param intent The agreed intent.
  * @param now    Synchronized clock reading.
  */
-export declare function silentFor(intent: PlayheadIntent, now: EpochMs): Seconds;
+export function silentFor(intent: PlayheadIntent, now: EpochMs): Seconds {
+    return notImplemented('silentFor');
+}
 
-export declare function isAdvancing(intent: PlayheadIntent): boolean;
+export function isAdvancing(intent: PlayheadIntent): boolean {
+    return notImplemented('isAdvancing');
+}

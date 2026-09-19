@@ -1,3 +1,4 @@
+import { notImplemented } from './shared/not-implemented';
 import type { EpochMs, Seconds } from './shared/time';
 import type { Stamped } from './shared/stamped';
 import type { ClockConfidence } from './shared/clock-confidence';
@@ -70,12 +71,27 @@ export interface RemoteRoomState {
     readonly watchedMinutes: number;
 }
 
+export interface RoomReplicaParams {
+    readonly roomId: RoomId;
+    readonly self: ParticipantId;
+    readonly nickname: Nickname;
+    readonly policy: SyncPolicy;
+    readonly now: EpochMs;
+}
+
 export interface RoomReplicaFactory {
-    create(params: {
-        readonly roomId: RoomId;
-        readonly self: ParticipantId;
-        readonly nickname: Nickname;
-        readonly policy: SyncPolicy;
-        readonly now: EpochMs;
-    }): RoomReplica;
+    create(params: RoomReplicaParams): RoomReplica;
+}
+
+/**
+ * Build a replica for a room this client is joining.
+ *
+ * @param params.roomId    Room being joined.
+ * @param params.self      This client's participant id.
+ * @param params.nickname  This client's display name, for the first presence.
+ * @param params.policy    Every timing constant the replica will apply.
+ * @param params.now       Synchronized clock reading at creation.
+ */
+export function createRoomReplica(params: RoomReplicaParams): RoomReplica {
+    return notImplemented('createRoomReplica');
 }

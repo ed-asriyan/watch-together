@@ -36,4 +36,9 @@ export interface Decision {
     readonly correct: Correction;
 }
 
-export declare const NO_DECISION: Decision;
+/** The empty decision: nothing happened, nothing to write, nothing to correct. */
+export const NO_DECISION: Decision = {
+    events: [],
+    publish: [],
+    correct: { kind: 'none' },
+};

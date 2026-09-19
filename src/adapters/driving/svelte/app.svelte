@@ -47,7 +47,17 @@
             </button>
         </div>
     {:else}
-        <Room />
+        <!--
+            This wrapper is load-bearing, not decoration. `uk-grid` puts a
+            negative `margin-left` on the controls container, which beats
+            `uk-container`'s `margin-left: auto`, so the panel never centres
+            itself — the centring comes from this flex parent. Legacy had it in
+            `components/index.svelte`; dropping it in the rewrite pinned the
+            whole panel to the left edge.
+        -->
+        <div class="uk-flex-1 uk-flex uk-flex-center uk-flex-middle uk-flex-column">
+            <Room />
+        </div>
     {/if}
 </div>
 

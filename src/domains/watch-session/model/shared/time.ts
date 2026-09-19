@@ -1,3 +1,4 @@
+import { notImplemented } from './not-implemented';
 import type { Brand } from './brand';
 
 /**
@@ -18,17 +19,37 @@ export type Millis = Brand<number, 'Millis'>;
  */
 export type Seconds = Brand<number, 'Seconds'>;
 
-export declare function epochMs(raw: number): EpochMs;
-export declare function millis(raw: number): Millis;
-export declare function seconds(raw: number): Seconds;
+export function epochMs(raw: number): EpochMs {
+    return notImplemented('epochMs');
+}
+export function millis(raw: number): Millis {
+    return notImplemented('millis');
+}
+export function seconds(raw: number): Seconds {
+    return notImplemented('seconds');
+}
 
 /** Elapsed media-time between two instants. */
-export declare function secondsBetween(from: EpochMs, to: EpochMs): Seconds;
+export function secondsBetween(from: EpochMs, to: EpochMs): Seconds {
+    return notImplemented('secondsBetween');
+}
 
 /** Arithmetic helpers — branded numbers lose their brand under `+`/`-`. */
-export declare function advance(at: EpochMs, by: Millis): EpochMs;
-export declare function plus(position: Seconds, delta: Seconds): Seconds;
-export declare function minus(a: Seconds, b: Seconds): Seconds;
-export declare function abs(value: Seconds): Seconds;
-export declare function toMillis(value: Seconds): Millis;
-export declare function toSeconds(value: Millis): Seconds;
+export function advance(at: EpochMs, by: Millis): EpochMs {
+    return notImplemented('advance');
+}
+export function plus(position: Seconds, delta: Seconds): Seconds {
+    return notImplemented('plus');
+}
+export function minus(a: Seconds, b: Seconds): Seconds {
+    return notImplemented('minus');
+}
+export function abs(value: Seconds): Seconds {
+    return notImplemented('abs');
+}
+export function toMillis(value: Seconds): Millis {
+    return notImplemented('toMillis');
+}
+export function toSeconds(value: Millis): Seconds {
+    return notImplemented('toSeconds');
+}

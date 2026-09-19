@@ -1,3 +1,4 @@
+import { notImplemented } from './shared/not-implemented';
 import type { Brand } from './shared/brand';
 
 /**
@@ -30,7 +31,11 @@ export interface MediaSourceRef {
 }
 
 /** True when both refs name the same media. */
-export declare function sameSource(a: MediaSourceRef | null, b: MediaSourceRef | null): boolean;
+export function sameSource(a: MediaSourceRef | null, b: MediaSourceRef | null): boolean {
+    return notImplemented('sameSource');
+}
 
 /** Whether picking this source is something other participants can act on. */
-export declare function isShareable(ref: MediaSourceRef): boolean;
+export function isShareable(ref: MediaSourceRef): boolean {
+    return notImplemented('isShareable');
+}

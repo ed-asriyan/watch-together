@@ -15,7 +15,10 @@ const ROOT = 'src/domains';
 
 const walk = (dir) => readdirSync(dir).flatMap((entry) => {
     const path = join(dir, entry);
-    return statSync(path).isDirectory() ? walk(path) : path.endsWith('.ts') ? [path] : [];
+    if (statSync(path).isDirectory()) return walk(path);
+    // Tests and contract suites describe the rules; they are not bound by them.
+    if (path.endsWith('.spec.ts') || path.endsWith('.contract.ts')) return [];
+    return path.endsWith('.ts') ? [path] : [];
 });
 
 const FRAMEWORKS = /from\s+['"](svelte|firebase|vidstack|webtorrent|@sentry|@amplitude)/;

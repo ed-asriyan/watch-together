@@ -1,3 +1,4 @@
+import { notImplemented } from './shared/not-implemented';
 import type { EpochMs, Seconds } from './shared/time';
 import type { Correction } from './reconcile';
 import type { SyncPolicy } from './sync-policy';
@@ -42,12 +43,14 @@ export interface IssuedCorrection {
  * @returns           True when this event was caused by us and must NOT be
  *                    published (invariant I5).
  */
-export declare function isEcho(
+export function isEcho(
     observation: PlayerObservation,
     issued: IssuedCorrection | null,
     now: EpochMs,
     policy: SyncPolicy,
-): boolean;
+): boolean {
+    return notImplemented('isEcho');
+}
 
 /**
  * Whether an outstanding correction can be forgotten.
@@ -59,8 +62,10 @@ export declare function isEcho(
  *               arrived — a correction the element silently ignored must not
  *               suppress real user events forever.
  */
-export declare function hasSettled(
+export function hasSettled(
     issued: IssuedCorrection,
     now: EpochMs,
     policy: SyncPolicy,
-): boolean;
+): boolean {
+    return notImplemented('hasSettled');
+}

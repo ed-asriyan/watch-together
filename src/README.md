@@ -23,8 +23,36 @@ To run the old application instead, point `index.html` back at
 ```console
 npm run check:skeleton   # domains/ typecheck in isolation + boundary guard
 npm run check:ui         # svelte-check over domains + adapters + composition
-npm run check:all        # both, then a production build
+npm test                 # the domain suite (currently all red, on purpose)
+npm run check:all        # all of the above, then a production build
 ```
+
+## Tests come before the implementation
+
+The suite is written as a black box against the contracts. Right now every one
+of its ~100 tests fails with `NotImplemented: <name> is not implemented yet`,
+and that is the baseline: **the passing count is the progress bar.**
+
+The function signatures used to be ambient declarations, which emit no
+JavaScript — importing one from a test was a module-link error, not a
+meaningful failure. They now have bodies that throw, so the suite is executable
+and each unimplemented rule reports as one clear red test naming itself. Those
+throws are placeholders, not implementation; deleting one is what implementing
+looks like.
+
+Two things are real code rather than stubs, because they are data and the tests
+need concrete numbers: `DEFAULT_SYNC_POLICY` and `LEGACY_SYNC_POLICY` (the
+legacy constants, for characterization at migration step 2), and `NO_DECISION`.
+
+Nothing in the domain suite needs a clock, a timer, a DOM or a network mock —
+every rule takes `now` as an argument, so `test-support/builders.ts` is plain
+object factories. `test-support/fakes/` holds a `FakeClock` and a
+`FakeScheduler` for the session-level tests that arrive with the coordinator.
+
+Port contract suites live in `ports/outbound/__contracts__/`. They are exported,
+parameterized functions with no runner yet, because no adapter exists — written
+first so adapters are built against a spec instead of the spec being
+reverse-engineered from whatever the first adapter happened to do.
 
 ## Layout
 

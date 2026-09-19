@@ -14,13 +14,16 @@
 		"check:skeleton": "tsc --noEmit -p tsconfig.skeleton.json && node scripts/check-boundaries.mjs",
 		"check:boundaries": "node scripts/check-boundaries.mjs",
 		"check:ui": "svelte-check --tsconfig ./tsconfig.adapter.json --threshold error",
-		"check:all": "npm run check:skeleton && npm run check:ui && npm run build"
+		"check:all": "npm run check:skeleton && npm run check:ui && npm run test && npm run build",
+		"test": "vitest run",
+		"test:watch": "vitest"
 	},
 	"devDependencies": {
 		"@amplitude/analytics-browser": "^2.29.0",
 		"@sentry/svelte": "^10.23.0",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@tsconfig/svelte": "^5.0.2",
+		"fast-check": "^4.10.1",
 		"firebase": "^12.1.0",
 		"firebase-admin": "^14.3.0",
 		"prettier-bytes": "^1.0.4",
@@ -33,7 +36,8 @@
 		"uikit": "^3.24.2",
 		"vidstack": "^1.11.30",
 		"vite": "^7.1.9",
-		"vite-plugin-pwa": "^1.0.0"
+		"vite-plugin-pwa": "^1.0.0",
+		"vitest": "^5.0.1"
 	},
 	"type": "module"
 }

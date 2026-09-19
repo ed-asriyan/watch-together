@@ -1,3 +1,4 @@
+import { notImplemented } from './shared/not-implemented';
 import type { EpochMs } from './shared/time';
 import type { Activity } from './activity';
 import type { ActivityId } from './ids';
@@ -11,23 +12,31 @@ import type { SyncPolicy } from './sync-policy';
  * (`bound-messages.ts:74`) — a read-modify-write over shared state, and a
  * lost-update race whenever two clients swept at the same moment.
  */
-export declare function isExpired(activity: Activity, now: EpochMs, policy: SyncPolicy): boolean;
+export function isExpired(activity: Activity, now: EpochMs, policy: SyncPolicy): boolean {
+    return notImplemented('isExpired');
+}
 
-export declare function liveOnly(
+export function liveOnly(
     all: readonly Activity[],
     now: EpochMs,
     policy: SyncPolicy,
-): readonly Activity[];
+): readonly Activity[] {
+    return notImplemented('liveOnly');
+}
 
 /** Ids to retract from the remote store. */
-export declare function expiredIds(
+export function expiredIds(
     all: readonly Activity[],
     now: EpochMs,
     policy: SyncPolicy,
-): readonly ActivityId[];
+): readonly ActivityId[] {
+    return notImplemented('expiredIds');
+}
 
-export declare function sweepDue(
+export function sweepDue(
     lastSweep: EpochMs | null,
     now: EpochMs,
     policy: SyncPolicy,
-): boolean;
+): boolean {
+    return notImplemented('sweepDue');
+}
