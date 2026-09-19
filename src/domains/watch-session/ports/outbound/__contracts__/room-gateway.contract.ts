@@ -143,6 +143,38 @@ export const roomGatewayContract = (name: string, make: () => Promise<RoomGatewa
             });
         });
 
+        describe('room lifetime', () => {
+            it('reports no creation time for a room nobody has written to', async () => {
+                const gateway = await make();
+                const { seen } = await open(gateway);
+                expect(seen.snapshots[0]?.createdAt).toBeNull();
+            });
+
+            it('records when the room was first written', async () => {
+                // Not used by the domain — the scheduled cleanup job prunes
+                // rooms by it. A gateway that never records it leaves the
+                // database growing forever.
+                const gateway = await make();
+                const alice = await open(gateway, ALICE);
+                await alice.session.publishSource(stamped(source(), T0, ALICE));
+
+                const bob = await open(gateway, BOB);
+                expect(bob.seen.snapshots[0]?.createdAt).not.toBeNull();
+            });
+
+            it('does not move the creation time on later writes', async () => {
+                const gateway = await make();
+                const alice = await open(gateway, ALICE);
+                await alice.session.publishSource(stamped(source(), T0, ALICE));
+                const first = (await open(gateway, BOB)).seen.snapshots[0]?.createdAt;
+
+                await alice.session.publishPlayhead(intent({ position: sec(5) }, at(60_000), ALICE));
+                const later = (await open(gateway, BOB)).seen.snapshots[0]?.createdAt;
+
+                expect(later).toBe(first);
+            });
+        });
+
         describe('retraction', () => {
             it('removes retracted activities', async () => {
                 const gateway = await make();

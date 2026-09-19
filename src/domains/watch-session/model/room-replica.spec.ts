@@ -195,7 +195,54 @@ describe('RoomReplica', () => {
         });
     });
 
+    describe('the feed', () => {
+        it('posts a system notice as a notice, not as chat text', () => {
+            const decision = replica.postNotice('n1' as never, { type: 'pickedLocalFile' }, at(1_000));
+            expect(published(decision, 'activity')[0]!.activity.body)
+                .toEqual({ kind: 'notice', notice: { type: 'pickedLocalFile' } });
+        });
+
+        it('keeps a notice structured rather than pre-rendered', () => {
+            // Legacy sent `MessageType.seek` with the position stringified into
+            // the message text, so the reader had to parse it back and the
+            // wording was fixed at the sender.
+            const decision = replica.postNotice('n2' as never, { type: 'seeked', to: sec(750) }, at(1_000));
+            const body = published(decision, 'activity')[0]!.activity.body;
+            expect(body).toMatchObject({ notice: { type: 'seeked', to: 750 } });
+        });
+
+        it('keeps an activity authored by someone no longer present', () => {
+            // Legacy's message renderer fell back to `me.name` when the author
+            // was not in the presence list, so a message from someone who had
+            // just timed out was attributed to YOU.
+            replica.applyRemoteActivity([activity('m1', at(1_000), { kind: 'chat', text: 'hi' }, BOB)], at(1_100));
+            replica.applyRemotePresence([presence(ALICE, at(1_100))], at(1_100));
+
+            const item = replica.snapshot(at(1_100)).liveActivities.find((a) => a.id === 'm1');
+            expect(item?.author).toBe(BOB);
+            expect(item?.author).not.toBe(ALICE);
+        });
+
+        it('presents the feed oldest first', () => {
+            replica.applyRemoteActivity([
+                activity('later', at(3_000)),
+                activity('earlier', at(1_000)),
+                activity('middle', at(2_000)),
+            ], at(3_100));
+            expect(replica.snapshot(at(3_100)).liveActivities.map((a) => a.id))
+                .toEqual(['earlier', 'middle', 'later']);
+        });
+    });
+
     describe('presence', () => {
+        it('republishes presence immediately on rename', () => {
+            // Legacy subscribed the presence job to the `me` store for exactly
+            // this: waiting up to a full heartbeat to show a new name is a
+            // visibly broken rename.
+            const decision = replica.rename('newname' as Nickname, at(1_000));
+            expect(published(decision, 'presence')[0]!.presence.nickname).toBe('newname');
+        });
+
         it('reports a participant joining and leaving', () => {
             const joined = replica.applyRemotePresence(
                 [presence(ALICE, at(1_000)), presence(BOB, at(1_000), 'bob')],

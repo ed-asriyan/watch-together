@@ -6,7 +6,7 @@ import type { ActivityId, Nickname, ParticipantId, RoomId } from './ids';
 import type { MediaSourceRef } from './media-source';
 import type { PlayheadIntent } from './playhead';
 import type { Presence } from './participant';
-import type { Activity } from './activity';
+import type { Activity, Notice } from './activity';
 import type { ObservedPlayback } from './reconcile';
 import type { SyncPolicy } from './sync-policy';
 import type { Decision } from './decision';
@@ -41,6 +41,23 @@ export interface RoomReplica {
     selectSource(source: MediaSourceRef | null, now: EpochMs): Decision;
     postChat(id: ActivityId, text: string, now: EpochMs): Decision;
     throwReaction(id: ActivityId, emoji: string, now: EpochMs): Decision;
+
+    /**
+     * Post a system notice into the feed.
+     *
+     * The primitive behind "Bob scrubbed to 12:30" and "Bob is playing his own
+     * copy". Used by the feed-notice projection, which turns domain events into
+     * notices, and by the coordinator for the local-file case, which produces
+     * no domain event of its own.
+     *
+     * Legacy authored these from view components by sending a chat message with
+     * a magic `MessageType` and the position stuffed into `text`.
+     *
+     * @param id     Feed item id, from `IdGeneratorPort`.
+     * @param notice What happened, structured. Rendering is the UI's job.
+     * @param now    Synchronized clock reading.
+     */
+    postNotice(id: ActivityId, notice: Notice, now: EpochMs): Decision;
     rename(nickname: Nickname, now: EpochMs): Decision;
 
     // ---- remote updates (from the gateway, via RemoteRoomListener) ----------
@@ -64,6 +81,16 @@ export interface RoomReplica {
 
 /** Whatever the remote store had when we opened the room. */
 export interface RemoteRoomState {
+    /**
+     * When the room was first written, or `null` for a room that does not
+     * exist yet.
+     *
+     * The domain does not use it — room expiry is an operations concern. It is
+     * on the port because the scheduled cleanup job prunes rooms by it, and a
+     * gateway that never records it would leave the database growing forever.
+     * Remembered from `clean-db.js`, which reads legacy `room/{id}/createdAt`.
+     */
+    readonly createdAt: EpochMs | null;
     readonly playhead: PlayheadIntent | null;
     readonly source: Stamped<MediaSourceRef | null> | null;
     readonly presences: readonly Presence[];

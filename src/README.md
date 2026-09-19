@@ -49,6 +49,16 @@ every rule takes `now` as an argument, so `test-support/builders.ts` is plain
 object factories. `test-support/fakes/` holds a `FakeClock` and a
 `FakeScheduler` for the session-level tests that arrive with the coordinator.
 
+Two files carry most of the weight:
+
+- `model/desync.spec.ts` — the sync rules meeting each other.
+- `ports/watch-session.spec.ts` — orchestration: which outbound calls an inbound
+  call produces, in what ORDER, with what arguments, and which room they land
+  in. Every outbound port is spied into one shared `CallLog`, so ordering across
+  ports is assertable — "armed disconnect cleanup before announcing presence",
+  "synchronized the clock before publishing", "closed the old room before
+  opening the new one".
+
 `model/desync.spec.ts` is the one to read first. The other files pin down each
 rule on its own; that one is about the rules meeting each other — a local
 playhead disagreeing with an incoming one, a player still buffering, updates
