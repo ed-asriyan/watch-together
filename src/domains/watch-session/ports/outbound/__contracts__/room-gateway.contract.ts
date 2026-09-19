@@ -118,6 +118,33 @@ export const roomGatewayContract = (name: string, make: () => Promise<RoomGatewa
                 expect(received?.value.paused).toBe(true);
             });
 
+            it('never reports an intent that was not published', async () => {
+                // Settling on the right value in the end is not enough. An
+                // adapter that reports a HALF of one write joined to a half of
+                // the previous one hands the domain an intent nobody had; it
+                // carries the newer timestamp, so it wins the LWW merge, and
+                // the truth arriving behind it is then too old to apply. That
+                // is how a client could press play and stay frozen at zero.
+                const gateway = await make();
+                const alice = await open(gateway, ALICE);
+                const bob = await open(gateway, BOB);
+
+                const published = [
+                    intent({ position: sec(0), paused: true }, at(1_000), ALICE),
+                    intent({ position: sec(30), paused: false }, at(2_000), ALICE),
+                    intent({ position: sec(90), paused: true }, at(3_000), ALICE),
+                ];
+                for (const next of published) {
+                    await alice.session.publishPlayhead(next);
+                    await new Promise((resolve) => setTimeout(resolve, 5));
+                }
+
+                expect(bob.seen.playheads.length).toBeGreaterThan(0);
+                for (const received of bob.seen.playheads) {
+                    expect(published).toContainEqual(received);
+                }
+            });
+
             it('delivers presence and activity to other clients', async () => {
                 const gateway = await make();
                 const alice = await open(gateway, ALICE);

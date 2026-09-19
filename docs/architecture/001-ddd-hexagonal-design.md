@@ -1797,3 +1797,92 @@ fail without its fix:
 component specs are possible; they opt into jsdom per file. The domain suite is
 unaffected and still runs in plain `node` with no DOM, no timer shim and no
 network mock.
+
+---
+
+## 20. QA: the frozen room
+
+Reported from QA as "it loads now, but it doesn't scroll on the second device",
+and reproduced here against a local Realtime Database emulator with two real
+browsers. It was not a second device problem: the client that pressed play
+paused *itself*, within milliseconds, and the room stayed at zero.
+
+### What happened
+
+`currentTime` and `paused` are one value in two nodes (§9, the legacy schema we
+agreed to keep), and the gateway had a listener on each. A write that set both
+therefore arrived as **two events**, and the join ran between them. What it
+produced was the position of the new write beside the paused flag of the old
+one — an intent nobody had ever held:
+
+```
+in: {"value":{"position":0,"paused":true, "rate":1},"at":1789835546762,"by":"a6zy…"}   ← fabricated
+in: {"value":{"position":0,"paused":false,"rate":1},"at":1789835546762,"by":"a6zy…"}   ← what was published
+```
+
+Note the timestamps. `readPlayhead` stamps the join with the **newer** of the
+two nodes, so the fabrication carried the timestamp of the write it had only
+half seen. Being newest it won the LWW merge; and because `rank` falls through
+to the value at equal time and author, and `"paused":true` sorts above
+`"paused":false`, the real intent arriving a millisecond later could no longer
+displace it — not then, and not ever. §5.1 calls that third sort key arbitrary
+but harmless. It is harmless only for values that were actually written.
+
+The domain did exactly what it should with what it was given. The fault is
+entirely in the adapter, which is where it is fixed.
+
+Two independent things made the window certain rather than merely possible:
+
+- the write was two `set()` calls, so the *database* held the half-state too,
+  and any client reading during it saw the hybrid;
+- the read answered each event with a fresh `get()` — an asynchronous round
+  trip whose answer routinely predated the event that triggered it, and two
+  wasted server reads per playhead change besides.
+
+### The fix
+
+1. **Publish atomically.** One multi-location `update()`, so no reader anywhere
+   can observe this write's position beside the last write's paused flag.
+2. **Join from a mirror, not a re-read.** The raw nodes are kept as their
+   events arrive and joined from that, on a microtask. A *local* write raises
+   both child events in one synchronous batch, so waiting out the batch sees
+   the pair whole.
+3. **Refuse to fabricate.** Updates from another client still arrive as
+   separate frames, one per listener, and no amount of batching changes that.
+   So `isHalfDeliveredPlayhead` decides whether the pair in hand is two halves
+   of one write: every playhead this client publishes stamps both nodes with
+   the same `updatedAt` and tags both with `by`, so a mismatch under a tagged
+   newer node can only mean the sibling is still in flight. The join is skipped
+   and runs again when it lands.
+
+   Legacy clients tag nothing and genuinely do write one node alone —
+   `legacy/stores/room/index.ts:62` pauses a stale room by setting `paused` and
+   nothing else — so a mismatch there is real information and is still
+   reported. That is the whole reason the rule keys on `by` rather than on the
+   timestamps alone.
+
+Measured before and after, same emulator, same two browsers: play propagated
+never (both clients frozen at 0) → within one tick, with 10–30 ms of drift;
+seek and pause likewise.
+
+### What the tests were missing
+
+Every gateway double delivered a playhead atomically, so no test could see
+this. Three layers now cover it, each verified to fail without its fix:
+
+- `mappers.spec.ts` builds the hybrid by hand and shows `supersedes` preferring
+  it to the truth — the poisoning, not just the fabrication;
+- `room-gateway.spec.ts` drives the real `FirebaseRoomGateway` against a fake
+  `firebase/database` whose multi-node writes reach another client as one event
+  per node, in separate turns;
+- the `RoomGatewayPort` contract gained *never reports an intent that was not
+  published*. The clause that existed only checked where the playhead settled,
+  which is why it passed throughout.
+
+### Still open
+
+The contract is still bound only to the in-memory and broadcast gateways. §14
+promises it against `FirebaseRoomGateway` on the emulator too, and that is
+worth doing — it would have caught this without a browser. It needs the
+contract's propagation assertions to become `eventually`-style waits first;
+they are written synchronously, which only a same-tick backend satisfies.

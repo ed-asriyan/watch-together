@@ -53,6 +53,45 @@ export const readPlayhead = (room: RoomDto): PlayheadIntent | null => {
     };
 };
 
+/**
+ * Whether the two nodes are two halves of ONE write, only one of which has
+ * been delivered yet.
+ *
+ * `currentTime` and `paused` are one value in two nodes, and the database has
+ * a listener per node: a write that sets both arrives as two separate events.
+ * Between them the room holds the position of the new write beside the paused
+ * flag of the old one — an intent nobody ever had, carrying the NEW timestamp.
+ * Reported as-is it wins the LWW merge, and (the domain's tie-break ranking
+ * `true` above `false` at equal time and author) the truth arriving a
+ * millisecond later can no longer displace it: a client that pressed play
+ * paused itself, and the room with it, permanently.
+ *
+ * Every playhead THIS client publishes stamps both nodes with the same
+ * `updatedAt` and tags both with `by`, so a mismatch under a tagged newer node
+ * can only mean the other half is still in flight — wait for it. Legacy
+ * clients tag nothing and genuinely do write the nodes one at a time (see
+ * `legacy/stores/room/index.ts:62`, which sets `paused` alone), so a mismatch
+ * there is real information and must still be reported.
+ *
+ * @param room The two nodes as currently held, from a listener or a read.
+ * @returns    True when the join would fabricate; the caller should skip it
+ *             and join again when the sibling arrives.
+ */
+export const isHalfDeliveredPlayhead = (room: RoomDto): boolean => {
+    const { currentTime: time, paused } = room;
+    if (!time || !paused) return false;
+    if (time.updatedAt === paused.updatedAt) return false;
+    const newer = time.updatedAt > paused.updatedAt ? time : paused;
+    return newer.by !== undefined;
+};
+
+/**
+ * Split one intent back into the two nodes the schema wants.
+ *
+ * Both carry the SAME `updatedAt` and the same `by`. That is not cosmetic:
+ * `isHalfDeliveredPlayhead` uses it to tell "the other half has not arrived
+ * yet" from "somebody really did write just one node".
+ */
 export const writePlayhead = (intent: PlayheadIntent): {
     currentTime: TimedValueDto<number>;
     paused: TimedValueDto<boolean>;

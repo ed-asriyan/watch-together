@@ -1,6 +1,6 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import {
-    child, get, getDatabase, onDisconnect, onValue, ref, remove, runTransaction, set,
+    child, get, getDatabase, onDisconnect, onValue, ref, remove, runTransaction, set, update,
     type Database, type DatabaseReference,
 } from 'firebase/database';
 import type { RoomGatewayPort, RoomSession } from '../../../domains/watch-session/ports/outbound/room-gateway';
@@ -10,8 +10,8 @@ import type { MediaSourceRef } from '../../../domains/watch-session/model/media-
 import type { Unsubscribe } from '../../../domains/watch-session/model/shared/observable';
 import type { RoomDto } from './schema';
 import {
-    readActivities, readPlayhead, readPresences, readSource, readWatchedMinutes,
-    toLegacySeconds, writeActivity, writePlayhead, writePresence, writeSource,
+    isHalfDeliveredPlayhead, readActivities, readPlayhead, readPresences, readSource,
+    readWatchedMinutes, writeActivity, writePlayhead, writePresence, writeSource,
 } from './mappers';
 
 /**
@@ -76,6 +76,20 @@ export class FirebaseRoomGateway implements RoomGatewayPort {
             }
         };
 
+        /** Several room nodes committed as one indivisible change. */
+        const writeAll = async (values: Record<string, unknown>): Promise<void> => {
+            if (closed) {
+                listener.onRemoteError({ kind: 'disconnected', message: 'session is closed' });
+                return;
+            }
+            try {
+                await update(room, values);
+            } catch (error) {
+                fail('write-rejected', error);
+                throw error;
+            }
+        };
+
         // One read, then one listener per subtree, for the life of the session.
         let initial: RoomDto = {};
         try {
@@ -97,15 +111,48 @@ export class FirebaseRoomGateway implements RoomGatewayPort {
             stops.push(onValue(child(room, path), (snap) => run(snap.val()), (error) => fail('read-failed', error)));
         };
 
-        // `currentTime` and `paused` are two nodes but one value, so either one
-        // changing re-reads both and republishes the joined intent.
-        const playheadChanged = async () => {
-            const [time, paused] = await Promise.all([get(child(room, 'currentTime')), get(child(room, 'paused'))]);
-            const intent = readPlayhead({ currentTime: time.val(), paused: paused.val() });
-            if (intent) listener.onPlayheadChanged(intent);
+        // `currentTime` and `paused` are two nodes holding ONE value, so the
+        // join has to see both halves of the same write or it invents an
+        // intent nobody had — see `isHalfDeliveredPlayhead` for what that cost.
+        //
+        // Two things make that impossible here. The raw nodes are mirrored as
+        // their events arrive and joined from the mirror, instead of being
+        // re-read with `get()` — an asynchronous round trip whose answer
+        // routinely predated the event that triggered it, and two wasted
+        // server reads per playhead change besides. And a join that would
+        // fabricate is skipped; the sibling's event, which the database always
+        // sends because `updatedAt` changes on both nodes, joins it properly a
+        // moment later.
+        //
+        // Joining on a microtask rather than inline is what makes that skip
+        // rare: a local write raises both child events in one synchronous
+        // batch, so waiting out the batch sees the pair whole. Only updates
+        // from ANOTHER client arrive as separate frames.
+        let lastTime = initial.currentTime;
+        let lastPaused = initial.paused;
+        let joinScheduled = false;
+
+        const joinPlayhead = () => {
+            if (joinScheduled) return;
+            joinScheduled = true;
+            queueMicrotask(() => {
+                joinScheduled = false;
+                if (closed) return;
+                const pair: RoomDto = { currentTime: lastTime, paused: lastPaused };
+                if (isHalfDeliveredPlayhead(pair)) return;
+                const intent = readPlayhead(pair);
+                if (intent) listener.onPlayheadChanged(intent);
+            });
         };
-        watch('currentTime', () => void playheadChanged());
-        watch('paused', () => void playheadChanged());
+
+        watch('currentTime', (value) => {
+            lastTime = (value ?? undefined) as RoomDto['currentTime'];
+            joinPlayhead();
+        });
+        watch('paused', (value) => {
+            lastPaused = (value ?? undefined) as RoomDto['paused'];
+            joinPlayhead();
+        });
         watch('url', (value) => {
             const source = readSource({ url: value as RoomDto['url'] }, this.classify);
             if (source) listener.onSourceChanged(source);
@@ -128,10 +175,12 @@ export class FirebaseRoomGateway implements RoomGatewayPort {
             async publishPlayhead(intent) {
                 await stamp();
                 const dto = writePlayhead(intent);
-                await Promise.all([
-                    write(child(room, 'currentTime'), dto.currentTime),
-                    write(child(room, 'paused'), dto.paused),
-                ]);
+                // ONE multi-location update, never two independent writes.
+                // Firebase commits it atomically, so no reader — here or on
+                // another client — can ever observe the position of this write
+                // beside the paused flag of the last one. Two `set()` calls
+                // guaranteed that window existed on every play, pause and seek.
+                await writeAll({ currentTime: dto.currentTime, paused: dto.paused });
             },
             async publishSource(source) {
                 await stamp();
