@@ -283,12 +283,49 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
         }
     };
 
+    /**
+     * A nudge is a temporary change of speed and has to be taken back.
+     *
+     * `Correction.nudge` carries `until` precisely because it is bounded;
+     * nothing was acting on it, so a client that nudged once played at 0.95x
+     * for the rest of the film, drifted the other way, nudged back, and
+     * oscillated forever. Exactly the "fights itself" failure the design set
+     * out to prevent.
+     */
+    let releaseNudge: Unsubscribe | null = null;
+    let rate = 1;
+
+    /** Only when it actually changes: re-setting it every tick disturbs decoding. */
+    const setRate = (next: number): void => {
+        if (next === rate) return;
+        rate = next;
+        player.setRate(next);
+    };
+
     const correct = (decision: Decision): void => {
+        if (decision.correct.kind !== 'nudge' && releaseNudge) {
+            releaseNudge();
+            releaseNudge = null;
+            setRate(1);
+        }
+
         switch (decision.correct.kind) {
             case 'seek': return player.seekTo(decision.correct.to);
             case 'halt': player.seekTo(decision.correct.at); return player.pause();
             case 'resume': player.seekTo(decision.correct.from); void player.play(); return;
-            case 'nudge': return player.setRate(decision.correct.rate);
+            case 'nudge': {
+                const { until } = decision.correct;
+                releaseNudge?.();
+                setRate(decision.correct.rate);
+                releaseNudge = scheduler.after(
+                    Math.max(0, until - clock.now()) as Millis,
+                    () => {
+                        releaseNudge = null;
+                        setRate(1);
+                    },
+                );
+                return;
+            }
             case 'none': return;
         }
     };
@@ -362,6 +399,9 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
         detachPlayer = null;
         resolving?.abort();
         resolving = null;
+        releaseNudge?.();
+        releaseNudge = null;
+        rate = 1;
         const closing = room;
         room = null;
         replica = null;
@@ -380,6 +420,9 @@ export const createWatchSession = (deps: WatchSessionDependencies): WatchSession
         detachPlayer = null;
         resolving?.abort();
         resolving = null;
+        releaseNudge?.();
+        releaseNudge = null;
+        rate = 1;
         const closing = room;
         room = null;
         replica = null;

@@ -1,27 +1,12 @@
 import type { RoomGatewayPort, RoomSession } from '../../../domains/watch-session/ports/outbound/room-gateway';
 import type { RemoteRoomListener } from '../../../domains/watch-session/ports/inbound/remote-room-listener';
-import type { RemoteRoomState } from '../../../domains/watch-session/model/room-replica';
-import type { ActivityId, ParticipantId, RoomId } from '../../../domains/watch-session/model/ids';
-import type { MediaSourceRef } from '../../../domains/watch-session/model/media-source';
-import type { PlayheadIntent } from '../../../domains/watch-session/model/playhead';
-import type { Presence } from '../../../domains/watch-session/model/participant';
-import type { Activity } from '../../../domains/watch-session/model/activity';
-import type { Stamped } from '../../../domains/watch-session/model/shared/stamped';
+import type { ParticipantId, RoomId } from '../../../domains/watch-session/model/ids';
 import type { EpochMs } from '../../../domains/watch-session/model/shared/time';
-
-interface Room {
-    createdAt: EpochMs | null;
-    playhead: PlayheadIntent | null;
-    source: Stamped<MediaSourceRef | null> | null;
-    presences: Map<ParticipantId, Presence>;
-    activities: Map<ActivityId, Activity>;
-    watched: Map<ParticipantId, number>;
-    subscribers: Set<Subscriber>;
-}
+import { RoomStore, type RoomMutation } from './room-store';
 
 interface Subscriber {
-    readonly self: ParticipantId;
     readonly listener: RemoteRoomListener;
+    readonly self: ParticipantId;
     open: boolean;
     disconnectArmed: boolean;
 }
@@ -29,124 +14,105 @@ interface Subscriber {
 /**
  * The remote store, in memory.
  *
- * Not a mock: it is a real implementation of the same contract, used for tests,
- * for offline development, and for driving two clients in one process. If this
- * and `FirebaseRoomGateway` both pass `roomGatewayContract`, the backend is
- * genuinely swappable — that claim is the reason the port exists.
+ * Not a mock: a real implementation of the same contract, used for tests, for
+ * development with no credentials, and for driving two clients in one process.
+ * It and `FirebaseRoomGateway` pass the same suite, which is the claim the port
+ * exists to support.
+ *
+ * `relay` is the seam the cross-tab variant uses: every accepted mutation is
+ * handed to it, and mutations arriving from elsewhere come back through
+ * {@link receive}.
  */
 export class InMemoryRoomGateway implements RoomGatewayPort {
-    private readonly rooms = new Map<RoomId, Room>();
+    protected readonly rooms = new Map<RoomId, RoomStore>();
+    private readonly subscribers = new Map<RoomId, Set<Subscriber>>();
 
-    constructor(private readonly now: () => EpochMs = () => Date.now() as EpochMs) {}
+    constructor(protected readonly now: () => EpochMs = () => Date.now() as EpochMs) {}
 
     async open(params: {
         readonly roomId: RoomId;
         readonly self: ParticipantId;
         readonly listener: RemoteRoomListener;
     }): Promise<RoomSession> {
-        const room = this.room(params.roomId);
-        const subscriber: Subscriber = {
-            self: params.self,
-            listener: params.listener,
-            open: true,
-            disconnectArmed: false,
-        };
-        room.subscribers.add(subscriber);
+        const { roomId, self, listener } = params;
+        const store = this.store(roomId);
+        const subscriber: Subscriber = { listener, self, open: true, disconnectArmed: false };
+        this.subscribersOf(roomId).add(subscriber);
 
-        params.listener.onSnapshot(snapshotOf(room, params.self));
-        params.listener.onConnectionChanged({ status: 'online' });
+        await this.onOpened(roomId);
 
-        const guard = async <T>(write: () => T): Promise<void> => {
+        listener.onSnapshot(store.snapshot());
+        listener.onConnectionChanged({ status: 'online' });
+
+        const write = async (mutation: RoomMutation): Promise<void> => {
             if (!subscriber.open) {
-                params.listener.onRemoteError({ kind: 'disconnected', message: 'session is closed' });
+                listener.onRemoteError({ kind: 'disconnected', message: 'session is closed' });
                 return;
             }
-            write();
-            this.fanOut(room);
+            this.commit(roomId, mutation);
         };
 
         return {
-            publishPlayhead: (intent) => guard(() => {
-                // First write creates the room; the timestamp never moves after
-                // that, because the cleanup job prunes by it.
-                room.createdAt ??= this.now();
-                room.playhead = intent;
-            }),
-            publishSource: (source) => guard(() => {
-                room.createdAt ??= this.now();
-                room.source = source;
-            }),
-            publishPresence: (presence) => guard(() => {
-                room.createdAt ??= this.now();
-                room.presences.set(presence.participantId, presence);
-            }),
-            appendActivity: (activity) => guard(() => {
-                room.createdAt ??= this.now();
-                room.activities.set(activity.id, activity);
-            }),
-            retractActivities: (ids) => guard(() => {
-                ids.forEach((id) => room.activities.delete(id));
-            }),
-            recordWatchedMinutes: (delta) => guard(() => {
-                room.createdAt ??= this.now();
-                room.watched.set(params.self, (room.watched.get(params.self) ?? 0) + delta);
-            }),
+            publishPlayhead: (intent) => write({ kind: 'playhead', intent }),
+            publishSource: (source) => write({ kind: 'source', source }),
+            publishPresence: (presence) => write({ kind: 'presence', presence }),
+            appendActivity: (activity) => write({ kind: 'activity', activity }),
+            retractActivities: (ids) => write({ kind: 'retract', ids }),
+            recordWatchedMinutes: (delta) => write({ kind: 'watchTime', participant: self, delta }),
             armDisconnectCleanup: async () => {
                 subscriber.disconnectArmed = true;
             },
             close: async () => {
                 if (!subscriber.open) return;
                 subscriber.open = false;
-                room.subscribers.delete(subscriber);
-                if (subscriber.disconnectArmed) room.presences.delete(params.self);
-                this.fanOut(room);
+                this.subscribersOf(roomId).delete(subscriber);
+                if (subscriber.disconnectArmed) this.commit(roomId, { kind: 'depart', participant: self });
+                else this.fanOut(roomId);
             },
         };
     }
 
-    private room(id: RoomId): Room {
-        const existing = this.rooms.get(id);
+    /** Apply locally, tell everyone here, and let a subclass relay it further. */
+    protected commit(roomId: RoomId, mutation: RoomMutation): void {
+        this.store(roomId).apply(mutation, this.now);
+        this.fanOut(roomId);
+        this.relay(roomId, mutation);
+    }
+
+    /** A mutation that happened somewhere else. */
+    protected receive(roomId: RoomId, mutation: RoomMutation): void {
+        this.store(roomId).apply(mutation, this.now);
+        this.fanOut(roomId);
+    }
+
+    protected relay(_roomId: RoomId, _mutation: RoomMutation): void {}
+
+    protected async onOpened(_roomId: RoomId): Promise<void> {}
+
+    protected store(roomId: RoomId): RoomStore {
+        const existing = this.rooms.get(roomId);
         if (existing) return existing;
-        const created: Room = {
-            createdAt: null,
-            playhead: null,
-            source: null,
-            presences: new Map(),
-            activities: new Map(),
-            watched: new Map(),
-            subscribers: new Set(),
-        };
-        this.rooms.set(id, created);
+        const created = new RoomStore(roomId);
+        this.rooms.set(roomId, created);
         return created;
     }
 
-    private fanOut(room: Room): void {
-        for (const subscriber of [...room.subscribers]) {
+    private subscribersOf(roomId: RoomId): Set<Subscriber> {
+        const existing = this.subscribers.get(roomId);
+        if (existing) return existing;
+        const created = new Set<Subscriber>();
+        this.subscribers.set(roomId, created);
+        return created;
+    }
+
+    protected fanOut(roomId: RoomId): void {
+        const store = this.store(roomId);
+        for (const subscriber of [...this.subscribersOf(roomId)]) {
             if (!subscriber.open) continue;
-            if (room.playhead) subscriber.listener.onPlayheadChanged(room.playhead);
-            if (room.source) subscriber.listener.onSourceChanged(room.source);
-            subscriber.listener.onPresenceChanged([...room.presences.values()]);
-            subscriber.listener.onActivityChanged([...room.activities.values()]);
+            if (store.playhead) subscriber.listener.onPlayheadChanged(store.playhead);
+            if (store.source) subscriber.listener.onSourceChanged(store.source);
+            subscriber.listener.onPresenceChanged([...store.presences.values()]);
+            subscriber.listener.onActivityChanged([...store.activities.values()]);
         }
     }
 }
-
-/**
- * Watch time is kept PER PARTICIPANT, because that is what the operational
- * stats export reads, but reported to the domain as the ROOM total: a client
- * has no use for another viewer's counter, and the room total is the number
- * that means something.
- */
-const snapshotOf = (room: Room, self: ParticipantId): RemoteRoomState => {
-    void self;
-    let watchedMinutes = 0;
-    for (const minutes of room.watched.values()) watchedMinutes += minutes;
-    return {
-        createdAt: room.createdAt,
-        playhead: room.playhead,
-        source: room.source,
-        presences: [...room.presences.values()],
-        activities: [...room.activities.values()],
-        watchedMinutes,
-    };
-};

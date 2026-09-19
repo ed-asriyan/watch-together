@@ -188,6 +188,34 @@ describe('RoomReplica', () => {
             expect(eventTypes(decision)).not.toContain('PlaybackStalled');
         });
 
+        it('restates its own running playhead, from what the element is doing', () => {
+            // Regression. No decoder advances at exactly one second per second,
+            // so a projection anchored once when play was pressed drifts away
+            // from reality for everybody — including the person driving, who
+            // then corrects against their own stale stamp.
+            replica.requestPlay(sec(0), at(1_000));
+            replica.observePlayer(observed({ position: sec(40), paused: false }), at(41_000));
+
+            const decision = replica.tick(at(41_000));
+            const restated = published(decision, 'playhead')[0]?.intent;
+            expect(restated?.value.position).toBe(40);
+            expect(restated?.at).toBe(at(41_000));
+        });
+
+        it('does not restate a playhead somebody else is driving', () => {
+            // If every client restated it, the room would fight over the anchor.
+            replica.applyRemotePlayhead(intent({ position: sec(0), paused: false }, at(1_000), BOB), at(1_100));
+            replica.observePlayer(observed({ position: sec(40), paused: false }), at(41_000));
+
+            expect(published(replica.tick(at(41_000)), 'playhead')).toHaveLength(0);
+        });
+
+        it('does not restate before the heartbeat is due', () => {
+            replica.requestPlay(sec(0), at(1_000));
+            replica.observePlayer(observed({ position: sec(2), paused: false }), at(3_000));
+            expect(published(replica.tick(at(3_000)), 'playhead')).toHaveLength(0);
+        });
+
         it('accrues watch time only while the playhead actually advances (I8)', () => {
             replica.applyRemotePlayhead(intent({ position: sec(0), paused: true }, T0, BOB), at(100));
             const idle = replica.tick(at(P.watchTimeGranularity * 1000 + 1_000));

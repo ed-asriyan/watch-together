@@ -284,6 +284,33 @@ describe('WatchSession: a command becomes outbound calls', () => {
         expect(h.log.before('session.publishPlayhead', 'player.seekTo')).toBe(true);
     });
 
+    it('does not re-set the rate while the same nudge continues', async () => {
+        // Re-setting playbackRate every tick disturbs decoding for no reason.
+        h.replicas.made[0]!.next = decision({
+            correct: { kind: 'nudge', rate: 1.05, until: at(DEFAULT_SYNC_POLICY.maxNudgeDuration) },
+        });
+        h.player.listener?.onProgress(sec(10));
+        h.player.listener?.onProgress(sec(11));
+        h.scheduler.advance(dur(2_000));
+        await Promise.resolve();
+
+        expect(h.log.all('player.setRate').map((c) => c.args[0])).toEqual([1.05]);
+    });
+
+    it('takes a nudge back as soon as it is no longer needed', async () => {
+        h.replicas.made[0]!.next = decision({
+            correct: { kind: 'nudge', rate: 0.95, until: at(DEFAULT_SYNC_POLICY.maxNudgeDuration) },
+        });
+        h.player.listener?.onProgress(sec(10));
+        await Promise.resolve();
+
+        h.replicas.made[0]!.next = decision();
+        h.player.listener?.onProgress(sec(11));
+        await Promise.resolve();
+
+        expect(h.log.all('player.setRate').map((c) => c.args[0])).toEqual([0.95, 1]);
+    });
+
     it('classifies a typed source synchronously, before any network call', async () => {
         // The input field renders validity on every keystroke; classification
         // that awaited anything would make it lag behind the caret.

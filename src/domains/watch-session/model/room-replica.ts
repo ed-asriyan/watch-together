@@ -158,6 +158,7 @@ class Replica implements RoomReplica {
     private seq = 0;
     private seen: Seen | null = null;
 
+    private lastPlayheadPublish: EpochMs | null = null;
     private lastPresencePublish: EpochMs | null = null;
     private lastSweep: EpochMs | null = null;
     private lastWatchMark: EpochMs;
@@ -453,7 +454,33 @@ class Replica implements RoomReplica {
                 this.playhead = halted;
                 publish.push({ kind: 'playhead', intent: halted });
                 events.push({ type: 'PlaybackStalled', silentFor: silent });
-            } else if (now - this.lastWatchMark >= this.policy.watchTimeGranularity * 1000) {
+            } else {
+                // Restate our own running playhead periodically, from what the
+                // element is ACTUALLY doing.
+                //
+                // No decoder advances at exactly one second per second, so a
+                // projection anchored once at the moment play was pressed
+                // drifts away from reality for everybody — including the person
+                // driving, who then starts correcting against their own stale
+                // stamp. Only the author restates it; if everyone did, the room
+                // would fight over the anchor.
+                const mine = this.playhead.by === this.self;
+                const due = this.lastPlayheadPublish === null
+                    || now - this.lastPlayheadPublish >= this.policy.playheadHeartbeat * 1000;
+
+                if (mine && due && this.seen?.state.ready && !this.seen.state.stalled) {
+                    const restated: PlayheadIntent = {
+                        value: { position: this.seen.state.position, paused: false, rate: 1 },
+                        at: now,
+                        by: this.self,
+                    };
+                    this.playhead = restated;
+                    this.lastPlayheadPublish = now;
+                    publish.push({ kind: 'playhead', intent: restated });
+                }
+            }
+
+            if (now - this.lastWatchMark >= this.policy.watchTimeGranularity * 1000) {
                 this.lastWatchMark = now;
                 this.watched += 1;
                 publish.push({ kind: 'watchTime', deltaMinutes: 1 });
@@ -505,6 +532,7 @@ class Replica implements RoomReplica {
     private declare(value: Playhead, now: EpochMs, events: DomainEvent[]): Decision {
         const intent: PlayheadIntent = { value, at: now, by: this.self };
         this.playhead = intent;
+        this.lastPlayheadPublish = now;
         return this.emit(events, [{ kind: 'playhead', intent }], { kind: 'none' });
     }
 

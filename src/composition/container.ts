@@ -16,7 +16,7 @@ import { DEFAULT_SYNC_POLICY } from '../domains/watch-session/model/sync-policy'
 import { FirebaseRoomGateway } from '../adapters/driven/firebase/room-gateway';
 import { FirebaseServerOffsetClock } from '../adapters/driven/firebase/clock';
 import { SystemClock } from '../adapters/driven/browser/clock';
-import { InMemoryRoomGateway } from '../adapters/driven/memory/room-gateway';
+import { BroadcastChannelRoomGateway } from '../adapters/driven/memory/broadcast-room-gateway';
 import { VidstackMediaPlayer } from '../adapters/driven/vidstack/media-player';
 import { CompositeMediaResolver } from '../adapters/driven/media/resolver';
 import { WebTorrentDelivery } from '../adapters/driven/media/webtorrent';
@@ -65,10 +65,11 @@ export const buildSession = (): Session => {
     const ids = new CryptoIdGenerator();
 
     const session = createWatchSession({
-        // Without a configured database the app still runs, against an
-        // in-memory room. That is what makes `npm run dev` work with no
-        // credentials, and it is the same code path the contract tests take.
-        gateway: app ? new FirebaseRoomGateway(app, classify) : new InMemoryRoomGateway(),
+        // Without a configured database the app still runs, against a room
+        // shared between tabs of this browser. `npm run dev` therefore works
+        // with no credentials at all, two tabs included — and it is the same
+        // port contract the Firebase gateway is held to.
+        gateway: app ? new FirebaseRoomGateway(app, classify) : new BroadcastChannelRoomGateway(),
         player,
         resolver,
         clock,
