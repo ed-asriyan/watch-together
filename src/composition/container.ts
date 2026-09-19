@@ -29,14 +29,28 @@ import { AmplitudeGaTelemetry } from '../adapters/driven/telemetry/telemetry';
 import { SentryErrorReporter } from '../adapters/driven/sentry/error-reporter';
 import type { Session } from '../adapters/driving/svelte/session-context';
 
-import { firebaseConfig, isProduction, nicknames, proxies, sentry, telemetry, torrents } from './config';
+import { environment, firebaseConfig, isProduction, nicknames, proxies, sentry, telemetry, torrents } from './config';
 
 export const buildSession = (): Session => {
     const hasFirebase = Boolean(firebaseConfig.databaseURL);
     const app = hasFirebase ? initializeApp(firebaseConfig) : null;
 
     if (sentry.dsn) {
-        Sentry.init({ dsn: sentry.dsn, environment: isProduction ? 'production' : 'development' });
+        // Same integrations and sample rates as before the refactor: dropping
+        // tracing and session replay would be a silent loss of the only
+        // production observability this app has.
+        Sentry.init({
+            dsn: sentry.dsn,
+            environment,
+            integrations: [
+                Sentry.browserTracingIntegration(),
+                Sentry.replayIntegration({ maskAllText: false, blockAllMedia: false }),
+            ],
+            tracesSampleRate: 1.0,
+            tracePropagationTargets: ['localhost', location.host],
+            replaysSessionSampleRate: 0.1,
+            replaysOnErrorSampleRate: 1.0,
+        });
     }
     if (isProduction && telemetry.amplitudeApiKey) {
         amplitude.init(telemetry.amplitudeApiKey, { autocapture: true });
