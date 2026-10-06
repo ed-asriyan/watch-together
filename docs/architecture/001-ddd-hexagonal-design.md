@@ -1967,3 +1967,80 @@ Each verified to fail without its fix:
   play that follows it, while a scrub that lands somewhere else still is;
 - `echo.spec.ts` — the new `isEcho` clauses, and the negative cases that keep
   them from swallowing a real user seek.
+
+---
+
+## 22. QA: "sometimes it does not sync"
+
+Reported as: pausing on one client sometimes does not pause the other, and a
+scrub on one sometimes does not show on the other. None of it reproduced on
+localhost, because localhost has the two things production lacks: clocks that
+agree to the millisecond, and media that never buffers. Three defects, each
+now caught by an end-to-end test against the local backend (§23) with the
+network conditions that expose it.
+
+### Heartbeats outranked decisions
+
+The running playhead was restated every 10s as a fresh write stamped `now`, so
+the newest LWW stamp in the room was almost always a heartbeat. A pause or a
+seek from a client whose clock ran even slightly behind was stamped earlier
+than the last heartbeat and lost the merge everywhere — and on the next
+heartbeat the client that made it was pulled back too. Firebase's
+`.info/serverTimeOffset` is taken without round-trip compensation, so every
+client is off by roughly its one-way latency, in its own direction.
+
+Two changes, in the domain:
+
+- `Stamped.anchoredAt` separates *when it was decided* (`at`, the LWW key) from
+  *when the position was measured* (the projection anchor). A restatement keeps
+  `at` and `by` and moves only the anchor: it supersedes the earlier
+  measurement of the same decision and can never overtake a newer one.
+- A new decision is stamped `nextStamp(now, seen)` — the clock reading, or one
+  past the newest stamp this replica holds if the clock is behind it (the
+  hybrid-logical-clock rule). An action taken after seeing another wins against
+  it however far apart the clocks are.
+
+On the wire `updatedAt` stays the anchor, which is what old clients project
+from; `decidedAt` carries the ordering key when it differs.
+
+Restating is also no longer the author's job alone: while the author is
+present they restate, otherwise the lowest participant id still present does.
+Legacy kept a room alive through anyone watching; with only the author
+restating, the room paused itself a minute after the person who pressed play
+left.
+
+### A user action while buffering was discarded
+
+Readings from a buffering element were dropped whole — user-action detection
+included. When one fell between a scrub and a pause there was nothing left to
+compare the pause with, and the room's intent pulled the element back. Actions
+are now detected against the element's own previous reading on every ready
+reading, with a window (`classify`) that tolerates a buffering element falling
+behind without reading it as a backwards scrub. Only corrections wait for
+buffering to end.
+
+### The autoplay fallback overruled the viewer
+
+`play()` was retried muted on *any* rejection, to get past autoplay policy. It
+also rejects with `AbortError` when the viewer presses pause before a pending
+`play()` has started — so the viewer's pause was undone within milliseconds and
+published as a play. Only `NotAllowedError` is retried now.
+
+Also fixed on the way, each with a test: the player re-muted itself on every
+render (`muted` was bound to a view that re-renders several times a second);
+the source field published every keystroke, so each URL prefix reset the
+room; and LWW compared stamps as zero-padded strings, which misorders any
+fractional stamp.
+
+## 23. The local backend
+
+`backend/local` is a Node process holding rooms in memory and serving them over
+one WebSocket per client. `LocalBackendRoomGateway` and `LocalBackendClock`
+(`src/adapters/driven/local-backend`) are its driven adapters. It applies
+mutations to the in-memory gateway's `RoomStore`, so a write means the same
+thing in all three non-Firebase backends, and it is deliberately as dumb as
+RTDB: it stores and fans out, and ordering by stamp stays the clients' job.
+It passes the `RoomGatewayPort` contract suite — the first adapter across a
+real process boundary to do so.
+
+It is what `npm run dev:local` and the Playwright suite (`e2e/`) run against.
