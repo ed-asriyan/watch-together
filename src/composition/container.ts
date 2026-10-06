@@ -17,6 +17,9 @@ import { FirebaseRoomGateway } from '../adapters/driven/firebase/room-gateway';
 import { FirebaseServerOffsetClock } from '../adapters/driven/firebase/clock';
 import { SystemClock } from '../adapters/driven/browser/clock';
 import { BroadcastChannelRoomGateway } from '../adapters/driven/memory/broadcast-room-gateway';
+import { LocalBackendConnection } from '../adapters/driven/local-backend/connection';
+import { LocalBackendRoomGateway } from '../adapters/driven/local-backend/room-gateway';
+import { LocalBackendClock } from '../adapters/driven/local-backend/clock';
 import { VidstackMediaPlayer } from '../adapters/driven/vidstack/media-player';
 import { CompositeMediaResolver } from '../adapters/driven/media/resolver';
 import { WebTorrentDelivery } from '../adapters/driven/media/webtorrent';
@@ -29,10 +32,44 @@ import { AmplitudeGaTelemetry } from '../adapters/driven/telemetry/telemetry';
 import { SentryErrorReporter } from '../adapters/driven/sentry/error-reporter';
 import type { Session } from '../adapters/driving/svelte/session-context';
 
-import { environment, firebaseConfig, isProduction, nicknames, proxies, sentry, telemetry, torrents } from './config';
+import { environment, firebaseConfig, isProduction, localBackend, nicknames, proxies, sentry, telemetry, torrents } from './config';
+import type { RoomGatewayPort } from '../domains/watch-session/ports/outbound/room-gateway';
+import type { ClockPort } from '../domains/watch-session/ports/outbound/clock';
+
+/**
+ * Which remote store this build talks to, in order of preference:
+ *  1. the local backend, when `VITE_LOCAL_BACKEND_URL` is set — local
+ *     development and end-to-end tests;
+ *  2. Firebase, when a database URL is configured — production;
+ *  3. a room shared between tabs of this browser — zero-config fallback.
+ *     Tabs share `localStorage` and therefore one participant id, so this is
+ *     a demo, not a way to test two participants: use the local backend.
+ */
+const remoteStore = (app: ReturnType<typeof initializeApp> | null): {
+    gateway: RoomGatewayPort;
+    clock: ClockPort;
+    sharedClock: boolean;
+} => {
+    if (localBackend.url) {
+        const connection = new LocalBackendConnection(localBackend.url);
+        return {
+            gateway: new LocalBackendRoomGateway(connection),
+            clock: new LocalBackendClock(connection),
+            sharedClock: true,
+        };
+    }
+    if (app) {
+        return {
+            gateway: new FirebaseRoomGateway(app, classify),
+            clock: new FirebaseServerOffsetClock(app),
+            sharedClock: true,
+        };
+    }
+    return { gateway: new BroadcastChannelRoomGateway(), clock: new SystemClock(), sharedClock: false };
+};
 
 export const buildSession = (): Session => {
-    const hasFirebase = Boolean(firebaseConfig.databaseURL);
+    const hasFirebase = Boolean(firebaseConfig.databaseURL) && !localBackend.url;
     const app = hasFirebase ? initializeApp(firebaseConfig) : null;
 
     if (sentry.dsn) {
@@ -57,7 +94,7 @@ export const buildSession = (): Session => {
     }
 
     const errors = new SentryErrorReporter(Boolean(sentry.dsn));
-    const clock = app ? new FirebaseServerOffsetClock(app) : new SystemClock();
+    const { gateway, clock, sharedClock } = remoteStore(app);
 
     const player = new VidstackMediaPlayer();
     const resolver = new CompositeMediaResolver(proxies, new WebTorrentDelivery(torrents));
@@ -65,11 +102,7 @@ export const buildSession = (): Session => {
     const ids = new CryptoIdGenerator();
 
     const session = createWatchSession({
-        // Without a configured database the app still runs, against a room
-        // shared between tabs of this browser. `npm run dev` therefore works
-        // with no credentials at all, two tabs included — and it is the same
-        // port contract the Firebase gateway is held to.
-        gateway: app ? new FirebaseRoomGateway(app, classify) : new BroadcastChannelRoomGateway(),
+        gateway,
         player,
         resolver,
         clock,
@@ -84,7 +117,7 @@ export const buildSession = (): Session => {
         // and no other device to disagree with, so the guard that would make
         // the session read-only is switched off rather than silently blocking
         // every write.
-        policy: app ? DEFAULT_SYNC_POLICY : { ...DEFAULT_SYNC_POLICY, requireClockSync: false },
+        policy: sharedClock ? DEFAULT_SYNC_POLICY : { ...DEFAULT_SYNC_POLICY, requireClockSync: false },
     });
 
     return { commands: session, view: session.view, player };

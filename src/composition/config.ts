@@ -34,6 +34,20 @@ export const firebaseConfig = {
     appId: text('VITE_FIREBASE_APP_ID') ?? '',
 };
 
+/**
+ * The local backend (`npm run backend:local`). When set it takes precedence
+ * over Firebase: local development and end-to-end tests run against it with no
+ * Firebase project. `auto` means "the machine this page was served from, port
+ * 8787", so a phone on the LAN opening the dev server finds the backend too.
+ */
+export const localBackend = {
+    url: ((): string | null => {
+        const raw = text('VITE_LOCAL_BACKEND_URL');
+        if (raw !== 'auto') return raw;
+        return `ws://${globalThis.location?.hostname ?? 'localhost'}:8787`;
+    })(),
+};
+
 export const proxies = {
     hlsProxyUrl: text('VITE_API_HLS_PROXY_URL'),
     httpProxyUrl: text('VITE_API_HTTP_PROXY_URL'),

@@ -1,0 +1,15 @@
+{
+  "//": "Typechecks the local backend (a Node process) and the Playwright suite, which run outside the browser bundle.",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM"],
+    "strict": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["backend/**/*.ts", "e2e/**/*.ts", "playwright.config.ts"]
+}
