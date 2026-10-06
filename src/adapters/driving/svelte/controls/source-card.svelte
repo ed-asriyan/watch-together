@@ -26,14 +26,33 @@
         if ($source.revision !== adoptedRevision) {
             adoptedRevision = $source.revision;
             draft = $source.raw;
+            committed = $source.raw;
         }
     });
 
-    // Read the value off the event rather than off `draft`: Svelte's binding
-    // and this handler both fire on `input`, and taking `draft` here makes the
-    // command lag one keystroke behind what the user typed.
-    const onInput = function (event: Event) {
+    /**
+     * The field is committed when the user is done with it — Enter, leaving
+     * the field, or a paste or drop, which arrive whole — never per keystroke.
+     *
+     * Committing is a room-wide write: it sets everyone's source and resets
+     * everyone's playhead. On every keystroke, each prefix that happened to
+     * parse as a URL ("http://l", "http://lo", …) became the room's source in
+     * turn, and every other viewer was sent off to load it.
+     */
+    let committed = '';
+    const commit = function () {
+        if (draft === committed) return;
+        committed = draft;
         commands.setSourceFromUserInput(draft);
+    };
+
+    const onInput = function (event: Event) {
+        const kind = (event as InputEvent).inputType;
+        if (kind === 'insertFromPaste' || kind === 'insertFromDrop') commit();
+    };
+
+    const onKeydown = function (event: KeyboardEvent) {
+        if (event.key === 'Enter') commit();
     };
 
     const onExample = function (event: Event) {
@@ -43,7 +62,7 @@
         const example = pickExample();
         if (!example) return;
         draft = example;
-        commands.setSourceFromUserInput(example);
+        commit();
     };
 </script>
 
@@ -61,6 +80,8 @@
         <input
             bind:value={draft}
             oninput={onInput}
+            onkeydown={onKeydown}
+            onchange={commit}
             class="uk-input"
             class:uk-form-danger={!$source.empty && !$source.valid}
             placeholder="Video URL"
