@@ -257,6 +257,70 @@ describe('RoomReplica', () => {
         });
     });
 
+    describe('players whose every move costs time (embedded YouTube, Vimeo)', () => {
+        // Regression. Pressing play on a YouTube video played, stopped,
+        // played, stopped: every start and seek buffers for a second or more,
+        // so each correction toward the projection landed behind it and
+        // triggered the next one.
+
+        it('the one who pressed play re-anchors on its own element instead of seeking after its projection', () => {
+            replica.observePlayer(observed({ position: sec(10), paused: true }), at(1_000));
+            replica.observePlayer(observed({ position: sec(10), paused: false }), at(1_200));
+            // The player took 1.5s to actually start: by the projection it is
+            // 1.5s behind.
+            const decision = replica.observePlayer(observed({ position: sec(10.2), paused: false }), at(2_900));
+
+            expect(decision.correct.kind).toBe('none');
+            const restated = published(decision, 'playhead')[0]?.intent;
+            expect(restated?.value.position).toBe(10.2);
+            expect(restated?.anchoredAt).toBe(at(2_900));
+            expect(restated?.at).toBe(at(1_200));
+        });
+
+        it('a client sharing the author\'s id after a reload follows the room rather than leading it', () => {
+            // Same participant id, but this replica never made the decision:
+            // its element, freshly loaded at zero, is not the reference.
+            replica.applyRemotePlayhead(intent({ position: sec(500), paused: false }, at(1_000), ALICE), at(1_100));
+            const decision = replica.observePlayer(observed({ position: sec(0), paused: false }), at(1_200));
+
+            expect(published(decision, 'playhead')).toHaveLength(0);
+            expect(decision.correct.kind).toBe('seek');
+        });
+
+        it('a follower aims its next seek ahead by however far the last one fell short', () => {
+            replica.applyRemotePlayhead(intent({ position: sec(0), paused: false }, at(1_000), BOB), at(1_000));
+            replica.observePlayer(observed({ position: sec(0), paused: false }), at(1_000));
+
+            const first = replica.observePlayer(observed({ position: sec(0), paused: false }), at(4_000));
+            expect(first.correct).toEqual({ kind: 'seek', to: 3 });
+
+            // It buffered for 2.5s and, playing again, is 2.5s behind.
+            replica.observePlayer(observed({ position: sec(3), paused: false, stalled: true }), at(4_300));
+            const second = replica.observePlayer(observed({ position: sec(3.5), paused: false }), at(7_000));
+
+            expect(second.correct.kind).toBe('seek');
+            expect((second.correct as { to: number }).to).toBeCloseTo(6 + 2.5, 1);
+        });
+
+        it('does not re-issue a correction toward the same intent while the last one is still landing (I4)', () => {
+            replica.applyRemotePlayhead(intent({ position: sec(100), paused: false }, at(1_000), BOB), at(1_000));
+            expect(replica.observePlayer(observed({ position: sec(0), paused: false }), at(1_000)).correct.kind).toBe('seek');
+
+            // The element has not reported the new position yet.
+            expect(replica.observePlayer(observed({ position: sec(0.5), paused: false }), at(1_500)).correct.kind).toBe('none');
+            expect(replica.tick(at(2_000)).correct.kind).toBe('none');
+        });
+
+        it('lets a new intent from the room through at once, whatever is still landing', () => {
+            replica.applyRemotePlayhead(intent({ position: sec(100), paused: false }, at(1_000), BOB), at(1_000));
+            replica.observePlayer(observed({ position: sec(0), paused: false }), at(1_000));
+            replica.observePlayer(observed({ position: sec(0.25), paused: false }), at(1_250));
+
+            const paused = replica.applyRemotePlayhead(intent({ position: sec(100.5), paused: true }, at(1_400), BOB), at(1_400));
+            expect(paused.correct.kind).toBe('halt');
+        });
+    });
+
     describe('source and feed', () => {
         it('publishes a selected source and resets the playhead to zero', () => {
             const decision = replica.selectSource(source(), at(1_000));
@@ -366,6 +430,16 @@ describe('RoomReplica', () => {
             expect(restated?.by).toBe(BOB);
             expect(restated?.at).toBe(at(1_000));
             expect(restated?.anchoredAt).toBe(at(41_000));
+        });
+
+        it('does not re-anchor the room on its own element while out of step with it', () => {
+            // Bob drove and left; Alice is elected, but her player has only
+            // just loaded and sits at zero. Restating now would drag everyone
+            // there.
+            replica.applyRemotePlayhead(intent({ position: sec(500), paused: false }, at(1_000), BOB), at(1_100));
+            replica.observePlayer(observed({ position: sec(0), paused: false }), at(41_000));
+
+            expect(published(replica.tick(at(41_000)), 'playhead')).toHaveLength(0);
         });
 
         it('leaves the takeover to exactly one of those who remain', () => {

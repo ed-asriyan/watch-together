@@ -137,6 +137,14 @@ export function createRoomReplica(params: RoomReplicaParams): RoomReplica {
 
 const NOTHING: Decision = { events: [], publish: [], correct: { kind: 'none' } };
 
+/** Identifies one measurement of one decision: a new decision or a restatement changes it. */
+const intentKey = (intent: PlayheadIntent): string => `${intent.at}|${intent.by}|${intent.anchoredAt ?? intent.at}`;
+
+/** A corrective seek this soon after the previous one means the previous one fell short. */
+const SEEK_COST_MEMORY_MS = 10_000;
+/** Never aim further ahead than this, whatever a pathological element suggests. */
+const MAX_SEEK_LEAD_S = 5;
+
 interface Seen {
     readonly state: ObservedPlayback;
     readonly at: EpochMs;
@@ -165,6 +173,24 @@ class Replica implements RoomReplica {
 
     private connection: ConnectionState = { status: 'connecting' };
     private confidence: ClockConfidence = 'synced';
+
+    /**
+     * How far ahead of the projected position a corrective seek aims, learned
+     * from how far behind the previous one landed. See `correctNow`.
+     */
+    private seekLead = 0;
+    private lastCorrectiveSeekAt: EpochMs | null = null;
+    /** Writes a correction decided to make instead of moving the element. */
+    private outbox: PublishIntent[] = [];
+    /**
+     * The `at` of the last playback decision THIS replica made, in this
+     * session. Leading (see `correctNow`) is for the participant whose
+     * element the decision was made on — not for whoever happens to share its
+     * id after a reload, and not for whoever was elected to keep it fresh.
+     */
+    private decidedHere: EpochMs | null = null;
+    /** Which intent the pending correction was issued toward. */
+    private pendingFor: string | null = null;
 
     private readonly knownActivityIds = new Set<string>();
     private readonly retractedIds = new Set<string>();
@@ -216,6 +242,7 @@ class Replica implements RoomReplica {
         const reset = this.decided({ position: 0 as Seconds, paused: true, rate: 1 }, now);
         this.playhead = mergeLww(this.playhead, reset);
         this.pending = null;
+        this.forgetSeekCost();
 
         return this.emit(
             [{ type: 'SourceChanged', source, by: this.self, local: true }],
@@ -293,6 +320,7 @@ class Replica implements RoomReplica {
             by: source.by,
         });
         this.pending = null;
+        this.forgetSeekCost();
 
         return this.emit(
             [{ type: 'SourceChanged', source: source.value, by: source.by, local: source.by === this.self }],
@@ -474,7 +502,16 @@ class Replica implements RoomReplica {
                 // a minute after the person who pressed play left.
                 const due = now - anchorOf(this.playhead) >= this.policy.playheadHeartbeat * 1000;
                 const seen = this.seen?.state;
-                if (due && this.restater() === this.self && seen?.ready && !seen.stalled && !seen.paused) {
+                // Someone who merely took over keeps the anchor fresh only
+                // while their element is in step with it. A newcomer still
+                // loading, or a client that has just reloaded, would otherwise
+                // re-anchor the whole room on wherever their player happens
+                // to be — typically zero.
+                const inStep = seen !== undefined
+                    && Math.abs(seen.position - projectedPositionAt(this.playhead, now)) <= this.policy.hardSeekThreshold;
+                const author = this.playhead.by === this.self && this.playhead.at === this.decidedHere;
+                if (due && this.restater() === this.self && (author || inStep)
+                    && seen?.ready && !seen.stalled && !seen.paused) {
                     const restated: PlayheadIntent = {
                         value: { position: seen.position, paused: false, rate: this.playhead.value.rate },
                         at: this.playhead.at,
@@ -532,12 +569,14 @@ class Replica implements RoomReplica {
     }
 
     private emit(events: DomainEvent[], publish: PublishIntent[], correct: Correction): Decision {
-        return { events, publish: this.writable ? publish : [], correct };
+        const all = this.outbox.length ? [...publish, ...this.outbox.splice(0)] : publish;
+        return { events, publish: this.writable ? all : [], correct };
     }
 
     private declare(value: Playhead, now: EpochMs, events: DomainEvent[]): Decision {
         const intent = this.decided(value, now);
         this.playhead = intent;
+        this.decidedHere = intent.at;
         return this.emit(events, [{ kind: 'playhead', intent }], { kind: 'none' });
     }
 
@@ -574,13 +613,85 @@ class Replica implements RoomReplica {
         return { participantId: this.self, nickname: this.nick, lastSeen };
     }
 
+    /**
+     * What to do about the gap between the element and the room, right now.
+     *
+     * Two refinements over plain `reconcile`, both for players where moving
+     * the element is not free — an embedded YouTube or Vimeo, where every
+     * start and every seek buffers for a second or more:
+     *
+     * LEAD, DON'T CHASE. Whoever anchors the running playhead (its author, or
+     * whoever took over) is the room's reference. A gap between its element
+     * and its own projection means the ANCHOR is stale — the player started
+     * later than the decision, or reports its position coarsely — not that
+     * the element is wrong. It used to seek itself forward to the projection,
+     * buffer, fall behind by the buffering time, and seek again: a stop every
+     * second or two, with nobody else in the room. Now it re-anchors the
+     * playhead on what its element is actually showing and the others follow.
+     *
+     * AIM WHERE THE ROOM WILL BE. A follower whose seeks cost time lands
+     * behind by that cost, every time. When a corrective seek is needed again
+     * soon after the last one, the shortfall is added to `seekLead`, so the
+     * next seek aims that much ahead; overshooting takes it back off. It
+     * settles on the element's actual seek cost within a seek or two.
+     */
     private correctNow(now: EpochMs): Correction {
         if (!this.seen) return { kind: 'none' };
-        const correction = reconcile(this.seen.state, this.playhead, now, this.policy);
+        const observed = this.seen.state;
+        let correction = reconcile(observed, this.playhead, now, this.policy);
+
+        // I4: a correction still in flight suppresses new ones toward the SAME
+        // intent. The element has not caught up with the last instruction yet,
+        // so its readings describe the instruction, not the room — re-issuing
+        // on them restarts every seek before it can land (and, with a lead,
+        // reads the lead itself as an overshoot and takes it straight back).
+        // A new intent from the room, or a genuine change of mind between
+        // halt and resume, gets through.
+        const sameIntent = this.pendingFor === intentKey(this.playhead);
+        if (this.pending && sameIntent && !hasSettled(this.pending, now, this.policy) && correction.kind !== 'none') {
+            const flip = (this.pending.correction.kind === 'halt' && correction.kind === 'resume')
+                || (this.pending.correction.kind === 'resume' && correction.kind === 'halt');
+            if (!flip) return { kind: 'none' };
+        }
+
+        const running = !this.playhead.value.paused && !observed.paused;
+        const leading = this.decidedHere !== null && this.playhead.at === this.decidedHere && this.playhead.by === this.self;
+        if (running && (correction.kind === 'seek' || correction.kind === 'nudge') && leading) {
+            this.reanchor(observed.position, now);
+            return { kind: 'none' };
+        }
+
+        if (running && correction.kind === 'seek') {
+            const drift = observed.position - projectedPositionAt(this.playhead, now);
+            if (this.lastCorrectiveSeekAt !== null && now - this.lastCorrectiveSeekAt < SEEK_COST_MEMORY_MS) {
+                this.seekLead = Math.min(MAX_SEEK_LEAD_S, Math.max(0, this.seekLead - drift));
+            }
+            this.lastCorrectiveSeekAt = now;
+            correction = { kind: 'seek', to: (correction.to + this.seekLead) as Seconds };
+        }
+
         if (correction.kind === 'seek' || correction.kind === 'halt' || correction.kind === 'resume') {
             this.pending = { correction, issuedAt: now, seq: ++this.seq };
+            this.pendingFor = intentKey(this.playhead);
         }
         return correction;
+    }
+
+    /** Restate the running decision as measured on this element now; publishes via the outbox. */
+    private reanchor(position: number, now: EpochMs): void {
+        const restated: PlayheadIntent = {
+            value: { position: position as Seconds, paused: false, rate: this.playhead.value.rate },
+            at: this.playhead.at,
+            by: this.playhead.by,
+            anchoredAt: now,
+        };
+        this.playhead = restated;
+        this.outbox.push({ kind: 'playhead', intent: restated });
+    }
+
+    private forgetSeekCost(): void {
+        this.seekLead = 0;
+        this.lastCorrectiveSeekAt = null;
     }
 
     /**
