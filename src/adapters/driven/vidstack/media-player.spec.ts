@@ -55,6 +55,36 @@ describe('VidstackMediaPlayer', () => {
         expect(element.muted).toBe(true);
     });
 
+    it('does not retry a play() that the viewer interrupted by pausing', async () => {
+        // Regression. A play() still waiting for data rejects with AbortError
+        // when the viewer presses pause; the retry meant for autoplay refusals
+        // started the element again, undoing the pause within milliseconds.
+        const play = vi.fn()
+            .mockRejectedValueOnce(new DOMException('The play() request was interrupted by a call to pause().', 'AbortError'))
+            .mockResolvedValueOnce(undefined);
+        const player = new VidstackMediaPlayer();
+        const element = fakeElement(play as () => Promise<void>);
+        player.mount(element);
+        element.muted = false;
+
+        await player.play();
+
+        expect(play).toHaveBeenCalledTimes(1);
+        expect(element.muted).toBe(false);
+    });
+
+    it('keeps the viewer\'s own mute choice across a new source', async () => {
+        const player = new VidstackMediaPlayer();
+        const element = fakeElement(async () => undefined);
+        player.mount(element);
+        element.muted = false;
+        element.dispatchEvent(new Event('volume-change'));
+
+        await player.load(media);
+
+        expect(element.muted).toBe(false);
+    });
+
     it('reports position and paused state synchronously', async () => {
         const player = new VidstackMediaPlayer();
         const element = fakeElement(async () => undefined);

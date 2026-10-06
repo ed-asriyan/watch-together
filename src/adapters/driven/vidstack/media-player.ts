@@ -69,6 +69,11 @@ export class VidstackMediaPlayer implements MediaPlayerPort, PlayerSurface {
         });
         on('playing', () => this.sample());
         on('end', () => this.listener?.onEnded());
+        // The viewer's own choice, from vidstack's mute button or volume
+        // slider. Remembered so loading the next source does not undo it.
+        on('volume-change', () => {
+            this.muted = Boolean(player.muted);
+        });
         on('error', () => this.listener?.onError({ kind: 'unknown', message: 'playback failed' }));
 
         // The raw event fires far more often than anything needs; throttling
@@ -83,9 +88,9 @@ export class VidstackMediaPlayer implements MediaPlayerPort, PlayerSurface {
 
         // Muted to start, exactly as before this refactor. Browsers refuse to
         // start audible playback without a gesture, and the room can tell this
-        // client to resume at any moment; vidstack's own control unmutes.
-        player.muted = true;
-        this.muted = true;
+        // client to resume at any moment; vidstack's own control unmutes, and
+        // the `volume-change` handler above keeps whatever the viewer chose.
+        player.muted = this.muted;
 
         if (this.pendingMedia) void this.load(this.pendingMedia);
     }
@@ -123,13 +128,20 @@ export class VidstackMediaPlayer implements MediaPlayerPort, PlayerSurface {
      * client has no user gesture to spend and autoplay policy rejects it.
      * Failing there would leave one viewer silently paused while the room
      * watches on — a muted picture is better than no picture.
+     *
+     * ONLY that refusal is retried. `play()` also rejects, with `AbortError`,
+     * when something interrupts it before playback starts — most often the
+     * viewer pressing pause while the element is still buffering. Retrying
+     * that overruled the viewer: the pause was undone within milliseconds,
+     * published as a play, and the room never stopped.
      */
     async play(): Promise<void> {
         const player = this.element;
         if (!player) return;
         try {
             await player.play();
-        } catch {
+        } catch (error) {
+            if (!isAutoplayRefusal(error)) return;
             player.muted = true;
             this.muted = true;
             await player.play();
@@ -191,3 +203,7 @@ export class VidstackMediaPlayer implements MediaPlayerPort, PlayerSurface {
         };
     }
 }
+
+/** The browser's "not without a user gesture", as opposed to any other reason `play()` failed. */
+const isAutoplayRefusal = (error: unknown): boolean =>
+    (error as { name?: unknown } | null)?.name === 'NotAllowedError';

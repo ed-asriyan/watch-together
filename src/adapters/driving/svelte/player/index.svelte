@@ -64,16 +64,20 @@
             </div>
         {/if}
         <!--
-            `muted` is set as an attribute, not only as a property from the
-            adapter: the custom element upgrades asynchronously and a property
-            written before that does not survive. Starting muted is what makes
-            a remote resume playable at all — the browser refuses audible
-            playback without a gesture this client never made.
+            `muted` is a static attribute, set once when the element is made:
+            the custom element upgrades asynchronously and a property written
+            before that does not survive. Starting muted is what makes a remote
+            resume playable at all — the browser refuses audible playback
+            without a gesture this client never made.
+
+            It must NOT be bound to the view. It was, and the view re-renders
+            several times a second, so every render re-muted the player: a
+            viewer who unmuted heard sound for under a second.
         -->
         <media-player
             bind:this={element}
             class="uk-width-1-1 uk-height-1-1"
-            muted={$playback.muted}
+            muted
             playsInline
             preload="metadata"
             crossOrigin
