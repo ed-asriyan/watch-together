@@ -148,8 +148,8 @@ export class Viewer {
         await field.press('Enter');
     }
 
-    async waitUntilReady(): Promise<void> {
-        await expect.poll(async () => (await this.state()).ready, { message: `${this.name}: player ready` }).toBe(true);
+    async waitUntilReady(timeout = 10_000): Promise<void> {
+        await expect.poll(async () => (await this.state()).ready, { message: `${this.name}: player ready`, timeout }).toBe(true);
     }
 
     /** The play/pause button in vidstack's control bar. */

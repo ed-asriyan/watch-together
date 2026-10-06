@@ -2032,6 +2032,35 @@ the source field published every keystroke, so each URL prefix reset the
 room; and LWW compared stamps as zero-padded strings, which misorders any
 fractional stamp.
 
+### Plays, stops, plays, stops — on YouTube
+
+Reported after the above: on a YouTube video, pressing play made the room
+play a second, stop a second, in a loop. A `<video>` on a local file never
+showed it, because there a seek is free. On an embedded provider every start
+and every seek buffers, so a correction toward the projected position lands
+behind it by the buffering time and triggers the next correction — each one
+a visible stop. Reproduced deterministically with `StreamingPlayer`, a fake
+with start-up and seek costs and coarse position reports
+(`test/scenarios/streaming-provider.spec.ts`): the client that pressed play
+sought itself 30 times a minute with nobody else in the room.
+
+Three changes in `correctNow`:
+
+- **Lead, don't chase.** The participant who made the running decision, in
+  this session, never seeks toward its own projection: a gap there means the
+  anchor is stale (the player started later than the decision), so it
+  restates the anchor on what its element shows and the others follow. A
+  client that merely shares the id after a reload, or was elected to keep the
+  anchor fresh, does not lead — the elected one restates only while in step,
+  so a newcomer still at zero cannot drag the room there.
+- **Aim where the room will be.** A corrective seek needed again within 10s
+  of the last means the last fell short; the shortfall is added to a lead
+  (0–5s) that later seeks aim ahead by. It settles on the element's actual
+  seek cost.
+- **I4, implemented.** A correction still landing suppresses new ones toward
+  the same intent; only a new intent, or a flip between halt and resume, gets
+  through. Re-issuing restarted every seek before it could land.
+
 ## 23. The local backend
 
 `backend/local` is a Node process holding rooms in memory and serving them over

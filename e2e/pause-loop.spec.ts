@@ -1,4 +1,4 @@
-import { test, type Browser, type TestInfo } from '@playwright/test';
+import { test, expect, type Browser, type TestInfo } from '@playwright/test';
 import { Viewer, VIDEO, expectInSync, roomFor, type ViewerOptions } from './support/viewer';
 
 /**
@@ -52,3 +52,35 @@ for (const [label, [aliceOptions, bobOptions]] of Object.entries(conditions)) {
         await expectInSync(both, { paused: true, tolerance: 0.75, holdMs: HOLD, timeout: 20_000 });
     });
 }
+
+test('a segmented source over a slow link plays steadily instead of stopping every second', async ({ browser }, info) => {
+    // The shape of an embedded YouTube: the player holds only a few seconds
+    // ahead, so every start and every seek costs a round trip. A sync loop
+    // that seeks toward a target it then lands behind turns each correction
+    // into a visible stop.
+    const id = roomFor(info);
+    const alice = await Viewer.join(browser, id, 'alice', { mediaLatencyMs: 800 });
+    const bob = await Viewer.join(browser, id, 'bob', { mediaLatencyMs: 800 });
+    await alice.pasteSource(`${VIDEO}?chunk=4096`);
+    // Reading the metadata alone takes several round trips at this latency.
+    await alice.waitUntilReady(60_000);
+    await bob.waitUntilReady(60_000);
+
+    await alice.play();
+    await expectInSync([alice, bob], { paused: false, tolerance: 1.5, holdMs: 0, timeout: 20_000 });
+    await alice.page.waitForTimeout(5_000);
+
+    const seeks = async () => Promise.all([alice, bob].map((v) => v.page.evaluate(() => {
+        const w = window as unknown as { __seeks?: number };
+        if (w.__seeks === undefined) {
+            w.__seeks = 0;
+            document.querySelector('media-player')!.addEventListener('seeking', () => { w.__seeks! += 1; });
+        }
+        return w.__seeks;
+    })));
+    await seeks();
+    await expectInSync([alice, bob], { paused: false, tolerance: 1.5, holdMs: 20_000 });
+    const [aliceSeeks, bobSeeks] = await seeks();
+    expect(aliceSeeks, 'alice kept seeking').toBeLessThanOrEqual(1);
+    expect(bobSeeks, 'bob kept seeking').toBeLessThanOrEqual(1);
+});

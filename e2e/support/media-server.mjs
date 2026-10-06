@@ -6,6 +6,11 @@
  *
  *   MEDIA_PORT  default 8788
  *
+ * `?chunk=<bytes>` caps every range response at that many bytes, the way
+ * segmented streaming (DASH, HLS, YouTube) works: the player never holds more
+ * than a few seconds ahead, so a seek costs a round trip instead of being
+ * answered from a buffer that already holds the whole file.
+ *
  * `Cache-Control: no-store` matters: tests slow down one client's media
  * requests to simulate a bad connection, and a cached range would bypass that.
  */
@@ -36,7 +41,9 @@ createServer((request, response) => {
         'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
         'Cache-Control': 'no-store',
     };
-    const path = decodeURIComponent(new URL(request.url ?? '/', 'http://x').pathname);
+    const url = new URL(request.url ?? '/', 'http://x');
+    const path = decodeURIComponent(url.pathname);
+    const chunk = Number(url.searchParams.get('chunk') ?? 0);
     if (path === '/health') {
         response.writeHead(200, headers);
         response.end('ok');
@@ -61,7 +68,8 @@ createServer((request, response) => {
 
     if (range) {
         const start = range[1] ? Number(range[1]) : 0;
-        const end = range[2] ? Math.min(Number(range[2]), size - 1) : size - 1;
+        const requestedEnd = range[2] ? Math.min(Number(range[2]), size - 1) : size - 1;
+        const end = chunk > 0 ? Math.min(requestedEnd, start + chunk - 1) : requestedEnd;
         response.writeHead(206, {
             ...headers,
             'Accept-Ranges': 'bytes',
