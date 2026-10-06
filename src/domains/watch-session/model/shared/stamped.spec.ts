@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
-import { mergeLww, stamp, supersedes } from './stamped';
+import { mergeLww, nextStamp, stamp, supersedes } from './stamped';
 import { ALICE, BOB, T0, at, ms, stamped } from '../../../../../test-support/builders';
 
 describe('Stamped / LWW register', () => {
@@ -87,4 +87,42 @@ describe('Stamped / LWW register', () => {
             expect(stamp('x', T0, ALICE)).toEqual({ value: 'x', at: T0, by: ALICE });
         });
     });
+
+    describe('restatements', () => {
+        const decision = stamped('running', at(1_000), ALICE);
+        const restatement = { ...stamped('running+', at(1_000), ALICE), anchoredAt: at(11_000) };
+
+        it('a later re-measurement of the same decision supersedes the earlier one', () => {
+            expect(supersedes(restatement, decision)).toBe(true);
+            expect(supersedes(decision, restatement)).toBe(false);
+        });
+
+        it('never overtakes a newer decision, however late it is anchored', () => {
+            const pause = stamped('paused', at(1_001), BOB);
+            expect(supersedes({ ...restatement, anchoredAt: at(99_999) }, pause)).toBe(false);
+            expect(mergeLww(pause, restatement)).toBe(pause);
+        });
+    });
+
+    describe('ordering', () => {
+        it('orders fractional stamps by value, not by their spelling', () => {
+            // Regression: zero-padded string comparison put "…762.5" after
+            // "…763", so a fractional stamp beat a later whole one.
+            const earlier = stamped('a', ms(1_789_835_546_762.5), ALICE);
+            const later = stamped('b', ms(1_789_835_546_763), ALICE);
+            expect(mergeLww(earlier, later)).toBe(later);
+            expect(mergeLww(later, earlier)).toBe(later);
+        });
+    });
+
+    describe('nextStamp', () => {
+        it('is the clock reading when that is already later than anything seen', () => {
+            expect(nextStamp(at(5_000), stamped('x', at(1_000), BOB))).toBe(at(5_000));
+        });
+
+        it('is one past what was seen when the local clock is behind it', () => {
+            expect(nextStamp(at(1_000), stamped('x', at(5_000), BOB))).toBe(at(5_001));
+        });
+    });
 });
+

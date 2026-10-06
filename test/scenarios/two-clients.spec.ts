@@ -185,14 +185,33 @@ describe('two clients in one room', () => {
             expect(late.player.observe().position).toBeGreaterThan(40);
         });
 
-        it('playback nobody is driving eventually stops on its own', async () => {
+        it('keeps playing for those still watching after the person who pressed play leaves', async () => {
+            // Regression. Only the participant who pressed play restated the
+            // running playhead, so a minute after they left the stale-playback
+            // guard paused everyone who was still watching.
             alice.player.userPresses('play');
             await wait(1);
             await alice.session.leave();
 
+            await wait(DEFAULT_SYNC_POLICY.stalePlaybackTimeout + 30);
+
+            expect(bob.player.observe().paused).toBe(false);
+            expect(bob.player.observe().position).toBeGreaterThan(DEFAULT_SYNC_POLICY.stalePlaybackTimeout + 20);
+        });
+
+        it('playback nobody can actually watch eventually stops on its own', async () => {
+            alice.player.userPresses('play');
+            await wait(1);
+            await alice.session.leave();
+            // The one viewer left is stuck buffering: nothing is advancing, so
+            // nobody can vouch for the running playhead.
+            bob.player.starve();
+
             await wait(DEFAULT_SYNC_POLICY.stalePlaybackTimeout + 5);
 
-            expect(bob.player.observe().paused).toBe(true);
+            let paused = false;
+            bob.session.view.playback.subscribe((view) => { paused = view.paused; })();
+            expect(paused).toBe(true);
         });
 
         it('does not fight itself: one correction, then quiet', async () => {

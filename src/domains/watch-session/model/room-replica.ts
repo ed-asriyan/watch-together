@@ -1,6 +1,6 @@
 import type { EpochMs, Seconds } from './shared/time';
 import type { Stamped } from './shared/stamped';
-import { mergeLww, supersedes } from './shared/stamped';
+import { mergeLww, nextStamp, supersedes } from './shared/stamped';
 import type { ActivityBody } from './activity';
 import type { PublishIntent } from './decision';
 import type { DomainEvent } from './events';
@@ -8,7 +8,7 @@ import type { Correction } from './reconcile';
 import type { Playhead } from './playhead';
 import type { IssuedCorrection, PlayerObservation } from './echo';
 import { hasSettled, isEcho } from './echo';
-import { isAdvancing, projectedPositionAt, silentFor } from './playhead';
+import { anchorOf, isAdvancing, projectedPositionAt, silentFor } from './playhead';
 import { reconcile } from './reconcile';
 import { heartbeatDue, onlineOnly } from './presence-policy';
 import { expiredIds, isExpired, liveOnly, sweepDue } from './retention-policy';
@@ -158,7 +158,6 @@ class Replica implements RoomReplica {
     private seq = 0;
     private seen: Seen | null = null;
 
-    private lastPlayheadPublish: EpochMs | null = null;
     private lastPresencePublish: EpochMs | null = null;
     private lastSweep: EpochMs | null = null;
     private lastWatchMark: EpochMs;
@@ -209,16 +208,12 @@ class Replica implements RoomReplica {
     }
 
     selectSource(source: MediaSourceRef | null, now: EpochMs): Decision {
-        const stampedSource: Stamped<MediaSourceRef | null> = { value: source, at: now, by: this.self };
+        const stampedSource: Stamped<MediaSourceRef | null> = { value: source, at: nextStamp(now, this.src), by: this.self };
         this.src = mergeLww(this.src, stampedSource);
 
-        // Same reading on both writes: a peer must never be able to apply the
-        // new source against the old position, or the other way round.
-        const reset: PlayheadIntent = {
-            value: { position: 0 as Seconds, paused: true, rate: 1 },
-            at: now,
-            by: this.self,
-        };
+        // Published together with the source: a peer must never be able to
+        // apply the new source against the old position, or the other way round.
+        const reset = this.decided({ position: 0 as Seconds, paused: true, rate: 1 }, now);
         this.playhead = mergeLww(this.playhead, reset);
         this.pending = null;
 
@@ -371,42 +366,43 @@ class Replica implements RoomReplica {
         const previous = this.seen;
         this.seen = { state: observed, at: now };
 
-        // Nothing observed while loading or buffering means anything.
-        if (!observed.ready || observed.stalled) return NOTHING;
+        // Nothing observed while loading means anything.
+        if (!observed.ready) return NOTHING;
+
+        // What the element did since the last reading — judged against the
+        // element itself, never against the room. Buffering readings take
+        // part: their position is exactly where the element is, frozen.
+        const action = this.classify(previous, observed, now);
 
         if (this.pending && !hasSettled(this.pending, now, this.policy)) {
-            const observation = this.classify(previous, observed, now);
             // NOT cleared on the first match: one `halt` or `resume` produces
             // two events, the seek and the toggle, and forgetting it after the
             // first would leave the second to be declared as a user action.
             // `hasSettled` retires it instead, so the window governs how long
             // a correction can be blamed for what the element does.
-            if (observation && isEcho(observation, this.pending, now, this.policy)) return NOTHING;
+            const asEcho = action ?? { type: 'seeked', position: observed.position };
+            if (isEcho(asEcho, this.pending, now, this.policy)) return NOTHING;
         }
 
-        // A user action is a DISCONTINUITY against the player's own previous
-        // reading. Falling behind the room is continuous, and publishing that
-        // would tell everyone else to rewind to wherever this client is stuck.
-        if (previous && previous.state.ready && !previous.state.stalled) {
-            const expected = previous.state.paused
-                ? previous.state.position
-                : previous.state.position + (now - previous.at) / 1000;
-            const jumped = Math.abs(observed.position - expected) > this.policy.hardSeekThreshold;
-            const toggled = observed.paused !== previous.state.paused;
-
-            if (jumped || toggled) {
-                this.pending = null;
-                return this.declare(
-                    { position: observed.position, paused: observed.paused, rate: this.playhead.value.rate },
-                    now,
-                    toggled
-                        ? observed.paused
-                            ? [{ type: 'PlaybackPaused', at: observed.position, by: this.self, local: true }]
-                            : [{ type: 'PlaybackStarted', at: observed.position, by: this.self, local: true }]
+        if (action && action.type !== 'progress') {
+            this.pending = null;
+            return this.declare(
+                { position: observed.position, paused: observed.paused, rate: this.playhead.value.rate },
+                now,
+                action.type === 'paused'
+                    ? [{ type: 'PlaybackPaused', at: observed.position, by: this.self, local: true }]
+                    : action.type === 'played'
+                        ? [{ type: 'PlaybackStarted', at: observed.position, by: this.self, local: true }]
                         : [{ type: 'PlaybackSeeked', to: observed.position, by: this.self, local: true }],
-                );
-            }
+            );
         }
+
+        // A buffering element is behind for a reason that correcting cannot
+        // fix; drift readings from it are noise. Only CORRECTIONS wait for
+        // it — the user's own actions above never did, or a scrub or a pause
+        // made while the element was buffering was thrown away and the room
+        // pulled the element straight back.
+        if (observed.stalled) return NOTHING;
 
         return this.emit([], [], this.correctNow(now));
     }
@@ -448,36 +444,44 @@ class Replica implements RoomReplica {
                 // Whoever was driving playback is gone. Freeze where the room
                 // would be now, not back where it was last heard from.
                 const at = projectedPositionAt(this.playhead, now);
-                const halted: PlayheadIntent = {
-                    value: { position: at, paused: true, rate: this.playhead.value.rate },
-                    at: now,
-                    by: this.self,
-                };
+                const halted = this.decided({ position: at, paused: true, rate: this.playhead.value.rate }, now);
                 this.playhead = halted;
                 publish.push({ kind: 'playhead', intent: halted });
                 events.push({ type: 'PlaybackStalled', silentFor: silent });
             } else {
-                // Restate our own running playhead periodically, from what the
+                // Restate the running playhead periodically, from what the
                 // element is ACTUALLY doing.
                 //
                 // No decoder advances at exactly one second per second, so a
                 // projection anchored once at the moment play was pressed
                 // drifts away from reality for everybody — including the person
                 // driving, who then starts correcting against their own stale
-                // stamp. Only the author restates it; if everyone did, the room
-                // would fight over the anchor.
-                const mine = this.playhead.by === this.self;
-                const due = this.lastPlayheadPublish === null
-                    || now - this.lastPlayheadPublish >= this.policy.playheadHeartbeat * 1000;
-
-                if (mine && due && this.seen?.state.ready && !this.seen.state.stalled) {
+                // anchor.
+                //
+                // A restatement re-measures the SAME decision: it keeps `at`
+                // and `by` and moves only the anchor. It used to be a fresh
+                // write stamped `now`, which made every heartbeat the newest
+                // decision in the room — so a pause or a seek from anyone whose
+                // clock ran a little behind lost to the next heartbeat and
+                // vanished. That was "I pause on one and the other keeps
+                // playing", and "I scrub and the other does not follow".
+                //
+                // Exactly one participant restates, or the room would fight
+                // over the anchor: whoever made the decision, or — once they
+                // have gone — whoever every replica agrees on (see
+                // `restater`). Legacy kept the room alive through anyone who
+                // was watching; with only the author restating, the room froze
+                // a minute after the person who pressed play left.
+                const due = now - anchorOf(this.playhead) >= this.policy.playheadHeartbeat * 1000;
+                const seen = this.seen?.state;
+                if (due && this.restater() === this.self && seen?.ready && !seen.stalled && !seen.paused) {
                     const restated: PlayheadIntent = {
-                        value: { position: this.seen.state.position, paused: false, rate: 1 },
-                        at: now,
-                        by: this.self,
+                        value: { position: seen.position, paused: false, rate: this.playhead.value.rate },
+                        at: this.playhead.at,
+                        by: this.playhead.by,
+                        anchoredAt: now,
                     };
                     this.playhead = restated;
-                    this.lastPlayheadPublish = now;
                     publish.push({ kind: 'playhead', intent: restated });
                 }
             }
@@ -532,10 +536,31 @@ class Replica implements RoomReplica {
     }
 
     private declare(value: Playhead, now: EpochMs, events: DomainEvent[]): Decision {
-        const intent: PlayheadIntent = { value, at: now, by: this.self };
+        const intent = this.decided(value, now);
         this.playhead = intent;
-        this.lastPlayheadPublish = now;
         return this.emit(events, [{ kind: 'playhead', intent }], { kind: 'none' });
+    }
+
+    /**
+     * A new playback decision by this participant, ordered after everything
+     * this replica has seen (`nextStamp`) and anchored at the real `now`.
+     * The two only differ when this client's clock is behind the room's.
+     */
+    private decided(value: Playhead, now: EpochMs): PlayheadIntent {
+        const at = nextStamp(now, this.playhead);
+        return at === now ? { value, at, by: this.self } : { value, at, by: this.self, anchoredAt: now };
+    }
+
+    /**
+     * Who keeps the running playhead's anchor fresh: the participant who made
+     * the decision while they are here, otherwise the lowest id among those
+     * who are. Every replica computes the same answer from the same presence,
+     * so exactly one of them restates.
+     */
+    private restater(): ParticipantId {
+        const author = this.playhead.by;
+        if (author === this.self || this.onlineIds.includes(author)) return author;
+        return [this.self, ...this.onlineIds].sort()[0]!;
     }
 
     private authored(id: ActivityId, at: EpochMs, body: ActivityBody): Activity {
@@ -558,17 +583,35 @@ class Replica implements RoomReplica {
         return correction;
     }
 
+    /**
+     * A user action is a DISCONTINUITY against the element's own previous
+     * reading: a toggle, or a position outside where the element could have
+     * got to on its own. Falling behind the room is continuous, and publishing
+     * that would tell everyone else to rewind to wherever this client is stuck.
+     *
+     * "Could have got to on its own" is a window, not a point: a playing
+     * element advances by at most the elapsed time, and by as little as
+     * nothing when it is buffering. Measuring against the point — previous
+     * position plus elapsed — read every rebuffer as the user scrubbing
+     * backwards, which is why buffering readings used to be thrown away
+     * whole, user actions included.
+     *
+     * @returns `null` when there is no ready previous reading to compare with.
+     */
     private classify(previous: Seen | null, observed: ObservedPlayback, now: EpochMs): PlayerObservation | null {
-        if (!previous) return { type: 'seeked', position: observed.position };
+        if (!previous || !previous.state.ready) return null;
         if (observed.paused !== previous.state.paused) {
             return observed.paused
                 ? { type: 'paused', position: observed.position }
                 : { type: 'played', position: observed.position };
         }
-        const expected = previous.state.paused
-            ? previous.state.position
-            : previous.state.position + (now - previous.at) / 1000;
-        return Math.abs(observed.position - expected) > this.policy.hardSeekThreshold
+        const from = previous.state.position;
+        const elapsed = Math.max(0, now - previous.at) / 1000;
+        const furthest = previous.state.paused
+            ? from
+            : from + elapsed * (this.playhead.value.rate + this.policy.nudgeRateDelta);
+        const slack = this.policy.hardSeekThreshold;
+        return observed.position < from - slack || observed.position > furthest + slack
             ? { type: 'seeked', position: observed.position }
             : { type: 'progress', position: observed.position };
     }
@@ -580,7 +623,7 @@ class Replica implements RoomReplica {
                 ? [{ type: 'PlaybackPaused', at: next.value.position, by: next.by, local }]
                 : [{ type: 'PlaybackStarted', at: next.value.position, by: next.by, local }];
         }
-        const drift = Math.abs(next.value.position - projectedPositionAt(previous, next.at));
+        const drift = Math.abs(next.value.position - projectedPositionAt(previous, anchorOf(next)));
         return drift > this.policy.hardSeekThreshold
             ? [{ type: 'PlaybackSeeked', to: next.value.position, by: next.by, local }]
             : [];

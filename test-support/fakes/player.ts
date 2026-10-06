@@ -21,6 +21,7 @@ export class FakePlayer implements MediaPlayerPort {
     private paused = true;
     private rate = 1;
     private loaded: ResolvedMedia | null = null;
+    private starved = false;
 
     constructor(private readonly clock: FakeClock, private ready = false) {
         this.anchoredAt = clock.now();
@@ -68,13 +69,19 @@ export class FakePlayer implements MediaPlayerPort {
     }
 
     observe(): ObservedPlayback {
-        const elapsed = this.paused ? 0 : ((this.clock.now() - this.anchoredAt) / 1000) * this.rate;
+        const elapsed = this.paused || this.starved ? 0 : ((this.clock.now() - this.anchoredAt) / 1000) * this.rate;
         return {
             position: (this.anchor + elapsed) as Seconds,
             paused: this.paused,
             ready: this.ready,
-            stalled: false,
+            stalled: this.starved && !this.paused,
         };
+    }
+
+    /** The network dies: the element keeps "playing" but its position freezes, buffering for ever. */
+    starve(): void {
+        this.reanchor();
+        this.starved = true;
     }
 
     /** What the user does: a scrub on the player's own controls. */

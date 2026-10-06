@@ -14,6 +14,14 @@ export interface TimedValueDto<T> {
     by?: string;
     /** New: playback rate, absent means 1. */
     rate?: number;
+    /**
+     * New, SECONDS: when the decision this value belongs to was made — the
+     * LWW ordering key. Absent means `updatedAt`. Written only on the playhead
+     * nodes, and only when it differs from `updatedAt`, which then holds the
+     * instant the position was measured. Old clients read `updatedAt` as both,
+     * which for them is the right projection anchor.
+     */
+    decidedAt?: number;
 }
 
 export interface UserDto {

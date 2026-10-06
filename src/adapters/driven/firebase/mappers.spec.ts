@@ -154,3 +154,31 @@ describe('activity round trip', () => {
         expect(read[0]).toEqual(original);
     });
 });
+
+describe('restated playhead on the wire', () => {
+    const restated = { ...intent({ position: sec(40), paused: false }, at(1_000), ALICE), anchoredAt: at(41_000) };
+
+    it('keeps the decision and the anchor apart through a round trip', () => {
+        expect(readPlayhead(writePlayhead(restated))).toEqual(restated);
+    });
+
+    it('puts the anchor in `updatedAt`, where old clients project from', () => {
+        // Legacy reads `updatedAt` as "when `value` was true". Writing the
+        // decision time there would make every old client jump back by the
+        // time since play was pressed.
+        const dto = writePlayhead(restated);
+        expect(dto.currentTime.updatedAt).toBe((T0 + 41_000) / 1000);
+        expect(dto.currentTime.decidedAt).toBe((T0 + 1_000) / 1000);
+        expect(dto.paused.updatedAt).toBe((T0 + 41_000) / 1000);
+    });
+
+    it('writes nothing extra for a plain decision', () => {
+        const dto = writePlayhead(intent({ position: sec(5) }, at(1_000), ALICE));
+        expect(dto.currentTime).not.toHaveProperty('decidedAt');
+        expect(readPlayhead(dto)).not.toHaveProperty('anchoredAt');
+    });
+
+    it('is not mistaken for half a write', () => {
+        expect(isHalfDeliveredPlayhead(writePlayhead(restated))).toBe(false);
+    });
+});

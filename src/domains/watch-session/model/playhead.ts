@@ -36,7 +36,7 @@ export type PlayheadIntent = Stamped<Playhead>;
  */
 export function projectedPositionAt(intent: PlayheadIntent, now: EpochMs): Seconds {
     if (intent.value.paused) return intent.value.position;
-    const elapsedSeconds = Math.max(0, now - intent.at) / 1000;
+    const elapsedSeconds = Math.max(0, now - anchorOf(intent)) / 1000;
     return (intent.value.position + elapsedSeconds * intent.value.rate) as Seconds;
 }
 
@@ -49,7 +49,15 @@ export function projectedPositionAt(intent: PlayheadIntent, now: EpochMs): Secon
  * @param now    Synchronized clock reading.
  */
 export function silentFor(intent: PlayheadIntent, now: EpochMs): Seconds {
-    return (Math.max(0, now - intent.at) / 1000) as Seconds;
+    return (Math.max(0, now - anchorOf(intent)) / 1000) as Seconds;
+}
+
+/**
+ * The instant `intent.value.position` was true: when it was last measured,
+ * which for a restated running playhead is later than when it was decided.
+ */
+export function anchorOf(intent: PlayheadIntent): EpochMs {
+    return intent.anchoredAt ?? intent.at;
 }
 
 export function isAdvancing(intent: PlayheadIntent): boolean {

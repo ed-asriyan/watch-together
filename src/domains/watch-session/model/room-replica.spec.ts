@@ -4,7 +4,7 @@ import { DEFAULT_SYNC_POLICY, type SyncPolicy } from './sync-policy';
 import type { Decision, PublishIntent } from './decision';
 import type { Nickname } from './ids';
 import {
-    ALICE, BOB, ROOM, T0, activity, at, intent, observed, presence, sec, source, stamped,
+    ALICE, BOB, CAROL, ROOM, T0, activity, at, intent, observed, presence, sec, source, stamped,
 } from '../../../../test-support/builders';
 
 const P = DEFAULT_SYNC_POLICY;
@@ -211,6 +211,52 @@ describe('RoomReplica', () => {
         });
     });
 
+    describe('user actions while the element is buffering', () => {
+        // Regression. Readings from a buffering element were discarded whole,
+        // so when one fell between a user's scrub and their pause there was
+        // nothing left to compare the pause with: it was never published, and
+        // the room's intent pulled the element straight back and resumed it.
+        const playing = () => {
+            replica.applyRemotePlayhead(intent({ position: sec(18), paused: false }, at(1_000), BOB), at(1_000));
+            replica.observePlayer(observed({ position: sec(18), paused: false }), at(1_000));
+        };
+
+        it('publishes a scrub whose first reading is already buffering', () => {
+            playing();
+            const decision = replica.observePlayer(observed({ position: sec(400), paused: false, stalled: true }), at(1_250));
+            expect(published(decision, 'playhead')[0]?.intent.value).toMatchObject({ position: 400, paused: false });
+        });
+
+        it('publishes a pause made while the element was buffering', () => {
+            playing();
+            replica.observePlayer(observed({ position: sec(400), paused: false, stalled: true }), at(1_250));
+            const decision = replica.observePlayer(observed({ position: sec(400), paused: true }), at(1_500));
+
+            expect(published(decision, 'playhead')[0]?.intent.value).toMatchObject({ position: 400, paused: true });
+            expect(decision.correct.kind).toBe('none');
+        });
+
+        it('does not take a rebuffer for the user scrubbing backwards', () => {
+            playing();
+            // Frozen at 18 for three seconds while the room moves on.
+            for (const t of [1_250, 2_000, 3_000, 4_000]) {
+                const decision = replica.observePlayer(observed({ position: sec(18.2), paused: false, stalled: true }), at(t));
+                expect(published(decision, 'playhead')).toHaveLength(0);
+            }
+            const resumed = replica.observePlayer(observed({ position: sec(18.4), paused: false }), at(4_250));
+            expect(published(resumed, 'playhead')).toHaveLength(0);
+            expect(resumed.correct.kind).toBe('seek');
+        });
+
+        it('issues no correction to an element that is buffering', () => {
+            playing();
+            const decision = replica.observePlayer(observed({ position: sec(10), paused: false, stalled: true }), at(1_100));
+            // A jump of 8s backwards IS a user action; what it must not be is
+            // a correction fired at a buffering element.
+            expect(decision.correct.kind).toBe('none');
+        });
+    });
+
     describe('source and feed', () => {
         it('publishes a selected source and resets the playhead to zero', () => {
             const decision = replica.selectSource(source(), at(1_000));
@@ -271,15 +317,68 @@ describe('RoomReplica', () => {
             const decision = replica.tick(at(41_000));
             const restated = published(decision, 'playhead')[0]?.intent;
             expect(restated?.value.position).toBe(40);
-            expect(restated?.at).toBe(at(41_000));
+            expect(restated?.anchoredAt).toBe(at(41_000));
         });
 
-        it('does not restate a playhead somebody else is driving', () => {
+        it('restates without becoming a newer decision than the one it restates', () => {
+            // Regression. A restatement used to be stamped `now`, which made
+            // every heartbeat the newest decision in the room: a pause from a
+            // participant whose clock was a little behind lost to the next
+            // heartbeat and was silently dropped by everyone.
+            replica.requestPlay(sec(0), at(1_000));
+            replica.observePlayer(observed({ position: sec(40), paused: false }), at(41_000));
+
+            const restated = published(replica.tick(at(41_000)), 'playhead')[0]!.intent;
+            expect(restated.at).toBe(at(1_000));
+            expect(restated.by).toBe(ALICE);
+
+            // Bob paused at 40.5 by his clock, which runs a second behind.
+            const bobsPause = intent({ position: sec(40.5), paused: true }, at(40_500), BOB);
+            replica.applyRemotePlayhead(bobsPause, at(41_600));
+            expect(replica.snapshot(at(41_600)).playhead.value.paused).toBe(true);
+        });
+
+        it('orders its own decision after everything it has seen, whatever its clock says', () => {
+            // Bob's play is stamped 5s ahead of Alice's clock. Alice sees it,
+            // then pauses: her pause must win everywhere, not lose to a stamp
+            // from a clock that runs fast.
+            replica.applyRemotePlayhead(intent({ position: sec(10), paused: false }, at(6_000), BOB), at(1_000));
+            const pause = published(replica.requestPause(sec(12), at(3_000)), 'playhead')[0]!.intent;
+
+            expect(pause.at).toBeGreaterThan(at(6_000));
+            expect(pause.anchoredAt).toBe(at(3_000));
+        });
+
+        it('does not restate a playhead somebody else here is driving', () => {
             // If every client restated it, the room would fight over the anchor.
+            replica.applyRemotePresence([presence(BOB, at(40_000), 'bob')], at(40_000));
             replica.applyRemotePlayhead(intent({ position: sec(0), paused: false }, at(1_000), BOB), at(1_100));
             replica.observePlayer(observed({ position: sec(40), paused: false }), at(41_000));
 
             expect(published(replica.tick(at(41_000)), 'playhead')).toHaveLength(0);
+        });
+
+        it('takes over restating once whoever was driving has left', () => {
+            replica.applyRemotePlayhead(intent({ position: sec(0), paused: false }, at(1_000), BOB), at(1_100));
+            replica.observePlayer(observed({ position: sec(40), paused: false }), at(41_000));
+
+            const restated = published(replica.tick(at(41_000)), 'playhead')[0]?.intent;
+            expect(restated?.by).toBe(BOB);
+            expect(restated?.at).toBe(at(1_000));
+            expect(restated?.anchoredAt).toBe(at(41_000));
+        });
+
+        it('leaves the takeover to exactly one of those who remain', () => {
+            // Bob drove and left; Alice and Carol remain. Every replica elects
+            // the same one — the lowest id — so only Alice restates.
+            const carol = createRoomReplica({ roomId: ROOM, self: CAROL, nickname: 'carol' as Nickname, policy: P, now: T0 });
+            for (const r of [replica, carol]) {
+                r.applyRemotePresence([presence(ALICE, at(40_000), 'alice'), presence(CAROL, at(40_000), 'carol')], at(40_000));
+                r.applyRemotePlayhead(intent({ position: sec(0), paused: false }, at(1_000), BOB), at(1_100));
+                r.observePlayer(observed({ position: sec(40), paused: false }), at(41_000));
+            }
+            expect(published(replica.tick(at(41_000)), 'playhead')).toHaveLength(1);
+            expect(published(carol.tick(at(41_000)), 'playhead')).toHaveLength(0);
         });
 
         it('does not restate before the heartbeat is due', () => {

@@ -39,8 +39,9 @@ export const readPlayhead = (room: RoomDto): PlayheadIntent | null => {
     const paused = room.paused;
     if (!time && !paused) return null;
 
-    const at = toEpochMs(Math.max(time?.updatedAt ?? 0, paused?.updatedAt ?? 0));
     const newer = (time?.updatedAt ?? 0) >= (paused?.updatedAt ?? 0) ? time : paused;
+    const anchoredAt = toEpochMs(newer?.updatedAt ?? 0);
+    const at = newer?.decidedAt !== undefined ? toEpochMs(newer.decidedAt) : anchoredAt;
 
     return {
         value: {
@@ -50,6 +51,7 @@ export const readPlayhead = (room: RoomDto): PlayheadIntent | null => {
         },
         at,
         by: authorOf(newer),
+        ...(anchoredAt !== at ? { anchoredAt } : {}),
     };
 };
 
@@ -96,10 +98,16 @@ export const writePlayhead = (intent: PlayheadIntent): {
     currentTime: TimedValueDto<number>;
     paused: TimedValueDto<boolean>;
 } => {
-    const updatedAt = toLegacySeconds(intent.at);
+    // `updatedAt` is the ANCHOR — when `value` was true — because that is how
+    // old clients project a running position. The ordering key travels
+    // beside it when the two differ.
+    const updatedAt = toLegacySeconds(intent.anchoredAt ?? intent.at);
+    const decided = intent.anchoredAt !== undefined && intent.anchoredAt !== intent.at
+        ? { decidedAt: toLegacySeconds(intent.at) }
+        : {};
     return {
-        currentTime: { value: intent.value.position, updatedAt, by: intent.by, rate: intent.value.rate },
-        paused: { value: intent.value.paused, updatedAt, by: intent.by },
+        currentTime: { value: intent.value.position, updatedAt, by: intent.by, rate: intent.value.rate, ...decided },
+        paused: { value: intent.value.paused, updatedAt, by: intent.by, ...decided },
     };
 };
 
