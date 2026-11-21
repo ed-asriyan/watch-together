@@ -50,6 +50,6 @@ FROM scratch as bundle
 COPY --from=builder /app/dist /dist
 ENTRYPOINT sh
 
-FROM nginx as app
+FROM nginx:1.31.9 as app
 COPY --from=bundle /dist /var/www/html/
 COPY nginx.conf /etc/nginx/nginx.conf
